@@ -23,6 +23,8 @@ const EngraversHoras = () => {
   });
 
   const ordenCelulas = [
+    "270 ENGRVR 1",
+    "271 ENGRVR 2",
     "272 ENGRVR 3",
     "273 ENGRVR 4",
   ];

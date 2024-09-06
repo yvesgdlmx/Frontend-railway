@@ -23,6 +23,7 @@ const BiseladorasHoras = () => {
   });
 
   const ordenCelulas = [
+    "298 DOUBLER",
     "299 BISPHERA",
     "300 EDGER 1",
     "301 EDGER 2",
