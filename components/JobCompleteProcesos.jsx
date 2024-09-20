@@ -58,12 +58,11 @@ const JobCompleteProcesos = () => {
                         diferenciaMasCercana = diferencia;
                     }
                 });
-
                 const formattedLastHour = new Date('1970/01/01 ' + horaMasCercana);
                 setUltimaHora(`${formattedLastHour.getHours().toString().padStart(2, '0')}:${formattedLastHour.getMinutes().toString().padStart(2, '0')}`);
                 console.log("Última hora:", ultimaHora);
-                const horaFinal = new Date('1970/01/01 ' + horaMasCercana);
 
+                const horaFinal = new Date('1970/01/01 ' + horaMasCercana);
                 // Redondear la hora final a la media hora más cercana
                 horaFinal.setMinutes(horaFinal.getMinutes() + 30 - (horaFinal.getMinutes() % 30));
                 const horasTranscurridas = (horaFinal - horaInicio) / (1000 * 60 * 60);
@@ -76,13 +75,13 @@ const JobCompleteProcesos = () => {
                 setSiguienteHora(`${siguienteHoraDate.getHours().toString().padStart(2, '0')}:${siguienteHoraDate.getMinutes().toString().padStart(2, '0')}`);
                 console.log("Siguiente hora:", siguienteHora);
 
-                // Calcular hits por turno
+                // Calcular hits por turno con el ajuste para el turno nocturno
                 const horaMatutinoInicio = new Date('1970/01/01 06:30:00');
                 const horaMatutinoFin = new Date('1970/01/01 14:30:00');
                 const horaVespertinoInicio = new Date('1970/01/01 14:30:00');
                 const horaVespertinoFin = new Date('1970/01/01 21:30:00');
-                const horaNocturnoInicio = new Date('1970/01/01 21:30:00');
-                const horaNocturnoFin = new Date('1970/01/02 01:30:00'); // Nota el cambio al día siguiente
+                const horaNocturnoInicio = new Date('1970/01/01 19:30:00');
+                const horaNocturnoFin = new Date('1970/01/02 01:30:00'); // Cambiar el día para manejar el cruce de medianoche
 
                 const hitsMatutino = registrosFiltrados.filter(registro => {
                     const horaRegistro = new Date('1970/01/01 ' + registro.hour);
@@ -96,7 +95,8 @@ const JobCompleteProcesos = () => {
 
                 const hitsNocturno = registrosFiltrados.filter(registro => {
                     const horaRegistro = new Date('1970/01/01 ' + registro.hour);
-                    return (horaRegistro >= horaNocturnoInicio && horaRegistro <= horaFin) || (horaRegistro >= new Date('1970/01/02 00:00:00') && horaRegistro < horaNocturnoFin);
+                    return (horaRegistro >= horaNocturnoInicio && horaRegistro < new Date('1970/01/02 00:00:00')) || 
+                           (horaRegistro >= new Date('1970/01/02 00:00:00') && horaRegistro < horaNocturnoFin);
                 }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
 
                 setHitsMatutino(hitsMatutino);

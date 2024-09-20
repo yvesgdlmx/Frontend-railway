@@ -52,8 +52,8 @@ const ARProcesos = () => {
                 const formattedLastHour = new Date('1970/01/01 ' + horaMasCercana);
                 setUltimaHora(`${formattedLastHour.getHours().toString().padStart(2, '0')}:${formattedLastHour.getMinutes().toString().padStart(2, '0')}`);
                 console.log("Última hora:", ultimaHora);
-                const horaFinal = new Date('1970/01/01 ' + horaMasCercana);
 
+                const horaFinal = new Date('1970/01/01 ' + horaMasCercana);
                 // Configurar la siguiente hora
                 horaFinal.setMinutes(horaFinal.getMinutes() + 30 - (horaFinal.getMinutes() % 30));
                 const siguienteHoraDate = new Date(horaFinal.getTime());
@@ -61,29 +61,33 @@ const ARProcesos = () => {
                 setSiguienteHora(`${siguienteHoraDate.getHours().toString().padStart(2, '0')}:${siguienteHoraDate.getMinutes().toString().padStart(2, '0')}`);
                 console.log("Siguiente hora:", siguienteHora);
 
-                // Calcular hits por turno
+                // Calcular hits por turno con el ajuste para el turno nocturno
                 const horaMatutinoInicio = new Date('1970/01/01 06:30:00');
                 const horaMatutinoFin = new Date('1970/01/01 14:30:00');
                 const horaVespertinoInicio = new Date('1970/01/01 14:30:00');
                 const horaVespertinoFin = new Date('1970/01/01 21:30:00');
-                const horaNocturnoInicio = new Date('1970/01/01 21:30:00');
-                const horaNocturnoFin = new Date('1970/01/01 23:59:59');
+                const horaNocturnoInicio = new Date('1970/01/01 19:30:00');
+                const horaNocturnoFin = new Date('1970/01/02 01:30:00'); // Cambiar el día para manejar el cruce de medianoche
+
                 const hitsMatutino = registrosFiltrados.filter(registro => {
                     const horaRegistro = new Date('1970/01/01 ' + registro.hour);
                     return horaRegistro >= horaMatutinoInicio && horaRegistro < horaMatutinoFin;
                 }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
+
                 const hitsVespertino = registrosFiltrados.filter(registro => {
                     const horaRegistro = new Date('1970/01/01 ' + registro.hour);
                     return horaRegistro >= horaVespertinoInicio && horaRegistro < horaVespertinoFin;
                 }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
+
                 const hitsNocturno = registrosFiltrados.filter(registro => {
                     const horaRegistro = new Date('1970/01/01 ' + registro.hour);
-                    return horaRegistro >= horaNocturnoInicio;
+                    return (horaRegistro >= horaNocturnoInicio && horaRegistro < new Date('1970/01/02 00:00:00')) || 
+                           (horaRegistro >= new Date('1970/01/02 00:00:00') && horaRegistro < horaNocturnoFin);
                 }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
+
                 setHitsMatutino(hitsMatutino);
                 setHitsVespertino(hitsVespertino);
                 setHitsNocturno(hitsNocturno);
-
             } catch (error) {
                 console.error("Error al obtener los datos:", error);
             }
@@ -102,7 +106,7 @@ const ARProcesos = () => {
                             <p className="procesos-2__p">Último Registro: <br /><span className="procesos-2__span">{ultimaHora} - {siguienteHora}</span></p>
                             <p className="procesos-2__p">Matutino: <br /><span>{hitsMatutino}</span></p>
                             <p className="procesos-2__p">Vespertino: <br /><span>{hitsVespertino}</span></p>
-                            <p className="procesos-2__p">Nocturno: <br /><span >{hitsNocturno}</span></p>
+                            <p className="procesos-2__p">Nocturno: <br /><span>{hitsNocturno}</span></p>
                         </div>
                     </div>
                 </div>

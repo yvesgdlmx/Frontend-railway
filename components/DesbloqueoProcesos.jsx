@@ -75,13 +75,13 @@ const DesbloqueoProcesos = () => {
                 setSiguienteHora(`${siguienteHoraDate.getHours().toString().padStart(2, '0')}:${siguienteHoraDate.getMinutes().toString().padStart(2, '0')}`);
                 console.log("Siguiente hora:", siguienteHora);
 
-                // Calcular hits por turno
+                // Calcular hits por turno con el ajuste para el turno nocturno
                 const horaMatutinoInicio = new Date('1970/01/01 06:30:00');
                 const horaMatutinoFin = new Date('1970/01/01 14:30:00');
                 const horaVespertinoInicio = new Date('1970/01/01 14:30:00');
                 const horaVespertinoFin = new Date('1970/01/01 21:30:00');
-                const horaNocturnoInicio = new Date('1970/01/01 21:30:00');
-                const horaNocturnoFin = new Date('1970/01/01 23:59:59');
+                const horaNocturnoInicio = new Date('1970/01/01 19:30:00');
+                const horaNocturnoFin = new Date('1970/01/02 01:30:00'); // Cambiar el día para manejar el cruce de medianoche
 
                 const hitsMatutino = registrosFiltrados.filter(registro => {
                     const horaRegistro = new Date('1970/01/01 ' + registro.hour);
@@ -95,7 +95,8 @@ const DesbloqueoProcesos = () => {
 
                 const hitsNocturno = registrosFiltrados.filter(registro => {
                     const horaRegistro = new Date('1970/01/01 ' + registro.hour);
-                    return horaRegistro >= horaNocturnoInicio;
+                    return (horaRegistro >= horaNocturnoInicio && horaRegistro < new Date('1970/01/02 00:00:00')) || 
+                           (horaRegistro >= new Date('1970/01/02 00:00:00') && horaRegistro < horaNocturnoFin);
                 }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
 
                 setHitsMatutino(hitsMatutino);
