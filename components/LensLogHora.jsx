@@ -11,6 +11,7 @@ const LensLogHora = () => {
         vespertino: 0,
         nocturno: 0
     });
+
     const location = useLocation();
 
     useEffect(() => {
@@ -19,6 +20,7 @@ const LensLogHora = () => {
             const metaLensLog = data.registros.find(registro => registro.name === '19 LENS LOG');
             if (metaLensLog) {
                 setMeta(metaLensLog.meta);
+                console.log('Meta obtenida:', metaLensLog.meta); // Verifica el valor de la meta
             }
         };
         obtenerMeta();
@@ -28,7 +30,6 @@ const LensLogHora = () => {
         const obtenerRegistros = async () => {
             const { data } = await clienteAxios(`/manual/manual/actualdia`);
             const registrosLensLog = data.registros.filter(registro => registro.name.includes('LENS LOG'));
-            // Filtrar los registros que están entre las 06:30 y las 23:00
             const registrosFiltrados = registrosLensLog.filter(registro => {
                 const [hora, minuto] = registro.hour.split(':').map(Number);
                 const minutosTotales = hora * 60 + minuto;
@@ -73,39 +74,25 @@ const LensLogHora = () => {
             const minutosTotales = hora * 60 + minuto;
             if (minutosTotales >= 390 && minutosTotales < 870) { // 06:30 - 14:30
                 totales.matutino += registro.hits;
-            } else if (minutosTotales >= 870 && minutosTotales < 1170) { // 14:30 - 19:30
+            }
+            if (minutosTotales >= 870 && minutosTotales < 1290) { // 14:30 - 21:30
                 totales.vespertino += registro.hits;
-            } else if (minutosTotales >= 1170 && minutosTotales < 1380) { // 19:30 - 23:00
+            }
+            if (minutosTotales >= 1290 || minutosTotales < 90) { // 21:30 - 01:30
                 totales.nocturno += registro.hits;
             }
         });
         setTotalesPorTurno(totales);
     };
 
-    const calcularHorasTranscurridas = (horaInicio, horaFin) => {
-        const [horaInicioH, horaInicioM] = horaInicio.split(':').map(Number);
-        const [horaFinH, horaFinM] = horaFin.split(':').map(Number);
-        const minutosInicio = horaInicioH * 60 + horaInicioM;
-        const minutosFin = horaFinH * 60 + horaFinM;
-        return Math.ceil((minutosFin - minutosInicio) / 60);
-    };
-
-    const obtenerHoraActual = () => {
-        const ahora = new Date();
-        const horas = String(ahora.getHours()).padStart(2, '0');
-        const minutos = String(ahora.getMinutes()).padStart(2, '0');
-        return `${horas}:${minutos}`;
-    };
-
-    const calcularMetaPorHorasTranscurridas = (horaInicio, horaFin, metaPorHora) => {
-        const horasTranscurridas = calcularHorasTranscurridas(horaInicio, horaFin);
-        console.log(`Meta: ${metaPorHora}, Horas Transcurridas: ${horasTranscurridas}`);
-        return horasTranscurridas * metaPorHora;
+    const calcularMetaPorTurno = (horasTurno) => {
+        return meta * horasTurno;
     };
 
     const hitsPorHora = agruparHitsPorHora();
+    console.log('Hits por hora:', hitsPorHora); // Verifica los valores de hits por hora
     const horasOrdenadas = Object.keys(hitsPorHora).sort().reverse();
-    const filaGenerados = horasOrdenadas.map((hora) => hitsPorHora[hora]);
+
     const formatearHoraSinSegundos = (hora) => {
         return hora.slice(0, 5); // Esto eliminará los segundos de la hora
     };
@@ -123,22 +110,9 @@ const LensLogHora = () => {
         return hits >= meta ? "procesos-2__span-verde" : "procesos-2__span-rojo";
     };
 
-    const horaActual = obtenerHoraActual();
-
-    // Calcular metas ajustadas para cada turno
-    const metaMatutinoAjustada = calcularMetaPorHorasTranscurridas("06:30", horaActual, meta);
-    const metaVespertinoAjustada = calcularMetaPorHorasTranscurridas("14:30", horaActual, meta);
-    const metaNocturnoAjustada = calcularMetaPorHorasTranscurridas("19:30", horaActual, meta);
-
-    // Ajustar las metas para que cuenten al menos una hora al inicio de cada turno
-    const ajustarMetaPorTurno = (horaInicio, horaActual, metaPorHora) => {
-        const horasTranscurridas = Math.max(1, calcularHorasTranscurridas(horaInicio, horaActual));
-        return horasTranscurridas * metaPorHora;
-    };
-
-    const metaMatutinoFinal = ajustarMetaPorTurno("06:30", horaActual, meta);
-    const metaVespertinoFinal = ajustarMetaPorTurno("14:30", horaActual, meta);
-    const metaNocturnoFinal = ajustarMetaPorTurno("19:30", horaActual, meta);
+    const metaMatutinoFinal = calcularMetaPorTurno(8); // 8 horas para el turno matutino
+    const metaVespertinoFinal = calcularMetaPorTurno(7); // 7 horas para el turno vespertino
+    const metaNocturnoFinal = calcularMetaPorTurno(4); // 4 horas para el turno nocturno
 
     return (
         <>
@@ -160,9 +134,14 @@ const LensLogHora = () => {
                                     <td className="tabla__td position">Surtido <br/> <span className="tabla__td-span">Meta: <span className="tabla__span-meta">{meta}</span></span></td>
                                 </div>
                             </Link>
-                            {filaGenerados.map((generado, index) => (
-                                <td key={index} className={metaMatutinoFinal > generado ? `tabla__td generadores__uncheck` : `tabla__td generadores__check`}>{generado}</td>
-                            ))}
+                            {horasOrdenadas.map((hora, index) => {
+                                const generado = hitsPorHora[hora];
+                                return (
+                                    <td key={index} className={generado >= meta ? `tabla__td generadores__check` : `tabla__td generadores__uncheck`}>
+                                        {generado}
+                                    </td>
+                                );
+                            })}
                         </tr>
                     </tbody>
                 </table>

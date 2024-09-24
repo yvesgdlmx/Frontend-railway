@@ -18,7 +18,6 @@ const ARHora = () => {
             const registrosAR = data.registros.filter(registro => {
                 return ['91', '92', '52', '53', '54', '55', '56'].some(num => registro.name.includes(num));
             });
-            // Filtrar los registros que están entre las 06:30 y las 23:00
             const registrosFiltrados = registrosAR.filter(registro => {
                 const [hora, minuto] = registro.hour.split(':').map(Number);
                 const minutosTotales = hora * 60 + minuto;
@@ -63,9 +62,9 @@ const ARHora = () => {
             const minutosTotales = hora * 60 + minuto;
             if (minutosTotales >= 390 && minutosTotales < 870) { // 06:30 - 14:30
                 totales.matutino += registro.hits;
-            } else if (minutosTotales >= 870 && minutosTotales < 1170) { // 14:30 - 19:30
+            } else if (minutosTotales >= 870 && minutosTotales < 1290) { // 14:30 - 21:30
                 totales.vespertino += registro.hits;
-            } else if (minutosTotales >= 1170 && minutosTotales < 1380) { // 19:30 - 23:00
+            } else if (minutosTotales >= 1290 || minutosTotales < 90) { // 21:30 - 01:30
                 totales.nocturno += registro.hits;
             }
         });

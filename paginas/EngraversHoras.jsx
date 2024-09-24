@@ -96,9 +96,9 @@ const EngraversHoras = () => {
       const minutosTotales = hora * 60 + minuto;
       if (minutosTotales >= 390 && minutosTotales < 870) { // 06:30 - 14:30
         totales.matutino += registro.hits;
-      } else if (minutosTotales >= 870 && minutosTotales < 1170) { // 14:30 - 19:30
+      } else if (minutosTotales >= 870 && minutosTotales < 1290) { // 14:30 - 21:30
         totales.vespertino += registro.hits;
-      } else if (minutosTotales >= 1170 && minutosTotales < 1380) { // 19:30 - 23:00
+      } else if (minutosTotales >= 1290 || minutosTotales < 390) { // 21:30 - 06:30
         totales.nocturno += registro.hits;
       }
     });
@@ -143,7 +143,7 @@ const EngraversHoras = () => {
   const metaAcumuladaVespertino = sumaTotalMetas * (horasTranscurridasVespertino > 0 ? horasTranscurridasVespertino : 1);
   const claseTotalVespertino = (totalesPorTurno.vespertino >= metaAcumuladaVespertino && totalesPorTurno.vespertino > 0) ? "generadores__check" : "generadores__uncheck";
 
-  const horasTranscurridasNocturno = calcularHorasTranscurridasDesde(19);
+  const horasTranscurridasNocturno = calcularHorasTranscurridasDesde(21);
   const metaAcumuladaNocturno = sumaTotalMetas * (horasTranscurridasNocturno > 0 ? horasTranscurridasNocturno : 1);
   const claseTotalNocturno = (totalesPorTurno.nocturno >= metaAcumuladaNocturno && totalesPorTurno.nocturno > 0) ? "generadores__check" : "generadores__uncheck";
 
