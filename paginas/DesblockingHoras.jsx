@@ -34,7 +34,7 @@ const DesblockingHoras = () => {
         const registrosFiltrados = dataRegistros.filter(registro => {
           const [hora, minuto] = registro.hour.split(':').map(Number);
           const minutosTotales = hora * 60 + minuto;
-          return minutosTotales >= 390 && minutosTotales < 1380 && registro.name.includes('DEBLOCKING'); // 06:30 = 390 minutos, 23:00 = 1380 minutos
+          return minutosTotales >= 390 && minutosTotales < 1380 && registro.name.includes('DEBLOCKING');
         });
 
         const horas = new Set();
@@ -61,19 +61,6 @@ const DesblockingHoras = () => {
     };
     cargarDatos();
   }, []);
-
-  const agruparHitsPorHora = () => {
-    const hitsPorHora = {};
-    registros.forEach((registro) => {
-      const hora = registro.hour;
-      if (hitsPorHora[hora]) {
-        hitsPorHora[hora] += registro.hits;
-      } else {
-        hitsPorHora[hora] = registro.hits;
-      }
-    });
-    return hitsPorHora;
-  };
 
   const calcularTotalesPorTurno = (registros) => {
     const totales = {
@@ -112,15 +99,15 @@ const DesblockingHoras = () => {
 
   const metaPorHora = meta;
   const claseSumaTotalAcumulados = totalesAcumulados >= (meta * horasUnicas.length) ? "generadores__check" : "generadores__uncheck";
-  const horasTranscurridasMatutino = calcularHorasTranscurridasDesde(6);
-  const metaAcumuladaMatutino = meta * (horasTranscurridasMatutino > 0 ? horasTranscurridasMatutino : 1);
-  const claseTotalMatutino = (totalesPorTurno.matutino >= metaAcumuladaMatutino && totalesPorTurno.matutino > 0) ? "generadores__check" : "generadores__uncheck";
-  const horasTranscurridasVespertino = calcularHorasTranscurridasDesde(14);
-  const metaAcumuladaVespertino = meta * (horasTranscurridasVespertino > 0 ? horasTranscurridasVespertino : 1);
-  const claseTotalVespertino = (totalesPorTurno.vespertino >= metaAcumuladaVespertino && totalesPorTurno.vespertino > 0) ? "generadores__check" : "generadores__uncheck";
-  const horasTranscurridasNocturno = calcularHorasTranscurridasDesde(21);
-  const metaAcumuladaNocturno = meta * (horasTranscurridasNocturno > 0 ? horasTranscurridasNocturno : 1);
-  const claseTotalNocturno = (totalesPorTurno.nocturno >= metaAcumuladaNocturno && totalesPorTurno.nocturno > 0) ? "generadores__check" : "generadores__uncheck";
+
+  // Calcular metas acumuladas por turno
+  const metaTotalMatutino = meta * 8; // 8 horas
+  const metaTotalVespertino = meta * 7; // 7 horas
+  const metaTotalNocturno = meta * 4; // 4 horas
+
+  const claseTotalMatutino = totalesPorTurno.matutino >= metaTotalMatutino ? "generadores__check" : "generadores__uncheck";
+  const claseTotalVespertino = totalesPorTurno.vespertino >= metaTotalVespertino ? "generadores__check" : "generadores__uncheck";
+  const claseTotalNocturno = totalesPorTurno.nocturno >= metaTotalNocturno ? "generadores__check" : "generadores__uncheck";
 
   return (
     <>
@@ -132,7 +119,7 @@ const DesblockingHoras = () => {
           </button>
         </Link>
       </div>
-      <Navegacion/>
+      <Navegacion />
       <h1 className="heading2">Desbloqueo</h1>
       <div>
         <table className="a-tabla__table">

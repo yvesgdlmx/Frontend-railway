@@ -58,6 +58,7 @@ const DesbloqueoProcesos = () => {
                         diferenciaMasCercana = diferencia;
                     }
                 });
+
                 const formattedLastHour = new Date('1970/01/01 ' + horaMasCercana);
                 setUltimaHora(`${formattedLastHour.getHours().toString().padStart(2, '0')}:${formattedLastHour.getMinutes().toString().padStart(2, '0')}`);
                 console.log("Última hora:", ultimaHora);
@@ -80,7 +81,7 @@ const DesbloqueoProcesos = () => {
                 const horaMatutinoFin = new Date('1970/01/01 14:30:00');
                 const horaVespertinoInicio = new Date('1970/01/01 14:30:00');
                 const horaVespertinoFin = new Date('1970/01/01 21:30:00');
-                const horaNocturnoInicio = new Date('1970/01/01 19:30:00');
+                const horaNocturnoInicio = new Date('1970/01/01 21:30:00'); // Cambiado a las 21:30
                 const horaNocturnoFin = new Date('1970/01/02 01:30:00'); // Cambiar el día para manejar el cruce de medianoche
 
                 const hitsMatutino = registrosFiltrados.filter(registro => {

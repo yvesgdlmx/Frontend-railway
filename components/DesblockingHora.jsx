@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import clienteAxios from "../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
-import formatearHora from "../helpers/formatearHora";
 
 const DesblockingHora = () => {
     const [registros, setRegistros] = useState([]);
@@ -11,16 +10,18 @@ const DesblockingHora = () => {
         vespertino: 0,
         nocturno: 0
     });
-
     const location = useLocation();
 
     useEffect(() => {
         const obtenerMeta = async () => {
-            const { data } = await clienteAxios(`/metas/metas-manuales`);
-            const metaDesblocking = data.registros.find(registro => registro.name === '19 DEBLOCKING');
-            if (metaDesblocking) {
-                setMeta(metaDesblocking.meta);
-                console.log('Meta obtenida:', metaDesblocking.meta); // Verifica el valor de la meta
+            try {
+                const { data } = await clienteAxios(`/metas/metas-manuales`);
+                const metasDesblocking = data.registros.filter(meta => meta.name.includes('320 DEBLOCKING 1'));
+                const sumaMetas = metasDesblocking.reduce((acc, meta) => acc + meta.meta, 0);
+                setMeta(sumaMetas);
+                console.log('Meta obtenida:', sumaMetas);
+            } catch (error) {
+                console.error('Error al obtener la meta:', error);
             }
         };
         obtenerMeta();
@@ -28,15 +29,19 @@ const DesblockingHora = () => {
 
     useEffect(() => {
         const obtenerRegistros = async () => {
-            const { data } = await clienteAxios(`/manual/manual/actualdia`);
-            const registrosDesblocking = data.registros.filter(registro => registro.name.includes('DEBLOCKING'));
-            const registrosFiltrados = registrosDesblocking.filter(registro => {
-                const [hora, minuto] = registro.hour.split(':').map(Number);
-                const minutosTotales = hora * 60 + minuto;
-                return minutosTotales >= 390 && minutosTotales < 1380; // 06:30 = 390 minutos, 23:00 = 1380 minutos
-            });
-            setRegistros(registrosFiltrados);
-            calcularTotalesPorTurno(registrosFiltrados);
+            try {
+                const { data } = await clienteAxios(`/manual/manual/actualdia`);
+                const registrosDesblocking = data.registros.filter(registro => registro.name.includes('DEBLOCKING'));
+                const registrosFiltrados = registrosDesblocking.filter(registro => {
+                    const [hora, minuto] = registro.hour.split(':').map(Number);
+                    const minutosTotales = hora * 60 + minuto;
+                    return minutosTotales >= 390 && minutosTotales < 1380;
+                });
+                setRegistros(registrosFiltrados);
+                calcularTotalesPorTurno(registrosFiltrados);
+            } catch (error) {
+                console.error('Error al obtener los registros:', error);
+            }
         };
         obtenerRegistros();
     }, []);
@@ -72,13 +77,13 @@ const DesblockingHora = () => {
         registros.forEach(registro => {
             const [hora, minuto] = registro.hour.split(':').map(Number);
             const minutosTotales = hora * 60 + minuto;
-            if (minutosTotales >= 390 && minutosTotales < 870) { // 06:30 - 14:30
+            if (minutosTotales >= 390 && minutosTotales < 870) {
                 totales.matutino += registro.hits;
             }
-            if (minutosTotales >= 870 && minutosTotales < 1290) { // 14:30 - 21:30
+            if (minutosTotales >= 870 && minutosTotales < 1290) {
                 totales.vespertino += registro.hits;
             }
-            if (minutosTotales >= 1290 || minutosTotales < 90) { // 21:30 - 01:30
+            if (minutosTotales >= 1290 || minutosTotales < 390) {
                 totales.nocturno += registro.hits;
             }
         });
@@ -90,16 +95,15 @@ const DesblockingHora = () => {
     };
 
     const hitsPorHora = agruparHitsPorHora();
-    console.log('Hits por hora:', hitsPorHora); // Verifica los valores de hits por hora
     const horasOrdenadas = Object.keys(hitsPorHora).sort().reverse();
 
     const formatearHoraSinSegundos = (hora) => {
-        return hora.slice(0, 5); // Esto eliminará los segundos de la hora
+        return hora.slice(0, 5);
     };
 
     const calcularRangoHoras = (horaInicio) => {
         const horaInicioFormateada = formatearHoraSinSegundos(horaInicio);
-        const horaFin = new Date(new Date(`2000-01-01 ${horaInicio}`).getTime() + 60 * 60 * 1000).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+        const horaFin = new Date(new Date(`2000-01-01 ${horaInicio}`).getTime() + 60 * 60 * 1000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         return `${horaInicioFormateada} - ${horaFin}`;
     };
 
@@ -110,9 +114,9 @@ const DesblockingHora = () => {
         return hits >= meta ? "procesos-2__span-verde" : "procesos-2__span-rojo";
     };
 
-    const metaMatutinoFinal = calcularMetaPorTurno(8); // 8 horas para el turno matutino
-    const metaVespertinoFinal = calcularMetaPorTurno(7); // 7 horas para el turno vespertino
-    const metaNocturnoFinal = calcularMetaPorTurno(4); // 4 horas para el turno nocturno
+    const metaMatutinoFinal = calcularMetaPorTurno(8);
+    const metaVespertinoFinal = calcularMetaPorTurno(7);
+    const metaNocturnoFinal = calcularMetaPorTurno(4);
 
     return (
         <>
@@ -131,7 +135,7 @@ const DesblockingHora = () => {
                             <Link to={'/desblocking-horas'} className="link__tabla">
                                 <div className="tabla__th-flex">
                                     <img src="./img/ver.png" alt="imagen-ver" className="tabla__ver" />
-                                    <td className="tabla__td position">Desbloqueo <br/> <span className="tabla__td-span">Meta: <span className="tabla__span-meta">{meta}</span></span></td>
+                                    <td className="tabla__td position">Desbloqueo <br /> <span className="tabla__td-span">Meta: <span className="tabla__span-meta">{meta}</span></span></td>
                                 </div>
                             </Link>
                             {horasOrdenadas.map((hora, index) => {

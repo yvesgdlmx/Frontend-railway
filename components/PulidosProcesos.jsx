@@ -50,8 +50,8 @@ const PulidosProcesos = () => {
 
                 const formattedLastHour = new Date('1970/01/01 ' + horaMasCercana);
                 setUltimaHora(`${formattedLastHour.getHours().toString().padStart(2, '0')}:${formattedLastHour.getMinutes().toString().padStart(2, '0')}`);
-                const horaFinal = new Date('1970/01/01 ' + horaMasCercana);
 
+                const horaFinal = new Date('1970/01/01 ' + horaMasCercana);
                 // Redondear la hora final a la media hora más cercana
                 horaFinal.setMinutes(horaFinal.getMinutes() + 30 - (horaFinal.getMinutes() % 30));
                 const horasTranscurridas = (horaFinal - horaInicio) / (1000 * 60 * 60);
@@ -67,7 +67,7 @@ const PulidosProcesos = () => {
                 const horaMatutinoFin = new Date('1970/01/01 14:30:00');
                 const horaVespertinoInicio = new Date('1970/01/01 14:30:00');
                 const horaVespertinoFin = new Date('1970/01/01 21:30:00');
-                const horaNocturnoInicio = new Date('1970/01/01 19:30:00');
+                const horaNocturnoInicio = new Date('1970/01/01 21:30:00'); // Cambiado a las 21:30
                 const horaNocturnoFin = new Date('1970/01/02 01:30:00'); // Note the change to the next day
 
                 const hitsMatutino = registrosFiltrados.filter(registro => {
@@ -93,7 +93,6 @@ const PulidosProcesos = () => {
                 const horasMatutino = 8; // 8 horas para el turno matutino
                 const horasVespertino = 7; // 7 horas para el turno vespertino
                 const horasNocturno = 6; // 6 horas para el turno nocturno
-
                 setMetaMatutino(horasMatutino * sumaMetas);
                 setMetaVespertino(horasVespertino * sumaMetas);
                 setMetaNocturno(horasNocturno * sumaMetas);

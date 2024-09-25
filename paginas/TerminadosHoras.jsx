@@ -70,10 +70,11 @@ const TerminadosHoras = () => {
 
         const horasArray = Array.from(horas).sort().reverse();
         const horasConFormato = horasArray.map(hora => {
-          const [horaInicial, minutos, segundos] = hora.split(':');
+          const [horaInicial, minutos] = hora.split(':');
           const horaFinal = (parseInt(horaInicial, 10) + 1) % 24;
           return `${horaInicial}:${minutos} - ${horaFinal.toString().padStart(2, '0')}:${minutos}`;
         });
+
         setHorasUnicas(horasConFormato);
         setTotalesAcumulados(acumulados);
         calcularTotalesPorTurno(registrosFiltrados);
@@ -114,12 +115,10 @@ const TerminadosHoras = () => {
   };
 
   const sumaTotalAcumulados = Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0);
-
   const metaAcumuladaTotal = Object.keys(metasPorMaquina).reduce((acc, celula) => {
     const meta = metasPorMaquina[celula] || 0;
     return acc + (meta * horasUnicas.length);
   }, 0);
-
   const sumaTotalMetas = Object.keys(metasPorMaquina).reduce((acc, celula) => {
     return acc + (metasPorMaquina[celula] || 0);
   }, 0);
@@ -131,20 +130,16 @@ const TerminadosHoras = () => {
   });
 
   const metaPorHora = sumaTotalMetas;
-
   const claseSumaTotalAcumulados = sumaTotalAcumulados >= metaAcumuladaTotal ? "generadores__check" : "generadores__uncheck";
 
-  const horasTranscurridasMatutino = calcularHorasTranscurridasDesde(6);
-  const metaAcumuladaMatutino = sumaTotalMetas * (horasTranscurridasMatutino > 0 ? horasTranscurridasMatutino : 1);
-  const claseTotalMatutino = (totalesPorTurno.matutino >= metaAcumuladaMatutino && totalesPorTurno.matutino > 0) ? "generadores__check" : "generadores__uncheck";
+  // Calcular metas acumuladas por turno
+  const metaTotalMatutino = sumaTotalMetas * 8; // 8 horas
+  const metaTotalVespertino = sumaTotalMetas * 7; // 7 horas
+  const metaTotalNocturno = sumaTotalMetas * 4; // 4 horas
 
-  const horasTranscurridasVespertino = calcularHorasTranscurridasDesde(14);
-  const metaAcumuladaVespertino = sumaTotalMetas * (horasTranscurridasVespertino > 0 ? horasTranscurridasVespertino : 1);
-  const claseTotalVespertino = (totalesPorTurno.vespertino >= metaAcumuladaVespertino && totalesPorTurno.vespertino > 0) ? "generadores__check" : "generadores__uncheck";
-
-  const horasTranscurridasNocturno = calcularHorasTranscurridasDesde(21);
-  const metaAcumuladaNocturno = sumaTotalMetas * (horasTranscurridasNocturno > 0 ? horasTranscurridasNocturno : 1);
-  const claseTotalNocturno = (totalesPorTurno.nocturno >= metaAcumuladaNocturno && totalesPorTurno.nocturno > 0) ? "generadores__check" : "generadores__uncheck";
+  const claseTotalMatutino = totalesPorTurno.matutino >= metaTotalMatutino ? "generadores__check" : "generadores__uncheck";
+  const claseTotalVespertino = totalesPorTurno.vespertino >= metaTotalVespertino ? "generadores__check" : "generadores__uncheck";
+  const claseTotalNocturno = totalesPorTurno.nocturno >= metaTotalNocturno ? "generadores__check" : "generadores__uncheck";
 
   return (
     <>
@@ -156,7 +151,7 @@ const TerminadosHoras = () => {
           </button>
         </Link>
       </div>
-      <Navegacion/>
+      <Navegacion />
       <h1 className="heading2">Bloqueo de terminado</h1>
       <div>
         <table className="a-tabla__table">
