@@ -270,20 +270,6 @@ const HistorialPorTurnos = () => {
       <div className="turnos__totales">
         {renderizarTotalesPorEstacionYTurno()}
       </div>
-      <div className="turnos">
-        <p className="turnos__p-2">Total General: </p>
-        <div className="turnos__flex">
-          <div className="turnos__campo">
-            <p className="turnos__p">Turno matutino: <span className="turnos__span">{totalHitsPorTurno.matutino}</span></p>
-          </div>
-          <div className="turnos__campo">
-            <p className="turnos__p">Turno Vespertino: <span className="turnos__span">{totalHitsPorTurno.vespertino}</span></p>
-          </div>
-          <div className="turnos__campo">
-            <p className="turnos__p">Turno Nocturno: <span className="turnos__span">{totalHitsPorTurno.nocturno}</span></p>
-          </div>
-        </div>
-      </div>
     </>
   );
 };
