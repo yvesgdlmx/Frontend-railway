@@ -27,11 +27,9 @@ const HistorialPorTurnos = () => {
   const handleAnioChange = (e) => {
     setAnio(e.target.value);
   };
-
   const handleMesChange = (e) => {
     setMes(e.target.value);
   };
-
   const handleDiaChange = (e) => {
     setDia(e.target.value);
   };
@@ -57,7 +55,7 @@ const HistorialPorTurnos = () => {
         const responseMetasEngravers = await clienteAxios.get('/metas/metas-engravers');
         const responseMetasTerminados = await clienteAxios.get('/metas/metas-terminados');
         const responseMetasBiselados = await clienteAxios.get('/metas/metas-biselados');
-        
+
         const metasPorMaquinaTallados = responseMetasTallados.data.registros.reduce((acc, curr) => {
           acc[curr.name] = curr.meta;
           return acc;
@@ -88,7 +86,7 @@ const HistorialPorTurnos = () => {
           acc[curr.name.toUpperCase().trim()] = curr.meta;
           return acc;
         }, {});
-        
+
         setMetas({
           ...metasPorMaquinaTallados,
           ...metasPorMaquinaLensLog,
@@ -113,6 +111,7 @@ const HistorialPorTurnos = () => {
     const horaEnMinutos = hora * 60 + minuto;
     return horaEnMinutos >= 390 && horaEnMinutos <= 1380; // 390 es 6:30 AM y 1380 es 11:00 PM
   });
+
   console.log("Registros filtrados:", registrosFiltrados);
 
   // Agrupar registros por máquina y sumar hits
@@ -122,17 +121,19 @@ const HistorialPorTurnos = () => {
       acc[name] = { hits: 0, turnos: { matutino: 0, vespertino: 0, nocturno: 0 } };
     }
     acc[name].hits += hits;
+
     // Calcular los hits por turno
     const [hora, minuto] = hour.split(':').map(Number);
     if ((hora > 6 || (hora === 6 && minuto >= 30)) && (hora < 14 || (hora === 14 && minuto < 30))) {
       acc[name].turnos.matutino += hits;
-    } else if ((hora > 14 || (hora === 14 && minuto >= 30)) && (hora < 21 || (hora === 21 && minuto < 30))) {
+    } else if ((hora > 14 || (hora === 14 && minuto >= 31)) && (hora < 21 || (hora === 21 && minuto < 30))) {
       acc[name].turnos.vespertino += hits;
-    } else if ((hora > 19 || (hora === 19 && minuto >= 30)) || (hora < 2 || (hora === 1 && minuto < 30))) {
+    } else if ((hora > 21 || (hora === 21 && minuto >= 31)) || (hora < 2 || (hora === 1 && minuto < 30))) {
       acc[name].turnos.nocturno += hits;
     }
     return acc;
   }, {});
+
   console.log("Registros agrupados:", registrosAgrupados);
 
   // Calcular el total de hits por estación y turno
@@ -148,6 +149,7 @@ const HistorialPorTurnos = () => {
     });
     return acc;
   }, {});
+
   console.log("Hits por estación y turno:", hitsPorEstacionYTurno);
 
   // Calcular el total de hits y hits por turno a nivel general
@@ -157,6 +159,7 @@ const HistorialPorTurnos = () => {
     acc.nocturno += nocturno;
     return acc;
   }, { matutino: 0, vespertino: 0, nocturno: 0 });
+
   console.log("Total hits por turno:", totalHitsPorTurno);
 
   // Calcular el total de hits a nivel general
@@ -199,6 +202,11 @@ const HistorialPorTurnos = () => {
                   </tr>
                 );
               })}
+              <tr className="a-tabla__tr-body">
+                <td className="a-tabla__td-body" colSpan="2">Total</td>
+                <td className="a-tabla__td-body">{registrosEstacion.reduce((acc, registro) => acc + registro.hits, 0)}</td>
+                <td className="a-tabla__td-body"></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -240,18 +248,18 @@ const HistorialPorTurnos = () => {
         <div className='selectores__campo'>
           <label className='selectores__label' htmlFor="">Mes</label>
           <select className='selectores__select' name="" id="" value={mes} onChange={handleMesChange}>
-            <option classame='selectores__option' value="01">Enero</option>
-            <option classame='selectores__option' value="02">Febrero</option>
-            <option classame='selectores__option' value="03">Marzo</option>
-            <option classame='selectores__option' value="04">Abril</option>
-            <option classame='selectores__option' value="05">Mayo</option>
-            <option classame='selectores__option' value="06">Junio</option>
-            <option classame='selectores__option' value="07">Julio</option>
-            <option classame='selectores__option' value="08">Agosto</option>
-            <option classame='selectores__option' value="09">Septiembre</option>
-            <option classame='selectores__option' value="10">Octubre</option>
-            <option classame='selectores__option' value="11">Noviembre</option>
-            <option classame='selectores__option' value="12">Diciembre</option>
+            <option className='selectores__option' value="01">Enero</option>
+            <option className='selectores__option' value="02">Febrero</option>
+            <option className='selectores__option' value="03">Marzo</option>
+            <option className='selectores__option' value="04">Abril</option>
+            <option className='selectores__option' value="05">Mayo</option>
+            <option className='selectores__option' value="06">Junio</option>
+            <option className='selectores__option' value="07">Julio</option>
+            <option className='selectores__option' value="08">Agosto</option>
+            <option className='selectores__option' value="09">Septiembre</option>
+            <option className='selectores__option' value="10">Octubre</option>
+            <option className='selectores__option' value="11">Noviembre</option>
+            <option className='selectores__option' value="12">Diciembre</option>
           </select>
         </div>
         <div className='selectores__campo'>

@@ -51,7 +51,6 @@ const HistorialPorRangos = () => {
         setRegistros([]);
       }
     };
-
     obtenerRegistros();
   }, [anio, mes, diaInicio, diaFin]);
 
@@ -61,6 +60,7 @@ const HistorialPorRangos = () => {
     const horaEnMinutos = hora * 60 + minuto;
     return horaEnMinutos >= 390 && horaEnMinutos <= 1380; // 390 es 6:30 AM y 1380 es 11:00 PM
   });
+
   console.log("Registros filtrados:", registrosFiltrados);
 
   // Agrupar registros por máquina y sumar hits
@@ -81,6 +81,7 @@ const HistorialPorRangos = () => {
     }
     return acc;
   }, {});
+
   console.log("Registros agrupados:", registrosAgrupados);
 
   // Calcular el total de hits por estación y turno
@@ -96,6 +97,7 @@ const HistorialPorRangos = () => {
     });
     return acc;
   }, {});
+
   console.log("Hits por estación y turno:", hitsPorEstacionYTurno);
 
   // Calcular el total de hits y hits por turno a nivel general
@@ -105,6 +107,7 @@ const HistorialPorRangos = () => {
     acc.nocturno += nocturno;
     return acc;
   }, { matutino: 0, vespertino: 0, nocturno: 0 });
+
   console.log("Total hits por turno:", totalHitsPorTurno);
 
   // Calcular el total de hits a nivel general
@@ -114,6 +117,10 @@ const HistorialPorRangos = () => {
     return Object.entries(estaciones).map(([nombreEstacion, maquinas]) => {
       const registrosEstacion = maquinas.map((maquina) => registrosAgrupados[maquina]).filter(Boolean);
       if (registrosEstacion.length === 0) return null;
+      
+      // Calcular la suma de los hits para la estación actual
+      const sumaHitsEstacion = registrosEstacion.reduce((acc, registro) => acc + registro.hits, 0);
+
       return (
         <div key={nombreEstacion} className="tabla">
           <table className="a-tabla__table">
@@ -138,6 +145,10 @@ const HistorialPorRangos = () => {
                   </tr>
                 );
               })}
+              <tr className="a-tabla__tr-body">
+                <td className="a-tabla__td-body" colSpan="2"><strong>Total Hits</strong></td>
+                <td className="a-tabla__td-body"><strong>{sumaHitsEstacion}</strong></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -183,14 +194,14 @@ const HistorialPorRangos = () => {
             <option className='selectores__option' value="02">Febrero</option>
             <option className='selectores__option' value="03">Marzo</option>
             <option className='selectores__option' value="04">Abril</option>
-            <option classame='selectores__option' value="05">Mayo</option>
-            <option classame='selectores__option' value="06">Junio</option>
-            <option classame='selectores__option' value="07">Julio</option>
-            <option classame='selectores__option' value="08">Agosto</option>
-            <option classame='selectores__option' value="09">Septiembre</option>
-            <option classame='selectores__option' value="10">Octubre</option>
-            <option classame='selectores__option' value="11">Noviembre</option>
-            <option classame='selectores__option' value="12">Diciembre</option>
+            <option className='selectores__option' value="05">Mayo</option>
+            <option className='selectores__option' value="06">Junio</option>
+            <option className='selectores__option' value="07">Julio</option>
+            <option className='selectores__option' value="08">Agosto</option>
+            <option className='selectores__option' value="09">Septiembre</option>
+            <option className='selectores__option' value="10">Octubre</option>
+            <option className='selectores__option' value="11">Noviembre</option>
+            <option className='selectores__option' value="12">Diciembre</option>
           </select>
         </div>
         <div className='selectores__campo'>
