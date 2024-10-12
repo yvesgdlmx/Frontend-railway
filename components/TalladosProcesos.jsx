@@ -25,77 +25,72 @@ const TalladosProcesos = () => {
                 const responseRegistros = await clienteAxios.get('/tallado/tallado/actualdia');
                 const registros = responseRegistros.data.registros;
 
-                // Filtrar registros entre las 06:30 y las 23:00
-                const horaInicio = new Date('1970/01/01 06:30:00');
-                const horaFin = new Date('1970/01/01 23:00:00');
-                const registrosFiltrados = registros.filter(registro => {
-                    const horaRegistro = new Date('1970/01/01 ' + registro.hour);
-                    return horaRegistro >= horaInicio && horaRegistro <= horaFin;
-                });
-
-                const total = registrosFiltrados.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
-                setTotalHits(total);
-
-                // Determinar la hora más cercana y la siguiente hora
+                // Obtener la fecha actual
                 const ahora = new Date();
-                let horaMasCercana = registrosFiltrados[0]?.hour || "06:30";
-                let diferenciaMasCercana = Infinity;
-                registrosFiltrados.forEach(registro => {
-                    const diferencia = Math.abs(new Date('1970/01/01 ' + `${ahora.getHours()}:${ahora.getMinutes()}:${ahora.getSeconds()}`) - new Date('1970/01/01 ' + registro.hour));
-                    if (diferencia < diferenciaMasCercana) {
-                        horaMasCercana = registro.hour;
-                        diferenciaMasCercana = diferencia;
-                    }
-                });
+                const fechaActual = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
 
-                const formattedLastHour = new Date('1970/01/01 ' + horaMasCercana);
-                setUltimaHora(`${formattedLastHour.getHours().toString().padStart(2, '0')}:${formattedLastHour.getMinutes().toString().padStart(2, '0')}`);
+                // Calcular los rangos de tiempo para cada turno
+                const horaMatutinoInicio = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), 6, 30);
+                const horaMatutinoFin = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), 14, 29);
+                const horaVespertinoInicio = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), 14, 30);
+                const horaVespertinoFin = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), 21, 29);
+                const horaNocturnoInicio = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), 21, 30);
+                const horaNocturnoFin = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate() + 1, 6, 30);
 
-                const horaFinal = new Date('1970/01/01 ' + horaMasCercana);
-                // Redondear la hora final a la media hora más cercana
-                horaFinal.setMinutes(horaFinal.getMinutes() + 30 - (horaFinal.getMinutes() % 30));
-                const horasTranscurridas = (horaFinal - horaInicio) / (1000 * 60 * 60);
-                setMeta(Math.round(horasTranscurridas) * sumaMetas);
+                // Filtrar y calcular hits por turno
+                const calcularHitsPorTurno = (inicio, fin) => {
+                    return registros.filter(registro => {
+                        const [hour, minute] = registro.hour.split(':').map(Number);
+                        const fechaRegistro = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), hour, minute);
+                        if (hour < 6) {
+                            // Ajustar el día para horas después de medianoche
+                            fechaRegistro.setDate(fechaRegistro.getDate() + 1);
+                        }
+                        return fechaRegistro >= inicio && fechaRegistro <= fin;
+                    }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
+                };
 
-                // Configurar la siguiente hora
-                const siguienteHoraDate = new Date(horaFinal.getTime());
-                siguienteHoraDate.setMinutes(siguienteHoraDate.getMinutes() + 30);
-                setSiguienteHora(`${siguienteHoraDate.getHours().toString().padStart(2, '0')}:${siguienteHoraDate.getMinutes().toString().padStart(2, '0')}`);
-
-                // Calcular hits por turno
-                const horaMatutinoInicio = new Date('1970/01/01 06:30:00');
-                const horaMatutinoFin = new Date('1970/01/01 14:30:00');
-                const horaVespertinoInicio = new Date('1970/01/01 14:30:00');
-                const horaVespertinoFin = new Date('1970/01/01 21:30:00');
-                const horaNocturnoInicio = new Date('1970/01/01 21:30:00'); // Cambiado a las 21:30
-                const horaNocturnoFin = new Date('1970/01/02 01:30:00'); // Note the change to the next day
-
-                const hitsMatutino = registrosFiltrados.filter(registro => {
-                    const horaRegistro = new Date('1970/01/01 ' + registro.hour);
-                    return horaRegistro >= horaMatutinoInicio && horaRegistro < horaMatutinoFin;
-                }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
-
-                const hitsVespertino = registrosFiltrados.filter(registro => {
-                    const horaRegistro = new Date('1970/01/01 ' + registro.hour);
-                    return horaRegistro >= horaVespertinoInicio && horaRegistro < horaVespertinoFin;
-                }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
-
-                const hitsNocturno = registrosFiltrados.filter(registro => {
-                    const horaRegistro = new Date('1970/01/01 ' + registro.hour);
-                    return (horaRegistro >= horaNocturnoInicio && horaRegistro < horaNocturnoFin);
-                }).reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
+                const hitsMatutino = calcularHitsPorTurno(horaMatutinoInicio, horaMatutinoFin);
+                const hitsVespertino = calcularHitsPorTurno(horaVespertinoInicio, horaVespertinoFin);
+                const hitsNocturno = calcularHitsPorTurno(horaNocturnoInicio, horaNocturnoFin);
 
                 setHitsMatutino(hitsMatutino);
                 setHitsVespertino(hitsVespertino);
                 setHitsNocturno(hitsNocturno);
 
+                // Calcular el total de hits
+                setTotalHits(hitsMatutino + hitsVespertino + hitsNocturno);
+
                 // Calcular metas por turno
                 const horasMatutino = 8; // 8 horas para el turno matutino
                 const horasVespertino = 7; // 7 horas para el turno vespertino
-                const horasNocturno = 6; // 6 horas para el turno nocturno
+                const horasNocturno = 9; // 9 horas para el turno nocturno (de 21:30 a 06:30)
                 setMetaMatutino(horasMatutino * sumaMetas);
                 setMetaVespertino(horasVespertino * sumaMetas);
                 setMetaNocturno(horasNocturno * sumaMetas);
+
+                // Calcular la meta acumulada hasta el momento
+                const inicioDia = ahora.getHours() < 6 ? new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate() - 1, 6, 30) : horaMatutinoInicio;
+                const tiempoTranscurrido = ahora - inicioDia;
+                const horasTranscurridas = Math.max(0, tiempoTranscurrido / (1000 * 60 * 60)); // Convertir de milisegundos a horas
+                const metaAcumulada = Math.floor(horasTranscurridas) * sumaMetas;
+                setMeta(metaAcumulada);
+
+                // Determinar la hora más cercana y la siguiente hora
+                const minutosActuales = ahora.getMinutes();
+                const horaActual = ahora.getHours();
+                let horaAjustada = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), horaActual, 0);
+                if (minutosActuales < 30) {
+                    horaAjustada.setHours(horaActual - 1);
+                } else {
+                    horaAjustada.setMinutes(30);
+                }
+                const horaInicioIntervalo = new Date(horaAjustada.getTime());
+                horaInicioIntervalo.setHours(horaInicioIntervalo.getHours() - 1);
+                setUltimaHora(`${horaInicioIntervalo.getHours().toString().padStart(2, '0')}:30`);
+                const siguienteHoraDate = new Date(horaInicioIntervalo.getTime());
+                siguienteHoraDate.setHours(siguienteHoraDate.getHours() + 1);
+                setSiguienteHora(`${siguienteHoraDate.getHours().toString().padStart(2, '0')}:30`);
             } catch (error) {
                 console.error("Error al obtener los datos:", error);
             }

@@ -37,7 +37,9 @@ const BiseladorasHoras = () => {
     "309 EDGER 10",
     "310 EDGER 11",
     "311 EDFGER 12",
-    "312 RAZR"
+    "312 RAZR",
+    "318 HSE 1",
+    "319 HSE 2"
   ];
 
   useEffect(() => {
