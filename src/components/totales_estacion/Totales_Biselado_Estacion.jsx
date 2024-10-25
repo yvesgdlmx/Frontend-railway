@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import clienteAxios from "../../../config/clienteAxios";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import formatearHora from "../../../helpers/formatearHora";
 import moment from 'moment-timezone';
 
 moment.tz.setDefault('America/Mexico_City');
 
 const Totales_Biselado_Estacion = () => {
+    const location = useLocation();
+    const biseladoRef = useRef(null);
     const [registros, setRegistros] = useState([]);
     const [meta, setMeta] = useState(0);
     const [totalesPorTurno, setTotalesPorTurno] = useState({
@@ -21,29 +23,35 @@ const Totales_Biselado_Estacion = () => {
     });
 
     useEffect(() => {
+        if (location.hash === '#biselado' && biseladoRef.current) {
+          setTimeout(() => {
+            const yOffset = -100;
+            const element = biseladoRef.current;
+            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({top: y, behavior: 'smooth'});
+          }, 100);
+        }
+    }, [location]);
+
+    useEffect(() => {
         const obtenerDatos = async () => {
             try {
                 const responseMetas = await clienteAxios('/metas/metas-biselados');
                 const sumaMetas = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta, 0);
                 setMeta(sumaMetas);
-
                 const responseRegistros = await clienteAxios('/biselado/biselado/actualdia');
                 const registros = responseRegistros.data.registros;
-
                 const ahora = moment();
                 let inicioHoy = moment().startOf('day').add(6, 'hours').add(30, 'minutes');
                 let finHoy = moment(inicioHoy).add(1, 'days');
-
                 if (ahora.isBefore(inicioHoy)) {
                     inicioHoy.subtract(1, 'days');
                     finHoy.subtract(1, 'days');
                 }
-
                 const registrosFiltrados = registros.filter(registro => {
                     const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss');
                     return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, '[)');
                 });
-
                 setRegistros(registrosFiltrados);
                 calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
                 calcularMetasPorTurno(sumaMetas);
@@ -103,7 +111,6 @@ const Totales_Biselado_Estacion = () => {
         if (momentB.isBefore(moment('06:30', 'HH:mm'))) momentB.add(1, 'day');
         return momentB.diff(momentA);
     });
-
     const filaGenerados = horasOrdenadas.map((hora) => hitsPorHora[hora]);
 
     const calcularRangoHoras = (horaInicio) => {
@@ -118,7 +125,7 @@ const Totales_Biselado_Estacion = () => {
 
     return (
         <div className="max-w-screen-xl rounded-lg">
-            <div className="hidden lg:block">
+            <div className="hidden lg:block" ref={biseladoRef}>
                 <table className="min-w-full bg-white border">
                     <thead>
                         <tr className="bg-blue-500 text-white border-l-2">
@@ -149,6 +156,35 @@ const Totales_Biselado_Estacion = () => {
                         </tr>
                     </tbody>
                 </table>
+                <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
+                    <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Matutino: 
+                            <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
+                                {totalesPorTurno.matutino}
+                            </span> 
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.matutino}</span>
+                        </p>
+                    </div>
+                    <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Vespertino: 
+                            <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
+                                {totalesPorTurno.vespertino}
+                            </span> 
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.vespertino}</span>
+                        </p>
+                    </div>
+                    <div className="bg-white p-2 px-10 rounded-lg shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Nocturno: 
+                            <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
+                                {totalesPorTurno.nocturno}
+                            </span> 
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.nocturno}</span>
+                        </p>
+                    </div>
+                </div>
             </div>
             <div className="block lg:hidden mt-4">
                 <div className="bg-white shadow-md rounded-lg mb-4 p-6">
@@ -179,20 +215,36 @@ const Totales_Biselado_Estacion = () => {
                             <button className="text-white font-bold uppercase">Ver Detalles</button>
                         </Link>
                     </div>
+                    <div className="mt-6 border-t pt-4">
+                        <div className="bg-green-50 p-4 rounded-lg shadow-md">
+                            <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span className="block text-gray-600">Matutino: </span>
+                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}`}>
+                                        {totalesPorTurno.matutino}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.matutino}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-gray-600">Vespertino: </span>
+                                    <span className={`text-md font-semibold ${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}`}>
+                                        {totalesPorTurno.vespertino}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.vespertino}</span>
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="block text-gray-600">Nocturno: </span>
+                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
+                                        {totalesPorTurno.nocturno}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.nocturno}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
-                <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-                    <p className="text-gray-700">Total Matutino: <span className={getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}>{totalesPorTurno.matutino}</span></p>
-                </div>
-                <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-                    <p className="text-gray-700">Total Vespertino: <span className={getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}>{totalesPorTurno.vespertino}</span></p>
-                </div>
-                <div className="bg-white p-2 px-10 rounded-lg">
-                    <p className="text-gray-700">Total Nocturno: <span className={getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}>{totalesPorTurno.nocturno}</span></p>
-                </div>
-            </div>
-            <div className="border-b-4 lg:border-b-0"></div>
         </div>
     );
 };

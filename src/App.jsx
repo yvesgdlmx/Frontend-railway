@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import Layout from './layouts/Layout';
-import Procesos from './paginas/Procesos';
+import Procesos from './paginas/procesos';
 import ScrollToTop from './components/others/ScrollToTop';
 /*Totales estacion*/
 import Totales_Estacion from './paginas/totales/Totales_Estacion';

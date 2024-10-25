@@ -114,6 +114,12 @@ const Historial_Por_Dia = () => {
     obtenerMetas();
   }, [anio, mes, dia]);
 
+  const calcularMetasPorTurno = (metaPorHora) => ({
+    matutino: metaPorHora * 8,
+    vespertino: metaPorHora * 7,
+    nocturno: metaPorHora * 9
+  });
+
   const registrosAgrupados = registros.reduce((acc, registro) => {
     const { name, hits } = registro;
     if (!acc[name]) {
@@ -169,8 +175,8 @@ const Historial_Por_Dia = () => {
     return acc;
   }, { matutino: 0, vespertino: 0, nocturno: 0 });
 
-  const getClassName = (hits, metaJornada) => {
-    return hits >= metaJornada ? 'generadores__check' : 'generadores__uncheck';
+  const getClassName = (hits, meta) => {
+    return hits >= meta ? 'text-green-600' : 'text-red-600';
   };
 
   const renderizarTablasPorEstacion = () => {
@@ -183,6 +189,19 @@ const Historial_Por_Dia = () => {
       const totalHitsEstacion = registrosEstacion.reduce((total, registro) => total + registro.hits, 0);
       const turnosEstacion = hitsPorEstacionYTurno[nombreEstacion];
       
+      // Calculamos la meta por hora para esta estación
+      const metaPorHoraEstacion = maquinas.reduce((total, maquina) => total + (metas[maquina] || 0), 0);
+      const metasPorTurno = calcularMetasPorTurno(metaPorHoraEstacion);
+
+      // Nuevo: Calcula la suma total de metas
+      const totalMetaEstacion = registrosEstacion.reduce((total, registro, index) => {
+        const maquina = maquinas[index];
+        const metaMaquina = metas[maquina] || 0;
+        return total + (metaMaquina * 24);
+      }, 0);
+
+      const claseMetaTotal = getClassName(totalHitsEstacion, totalMetaEstacion);
+
       return (
         <div key={nombreEstacion} className="mb-8">
           <p className="md:hidden text-center mb-2 text-sm text-gray-600">
@@ -210,23 +229,23 @@ const Historial_Por_Dia = () => {
                     <tr key={index} className="bg-white even:bg-gray-100">
                       <td className="w-1/4 py-2 px-4 border-b text-center">{maquina}</td>
                       <td className="w-1/4 py-2 px-4 border-b text-center">{`${fechaInicio} - ${fechaFin}`}</td>
-                      <td className={`w-1/4 py-2 px-4 border-b text-center ${claseMeta}`}>{registro.hits}</td>
-                      <td className="w-1/4 py-2 px-4 border-b text-center">{metaJornada}</td>
+                      <td className={`w-1/4 py-2 px-4 border-b text-center font-semibold ${claseMeta}`}>{registro.hits}</td>
+                      <td className="w-1/4 py-2 px-4 border-b text-center font-semibold">{metaJornada}</td>
                     </tr>
                   );
                 })}
                 <tr className="bg-gray-200">
                   <td className="py-2 px-4 border-b text-center font-bold text-gray-600" colSpan="2">Total</td>
-                  <td className="py-2 px-4 border-b text-center text-blue-700 font-bold">{totalHitsEstacion}</td>
-                  <td className="py-2 px-4 border-b text-center"></td>
+                  <td className={`py-2 px-4 border-b text-center font-bold ${claseMetaTotal}`}>{totalHitsEstacion}</td>
+                  <td className="py-2 px-4 border-b text-center font-bold">{totalMetaEstacion}</td>
                 </tr>
                 <tr className="bg-green-50">
                   <td className="py-2 px-4 border-b text-center font-bold text-gray-600" colSpan="2">Turnos: </td>
                   <td className="py-2 px-4 border-b text-center" colSpan="2">
                     <div className="flex justify-between">
-                      <span>Matutino: <strong className="text-gray-600">{turnosEstacion.matutino}</strong></span>
-                      <span>Vespertino: <strong className="text-gray-600">{turnosEstacion.vespertino}</strong></span>
-                      <span>Nocturno: <strong className="text-gray-600">{turnosEstacion.nocturno}</strong></span>
+                      <span>Matutino: <strong className={getClassName(turnosEstacion.matutino, metasPorTurno.matutino)}>{turnosEstacion.matutino}</strong> / Meta: <strong className="text-gray-600">{metasPorTurno.matutino}</strong></span>
+                      <span>Vespertino: <strong className={getClassName(turnosEstacion.vespertino, metasPorTurno.vespertino)}>{turnosEstacion.vespertino}</strong> / Meta: <strong className="text-gray-600">{metasPorTurno.vespertino}</strong></span>
+                      <span>Nocturno: <strong className={getClassName(turnosEstacion.nocturno, metasPorTurno.nocturno)}>{turnosEstacion.nocturno}</strong> / Meta: <strong className="text-gray-600">{metasPorTurno.nocturno}</strong></span>
                     </div>
                   </td>
                 </tr>
@@ -251,33 +270,41 @@ const Historial_Por_Dia = () => {
                   <div key={index} className="flex justify-between items-center border-b border-gray-200 pb-2">
                     <span className="font-medium text-gray-700">{maquina}</span>
                     <div className="text-right">
-                      <span className={`block ${claseMeta}`}>{registro.hits} / {metaJornada}</span>
+                      <span className="block">
+                        <span className={claseMeta}>{registro.hits}</span>
+                        <span className="text-gray-600"> / {metaJornada}</span>
+                      </span>
                       <span className="text-xs text-gray-500">Hits / Meta</span>
                     </div>
                   </div>
                 );
               })}
-              
-              <div className="flex justify-between items-center pt-2 border-gray-200">
-                <span className="font-semibold text-gray-700">Total Hits</span>
-                <span className="font-bold text-blue-600">{totalHitsEstacion}</span>
+              <div className="flex justify-between items-center pt-2">
+                <span className="font-semibold text-gray-700">Total Hits / Meta</span>
+                <span className="font-bold">
+                  <span className={claseMetaTotal}>{totalHitsEstacion}</span>
+                  <span className="text-gray-600"> / {totalMetaEstacion}</span>
+                </span>
               </div>
-            </div>
+          </div>
             
-            <div className="bg-green-50 p-4 border-t border-gray-200">
+          <div className="bg-green-50 p-4 border-t border-gray-200">
               <h4 className="font-semibold text-green-700 mb-2">Turnos</h4>
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div>
                   <span className="block text-gray-600">Matutino</span>
-                  <span className="font-bold text-gray-500">{turnosEstacion.matutino}</span>
+                  <span className={`font-bold ${getClassName(turnosEstacion.matutino, metasPorTurno.matutino)}`}>{turnosEstacion.matutino}</span>
+                  <span className="block text-xs text-gray-500">Meta: {metasPorTurno.matutino}</span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Vespertino</span>
-                  <span className="font-bold text-gray-500">{turnosEstacion.vespertino}</span>
+                  <span className={`font-bold ${getClassName(turnosEstacion.vespertino, metasPorTurno.vespertino)}`}>{turnosEstacion.vespertino}</span>
+                  <span className="block text-xs text-gray-500">Meta: {metasPorTurno.vespertino}</span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Nocturno</span>
-                  <span className="font-bold text-gray-500">{turnosEstacion.nocturno}</span>
+                  <span className={`font-bold ${getClassName(turnosEstacion.nocturno, metasPorTurno.nocturno)}`}>{turnosEstacion.nocturno}</span>
+                  <span className="block text-xs text-gray-500">Meta: {metasPorTurno.nocturno}</span>
                 </div>
               </div>
             </div>

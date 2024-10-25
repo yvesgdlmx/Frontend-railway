@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from 'moment-timezone';
@@ -6,13 +6,25 @@ import moment from 'moment-timezone';
 moment.tz.setDefault('America/Mexico_City');
 
 const Totales_AR_Estacion = () => {
+    const location = useLocation();
+    const arRef = useRef(null);
     const [registros, setRegistros] = useState([]);
     const [totalesPorTurno, setTotalesPorTurno] = useState({
         matutino: 0,
         vespertino: 0,
         nocturno: 0
     });
-    const location = useLocation();
+
+    useEffect(() => {
+        if (location.hash === '#ar' && arRef.current) {
+          setTimeout(() => {
+            const yOffset = -90;
+            const element = arRef.current;
+            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({top: y, behavior: 'smooth'});
+          }, 100);
+        }
+    }, [location]);
 
     useEffect(() => {
         const obtenerRegistros = async () => {
@@ -20,35 +32,22 @@ const Totales_AR_Estacion = () => {
             const registrosAR = data.registros.filter(registro => {
                 return ['91', '92', '52', '53', '54', '55', '56'].some(num => registro.name.includes(num));
             });
-            
             const ahora = moment();
             let inicioHoy = moment().startOf('day').add(6, 'hours').add(30, 'minutes');
             let finHoy = moment(inicioHoy).add(1, 'days');
-
             if (ahora.isBefore(inicioHoy)) {
                 inicioHoy.subtract(1, 'days');
                 finHoy.subtract(1, 'days');
             }
-
             const registrosFiltrados = registrosAR.filter(registro => {
                 const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss');
                 return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, '[)');
             });
-
             setRegistros(registrosFiltrados);
             calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
         };
         obtenerRegistros();
     }, []);
-
-    useEffect(() => {
-        if (location.hash) {
-            const element = document.getElementById(location.hash.substring(1));
-            if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
-            }
-        }
-    }, [location]);
 
     const agruparHitsPorHora = () => {
         const hitsPorHora = {};
@@ -100,9 +99,8 @@ const Totales_AR_Estacion = () => {
     const filaGenerados = horasOrdenadas.map((hora) => hitsPorHora[hora]);
 
     return (
-        <div className="max-w-screen-xl rounded-lg" id="arhora">
-            {/* Estructura para pantallas grandes */}
-            <div className="hidden lg:block">
+        <div className="max-w-screen-xl rounded-lg">
+            <div className="hidden lg:block" ref={arRef}>
                 <table className="min-w-full bg-white border">
                     <thead>
                         <tr className="bg-blue-500 text-white border-l-2">
@@ -130,6 +128,27 @@ const Totales_AR_Estacion = () => {
                         </tr>
                     </tbody>
                 </table>
+                {/* Sección de totales para pantallas grandes */}
+                <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
+                    <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Matutino: 
+                            <span className="ml-1 font-bold text-gray-700">{totalesPorTurno.matutino}</span>
+                        </p>
+                    </div>
+                    <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Vespertino: 
+                            <span className="ml-1 font-bold text-gray-700">{totalesPorTurno.vespertino}</span>
+                        </p>
+                    </div>
+                    <div className="bg-white p-2 px-10 rounded-lg shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Nocturno: 
+                            <span className="ml-1 font-bold text-gray-700">{totalesPorTurno.nocturno}</span>
+                        </p>
+                    </div>
+                </div>
             </div>
             {/* Diseño tipo card para pantallas pequeñas y medianas */}
             <div className="block lg:hidden mt-4">
@@ -156,20 +175,28 @@ const Totales_AR_Estacion = () => {
                             <button className="text-white font-bold uppercase">Ver Detalles</button>
                         </Link>
                     </div>
+                    {/* Sección de totales para pantallas pequeñas y medianas */}
+                    <div className="mt-6 border-t pt-4">
+                        <div className="bg-green-50 p-4 rounded-lg shadow-md">
+                            <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span className="block text-gray-600">Matutino: </span>
+                                    <span className="font-semibold text-md text-gray-700">{totalesPorTurno.matutino}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-gray-600">Vespertino: </span>
+                                    <span className="text-md font-semibold text-gray-700">{totalesPorTurno.vespertino}</span>
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="block text-gray-600">Nocturno: </span>
+                                    <span className="font-semibold text-md text-gray-700">{totalesPorTurno.nocturno}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
-                <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-                    <p className="text-gray-700">Total Matutino: <span>{totalesPorTurno.matutino}</span></p>
-                </div>
-                <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-                    <p className="text-gray-700">Total Vespertino: <span>{totalesPorTurno.vespertino}</span></p>
-                </div>
-                <div className="bg-white p-2 px-10 rounded-lg">
-                    <p className="text-gray-700">Total Nocturno: <span>{totalesPorTurno.nocturno}</span></p>
-                </div>
-            </div>
-            <div className="border-b-4 lg:border-b-0"></div>
         </div>
     );
 };

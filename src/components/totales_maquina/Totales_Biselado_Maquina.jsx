@@ -295,16 +295,34 @@ const Totales_Biselado_Maquina = () => {
         </div>
         {/* Totales por turno */}
         <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
-          <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-            <p className="text-gray-700 text-sm md:text-base">Total Matutino: <span className={getClassName(totalesPorTurno.matutino, metaMatutinoFinal)}>{totalesPorTurno.matutino}</span></p>
+            <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
+              <p className="text-gray-600 text-sm md:text-base">
+                Total Matutino: 
+                <span className={getClassName(totalesPorTurno.matutino, metaMatutinoFinal)}>
+                  {totalesPorTurno.matutino}
+                </span> 
+                / Meta: <span className="text-gray-600 font-bold">{metaMatutinoFinal}</span>
+              </p>
+            </div>
+            <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
+              <p className="text-gray-600 text-sm md:text-base">
+                Total Vespertino: 
+                <span className={getClassName(totalesPorTurno.vespertino, metaVespertinoFinal)}>
+                  {totalesPorTurno.vespertino}
+                </span> 
+                / Meta: <span className="text-gray-600 font-bold">{metaVespertinoFinal}</span>
+              </p>
+            </div>
+            <div className="bg-white p-2 px-10 rounded-lg">
+              <p className="text-gray-600 text-sm md:text-base">
+                Total Nocturno: 
+                <span className={getClassName(totalesPorTurno.nocturno, metaNocturnoFinal)}>
+                  {totalesPorTurno.nocturno}
+                </span> 
+                / Meta: <span className="text-gray-600 font-bold">{metaNocturnoFinal}</span>
+              </p>
+            </div>
           </div>
-          <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-            <p className="text-gray-700 text-sm md:text-base">Total Vespertino: <span className={getClassName(totalesPorTurno.vespertino, metaVespertinoFinal)}>{totalesPorTurno.vespertino}</span></p>
-          </div>
-          <div className="bg-white p-2 px-10 rounded-lg">
-            <p className="text-gray-700 text-sm md:text-base">Total Nocturno: <span className={getClassName(totalesPorTurno.nocturno, metaNocturnoFinal)}>{totalesPorTurno.nocturno}</span></p>
-          </div>
-        </div>
       </div>
     </>
   );

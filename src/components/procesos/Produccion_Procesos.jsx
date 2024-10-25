@@ -103,7 +103,15 @@ const Produccion_Procesos = () => {
 
   return (
     <div className='bg-white p-4 rounded-xl'>
-      <Link to={'/totales_estacion'}>
+     <Link to='/totales_estacion#produccion' className='hidden lg:block'>
+        <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
+          <h2 className='text-white font-bold uppercase'>Producción</h2>
+          <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
+        </div>
+      </Link>
+
+      {/* Enlace para pantallas pequeñas y medianas */}
+      <Link to='/totales_estacion' className='block lg:hidden'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
           <h2 className='text-white font-bold uppercase'>Producción</h2>
           <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />

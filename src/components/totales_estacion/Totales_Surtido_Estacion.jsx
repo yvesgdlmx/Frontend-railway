@@ -6,6 +6,7 @@ import moment from 'moment-timezone';
 moment.tz.setDefault('America/Mexico_City');
 
 const Totales_Surtido_Estacion = () => {
+    const location = useLocation();
     const [registros, setRegistros] = useState([]);
     const [meta, setMeta] = useState(0);
     const [totalesPorTurno, setTotalesPorTurno] = useState({
@@ -18,7 +19,21 @@ const Totales_Surtido_Estacion = () => {
         vespertino: 0,
         nocturno: 0
     });
-    const location = useLocation();
+
+    useEffect(() => {
+        if (location.hash) {
+            setTimeout(() => {
+                const id = location.hash.replace('#', '');
+                const element = document.getElementById(id);
+                if (element) {
+                    window.scrollTo({
+                        top: element.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 0);
+        }
+    }, [location]);
 
     useEffect(() => {
         const obtenerDatos = async () => {
@@ -28,24 +43,19 @@ const Totales_Surtido_Estacion = () => {
                 if (metaLensLog) {
                     setMeta(metaLensLog.meta);
                 }
-
                 const responseRegistros = await clienteAxios('/manual/manual/actualdia');
                 const registrosLensLog = responseRegistros.data.registros.filter(registro => registro.name.includes('LENS LOG'));
-
                 const ahora = moment();
                 let inicioHoy = moment().startOf('day').add(6, 'hours').add(30, 'minutes');
                 let finHoy = moment(inicioHoy).add(1, 'days');
-
                 if (ahora.isBefore(inicioHoy)) {
                     inicioHoy.subtract(1, 'days');
                     finHoy.subtract(1, 'days');
                 }
-
                 const registrosFiltrados = registrosLensLog.filter(registro => {
                     const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss');
                     return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, '[)');
                 });
-
                 setRegistros(registrosFiltrados);
                 calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
                 calcularMetasPorTurno(metaLensLog.meta);
@@ -55,15 +65,6 @@ const Totales_Surtido_Estacion = () => {
         };
         obtenerDatos();
     }, []);
-
-    useEffect(() => {
-        if (location.hash) {
-            const element = document.getElementById(location.hash.substring(1));
-            if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
-            }
-        }
-    }, [location]);
 
     const calcularTotalesPorTurno = (registros, inicioHoy) => {
         const totales = {
@@ -134,7 +135,7 @@ const Totales_Surtido_Estacion = () => {
     return (
         <div className="max-w-screen-xl rounded-lg">
             {/* Estructura para pantallas grandes */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block" id="surtido">
                 <table className="min-w-full bg-white border">
                     <thead>
                         <tr className="bg-blue-500 text-white border-l-2">
@@ -150,7 +151,7 @@ const Totales_Surtido_Estacion = () => {
                         <tr className="font-semibold text-gray-700">
                             <Link to={'/totales_surtido_maquina'} className="link__tabla">
                                 <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
-                                <img src="./img/ver.png" alt="" width={25} className="relative left-6"/>
+                                    <img src="./img/ver.png" alt="" width={25} className="relative left-6"/>
                                     <td className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
                                         Surtido <br />
                                         <span className="text-gray-500">Meta: <span>{meta}</span></span>
@@ -165,7 +166,39 @@ const Totales_Surtido_Estacion = () => {
                         </tr>
                     </tbody>
                 </table>
+                
+                {/* Sección de totales para pantallas grandes */}
+                <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
+                    <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Matutino: 
+                            <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
+                                {totalesPorTurno.matutino}
+                            </span> 
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.matutino}</span>
+                        </p>
+                    </div>
+                    <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Vespertino: 
+                            <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
+                                {totalesPorTurno.vespertino}
+                            </span> 
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.vespertino}</span>
+                        </p>
+                    </div>
+                    <div className="bg-white p-2 px-10 rounded-lg shadow-md">
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Total Nocturno: 
+                            <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
+                                {totalesPorTurno.nocturno}
+                            </span> 
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.nocturno}</span>
+                        </p>
+                    </div>
+                </div>
             </div>
+
             {/* Diseño tipo card para pantallas pequeñas y medianas */}
             <div className="block lg:hidden mt-4">
                 <div className="bg-white shadow-md rounded-lg mb-4 p-6">
@@ -196,20 +229,38 @@ const Totales_Surtido_Estacion = () => {
                            <button className="text-white font-bold uppercase"> Ver Detalles </button>
                         </Link>
                     </div>
+
+                    {/* Sección de totales para pantallas pequeñas y medianas */}
+                    <div className="mt-6 border-t pt-4">
+                        <div className="bg-green-50 p-4 rounded-lg shadow-md">
+                            <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span className="block text-gray-600">Matutino: </span>
+                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}`}>
+                                        {totalesPorTurno.matutino}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.matutino}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-gray-600">Vespertino: </span>
+                                    <span className={`text-md font-semibold ${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}`}>
+                                        {totalesPorTurno.vespertino}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.vespertino}</span>
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="block text-gray-600">Nocturno: </span>
+                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
+                                        {totalesPorTurno.nocturno}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.nocturno}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
-                <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-                    <p className="text-gray-700 text-sm md:text-base">Total Matutino: <span className={getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}>{totalesPorTurno.matutino}</span></p>
-                </div>
-                <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-                    <p className="text-gray-700 text-sm md:text-base">Total Vespertino: <span className={getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}>{totalesPorTurno.vespertino}</span></p>
-                </div>
-                <div className="bg-white p-2 px-10 rounded-lg">
-                    <p className="text-gray-700 text-sm md:text-base">Total Nocturno: <span className={getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}>{totalesPorTurno.nocturno}</span></p>
-                </div>
-            </div>
-            <div className="border-b-4 lg:border-b-0"></div>
         </div>
     );
 }
