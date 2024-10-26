@@ -11,7 +11,6 @@ import Totales_AR_Estacion from "../../components/totales_estacion/Totales_AR_Es
 import Totales_Desbloqueo_Estacion from "../../components/totales_estacion/Totales_Desbloqueo_Estacion";
 import Totales_Produccion_Estacion from "../../components/totales_estacion/Totales_Produccion_Estacion";
 
-// Componente para el título desplegable
 const TituloSeccion = ({ titulo, isOpen, toggle }) => (
   <div 
     className="flex justify-between items-center bg-gradient-to-r from-gray-50 to-gray-100 p-4 py-6 cursor-pointer md:hidden rounded-lg shadow-sm border border-gray-200 transition-all duration-300 ease-in-out hover:shadow-md"
@@ -26,7 +25,7 @@ const TituloSeccion = ({ titulo, isOpen, toggle }) => (
 );
 
 const SeccionMenu = ({ titulo, isOpen, toggle, children }) => (
-    <div className="overflow-hidden">
+    <div className="overflow-visible mb-4">
         <TituloSeccion 
             titulo={titulo} 
             isOpen={isOpen} 
@@ -34,7 +33,7 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => (
         />
         <div className={`
             md:block md:max-h-full md:opacity-100
-            ${isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}
+            ${isOpen ? 'max-h-none opacity-100' : 'max-h-0 opacity-0'}
             transition-all duration-300 ease-in-out
         `}>
             {children}

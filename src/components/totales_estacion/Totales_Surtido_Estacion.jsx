@@ -166,7 +166,6 @@ const Totales_Surtido_Estacion = () => {
                         </tr>
                     </tbody>
                 </table>
-                
                 {/* Sección de totales para pantallas grandes */}
                 <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
@@ -202,32 +201,34 @@ const Totales_Surtido_Estacion = () => {
             {/* Diseño tipo card para pantallas pequeñas y medianas */}
             <div className="block lg:hidden mt-4">
                 <div className="bg-white shadow-md rounded-lg mb-4 p-6">
-                    <div className="flex justify-between border-b pb-2">
-                        <span className="font-bold text-gray-700">Nombre:</span>
-                        <span className="font-bold text-gray-700">Surtido</span>
-                    </div>
-                    <div className="flex justify-between border-b py-4">
-                        <span className="font-bold text-gray-700">Meta:</span>
-                        <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
-                    </div>
-                    <div className="py-4">
-                        <span className="font-bold text-gray-700">Horas:</span>
-                        {horasOrdenadas.map((hora, idx) => {
-                            const totalHits = hitsPorHora[hora];
-                            const bgColor = idx % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300';
-                            const hitsClass = totalHits >= meta ? "text-green-500" : "text-red-500";
-                            return (
-                                <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
-                                    <span className="font-bold text-gray-700">{calcularRangoHoras(formatearHoraSinSegundos(hora))}:</span>
-                                    <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className="flex justify-center mt-4">
-                        <Link to={'/totales_surtido_maquina'} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
-                           <button className="text-white font-bold uppercase"> Ver Detalles </button>
-                        </Link>
+                    <div className="mb-6">
+                        <div className="flex justify-between border-b pb-2">
+                            <span className="font-bold text-gray-700">Nombre:</span>
+                            <span className="font-bold text-gray-700">Surtido</span>
+                        </div>
+                        <div className="flex justify-between border-b py-4">
+                            <span className="font-bold text-gray-700">Meta:</span>
+                            <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
+                        </div>
+                        <div className="py-4">
+                            <span className="font-bold text-gray-700">Horas:</span>
+                            {horasOrdenadas.map((hora, idx) => {
+                                const totalHits = hitsPorHora[hora];
+                                const bgColor = idx % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300';
+                                const hitsClass = totalHits >= meta ? "text-green-500" : "text-red-500";
+                                return (
+                                    <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
+                                        <span className="font-bold text-gray-700">{calcularRangoHoras(formatearHoraSinSegundos(hora))}:</span>
+                                        <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="flex justify-center mt-4">
+                            <Link to={'/totales_surtido_maquina'} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
+                                <button className="text-white font-bold uppercase"> Ver Detalles </button>
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Sección de totales para pantallas pequeñas y medianas */}
