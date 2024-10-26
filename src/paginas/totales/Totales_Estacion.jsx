@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from '@heroicons/react/24/solid';
 import Totales_Surtido_Estacion from "../../components/totales_estacion/Totales_Surtido_Estacion";
 import Totales_Tallado_Estacion from "../../components/totales_estacion/Totales_Tallado_Estacion";
@@ -25,22 +25,39 @@ const TituloSeccion = ({ titulo, isOpen, toggle }) => (
   </div>
 );
 
-const SeccionMenu = ({ titulo, isOpen, toggle, children }) => (
-    <div className="overflow-hidden">
-        <TituloSeccion 
-            titulo={titulo} 
-            isOpen={isOpen} 
-            toggle={toggle}
-        />
-        <div className={`
-            md:block md:max-h-full md:opacity-100
-            ${isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}
-            transition-all duration-300 ease-in-out
-        `}>
-            {children}
+const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
+    const contentRef = useRef(null);
+    const [height, setHeight] = useState(0);
+
+    useEffect(() => {
+        if (isOpen) {
+            setHeight(contentRef.current.scrollHeight);
+        } else {
+            setHeight(0);
+        }
+    }, [isOpen]);
+
+    return (
+        <div className="overflow-hidden">
+            <TituloSeccion 
+                titulo={titulo} 
+                isOpen={isOpen} 
+                toggle={toggle}
+            />
+            <div 
+                ref={contentRef}
+                style={{ maxHeight: `${height}px` }}
+                className={`
+                    transition-all duration-300 ease-in-out
+                    ${isOpen ? 'opacity-100' : 'opacity-0'}
+                    md:block md:max-h-full md:opacity-100
+                `}
+            >
+                {children}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const Totales_Estacion = () => {
     const [secciones, setSecciones] = useState({
