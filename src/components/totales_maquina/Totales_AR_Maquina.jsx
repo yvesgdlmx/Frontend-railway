@@ -1,7 +1,54 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from 'moment-timezone';
+import { ChevronDownIcon, ChevronUpIcon, CogIcon } from '@heroicons/react/24/solid';
+
+const TituloSeccion = ({ titulo, isOpen, toggle }) => (
+  <div 
+    className="flex justify-between items-center bg-gradient-to-r from-gray-50 to-gray-100 p-4 py-6 cursor-pointer rounded-lg shadow-sm border border-gray-200 transition-all duration-300 ease-in-out hover:shadow-md"
+    onClick={toggle}
+  >
+    <div className="flex items-center space-x-3">
+      <CogIcon className="h-6 w-6 text-blue-300" />
+      <h2 className="font-semibold text-gray-600">{titulo}</h2>
+    </div>
+    {isOpen ? <ChevronUpIcon className="h-5 w-5 text-gray-500" /> : <ChevronDownIcon className="h-5 w-5 text-gray-500" />}
+  </div>
+);
+
+const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
+  const contentRef = useRef(null);
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    if (isOpen) {
+      setHeight(contentRef.current.scrollHeight);
+    } else {
+      setHeight(0);
+    }
+  }, [isOpen]);
+
+  return (
+    <div className="overflow-hidden mb-4">
+      <TituloSeccion 
+        titulo={titulo} 
+        isOpen={isOpen} 
+        toggle={toggle}
+      />
+      <div 
+        ref={contentRef}
+        style={{ maxHeight: isOpen ? `${height}px` : '0px' }}
+        className={`
+          transition-all duration-300 ease-in-out
+          ${isOpen ? 'opacity-100 mt-4' : 'opacity-0'}
+        `}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const Totales_AR_Maquina = () => {
   useEffect(() => {
@@ -10,6 +57,15 @@ const Totales_AR_Maquina = () => {
     }, 300000); // Actualiza cada 5 minutos
     return () => clearInterval(interval);
   }, []);
+
+  const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
+  const toggleSeccion = (seccion) => {
+    setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
+  };
+
+  const getClassName = (hits, metaPorTurno) => {
+    return hits >= metaPorTurno ? "text-green-500" : "text-red-500";
+  };
   
   const [registros, setRegistros] = useState([]);
   const [horasUnicas, setHorasUnicas] = useState([]);
@@ -110,43 +166,45 @@ const Totales_AR_Maquina = () => {
     <div className="max-w-screen-xl">
       {/* Diseño tipo card para pantallas pequeñas y medianas */}
       <div className="lg:hidden mt-4">
-        <div className="bg-white shadow-md rounded-lg mb-4 p-6">
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-bold text-gray-700">Nombre:</span>
-            <span className="font-bold text-gray-700">AR</span>
+        <SeccionMenu 
+          titulo="AR"
+          isOpen={seccionesAbiertas['AR'] || false}
+          toggle={() => toggleSeccion('AR')}
+        >
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <div className="flex justify-between border-b pb-2">
+              <span className="font-bold text-gray-700">Total Acumulado:</span>
+              <span className={`font-bold ${getClassName(totalesAcumulados, meta)}`}>{totalesAcumulados}</span>
+            </div>
+            <div className="flex justify-between border-b py-4">
+              <span className="font-bold text-gray-700">Meta:</span>
+              <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
+            </div>
+            <div className="py-4">
+              <span className="font-bold text-gray-700">Horas:</span>
+              {horasUnicas.map((hora, idx) => {
+                const [horaInicio, horaFin] = hora.split(' - ');
+                const totalHits = registros.filter(r => {
+                  const hourMoment = moment(r.hour, 'HH:mm:ss');
+                  const startMoment = moment(horaInicio, 'HH:mm');
+                  const endMoment = moment(horaFin, 'HH:mm');
+                  if (startMoment.isAfter(endMoment)) {
+                    return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
+                  } else {
+                    return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
+                  }
+                }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
+                const bgColor = idx % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300';
+                return (
+                  <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
+                    <span className="font-bold text-gray-700">{hora}:</span>
+                    <span className="font-bold">{totalHits}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="flex justify-between border-b py-4">
-            <span className="font-bold text-gray-700">Total Acumulado:</span>
-            <span className="font-bold">{totalesAcumulados}</span>
-          </div>
-          <div className="flex justify-between border-b py-4">
-            <span className="font-bold text-gray-700">Meta:</span>
-            <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
-          </div>
-          <div className="py-4">
-            <span className="font-bold text-gray-700">Horas:</span>
-            {horasUnicas.map((hora, idx) => {
-              const [horaInicio, horaFin] = hora.split(' - ');
-              const totalHits = registros.filter(r => {
-                const hourMoment = moment(r.hour, 'HH:mm:ss');
-                const startMoment = moment(horaInicio, 'HH:mm');
-                const endMoment = moment(horaFin, 'HH:mm');
-                if (startMoment.isAfter(endMoment)) {
-                  return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
-                } else {
-                  return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
-                }
-              }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
-              const bgColor = idx % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300';
-              return (
-                <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
-                  <span className="font-bold text-gray-700">{hora}:</span>
-                  <span className="font-bold">{totalHits}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        </SeccionMenu>
       </div>
       {/* Diseño de tabla para pantallas grandes */}
       <div className="hidden lg:block">
@@ -197,16 +255,79 @@ const Totales_AR_Maquina = () => {
           </tbody>
         </table>
       </div>
-      {/* Totales por turno */}
-      <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
-        <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-          <p className="text-gray-700 text-sm md:text-base">Total Matutino: <span className="font-bold">{totalesPorTurno.matutino}</span></p>
+     {/* Totales por turno */}
+      <div className='mt-4 font-semibold mb-4'>
+        {/* Diseño para pantallas pequeñas y medianas */}
+        <div className='lg:hidden space-y-4'>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Matutino</h3>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Total:</span>
+              <span className={`text-lg ${getClassName(totalesPorTurno.matutino, meta * 8)}`}>
+                {totalesPorTurno.matutino}
+              </span>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-gray-600">Meta:</span>
+              <span className="text-lg font-bold text-gray-800">{meta * 8}</span>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Vespertino</h3>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Total:</span>
+              <span className={`text-lg ${getClassName(totalesPorTurno.vespertino, meta * 7)}`}>
+                {totalesPorTurno.vespertino}
+              </span>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-gray-600">Meta:</span>
+              <span className="text-lg font-bold text-gray-800">{meta * 7}</span>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Nocturno</h3>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Total:</span>
+              <span className={`text-lg ${getClassName(totalesPorTurno.nocturno, meta * 9)}`}>
+                {totalesPorTurno.nocturno}
+              </span>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-gray-600">Meta:</span>
+              <span className="text-lg font-bold text-gray-800">{meta * 9}</span>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0">
-          <p className="text-gray-700 text-sm md:text-base">Total Vespertino: <span className="font-bold">{totalesPorTurno.vespertino}</span></p>
-        </div>
-        <div className="bg-white p-2 px-10 rounded-lg">
-          <p className="text-gray-700 text-sm md:text-base">Total Nocturno: <span className="font-bold">{totalesPorTurno.nocturno}</span></p>
+        {/* Diseño original para pantallas grandes */}
+        <div className='hidden lg:flex lg:flex-row justify-around'>
+          <div className="bg-white p-2 px-10 rounded-lg">
+            <p className="text-gray-600 text-base">
+              Total Matutino: 
+              <span className={getClassName(totalesPorTurno.matutino, meta * 8)}>
+                {totalesPorTurno.matutino}
+              </span> 
+              / Meta: <span className="text-gray-600 font-bold">{meta * 8}</span>
+            </p>
+          </div>
+          <div className="bg-white p-2 px-10 rounded-lg">
+            <p className="text-gray-600 text-base">
+              Total Vespertino: 
+              <span className={getClassName(totalesPorTurno.vespertino, meta * 7)}>
+                {totalesPorTurno.vespertino}
+              </span> 
+              / Meta: <span className="text-gray-600 font-bold">{meta * 7}</span>
+            </p>
+          </div>
+          <div className="bg-white p-2 px-10 rounded-lg">
+            <p className="text-gray-600 text-base">
+              Total Nocturno: 
+              <span className={getClassName(totalesPorTurno.nocturno, meta * 9)}>
+                {totalesPorTurno.nocturno}
+              </span> 
+              / Meta: <span className="text-gray-600 font-bold">{meta * 9}</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

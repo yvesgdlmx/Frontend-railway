@@ -110,7 +110,7 @@ const Engraver_Procesos = () => {
       </Link>
 
       {/* Enlace para pantallas pequeñas y medianas */}
-      <Link to='/totales_estacion' className='block lg:hidden'>
+      <Link to='/totales_estacion?seccion=engraver' className='block lg:hidden'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
           <h2 className='text-white font-bold uppercase'>Engraver</h2>
           <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />

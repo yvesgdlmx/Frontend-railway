@@ -11,31 +11,30 @@ import Biselado_Procesos from '../components/procesos/Biselado_Procesos';
 import Produccion_Procesos from '../components/procesos/Produccion_Procesos';
 
 const Procesos = () => {
-  useEffect(() => {
-    const interval = setInterval(() => {
-      window.location.reload();
-    }, 300000); // Actualiza cada 5 minutos
-    return () => clearInterval(interval);
-  }, []);
-
   const [ultimaActualizacion, setUltimaActualizacion] = useState('');
 
   useEffect(() => {
     const actualizarHora = () => {
       const ahora = new Date();
       const minutos = ahora.getMinutes();
-      const minutosRedondeados = Math.floor(minutos / 15) * 15 + 5;
+      const minutosRedondeados = Math.floor(minutos / 15) * 15;
       ahora.setMinutes(minutosRedondeados, 0, 0);
       const horaFormateada = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setUltimaActualizacion(horaFormateada);
     };
-  
-    actualizarHora();
-    const intervalo = setInterval(() => {
-      actualizarHora();
-      window.location.reload();
-    }, 15 * 60 * 1000); // Actualiza cada 15 minutos
-  
+
+    const verificarYActualizar = () => {
+      const ahora = new Date();
+      const minutos = ahora.getMinutes();
+      if (minutos % 15 === 0) {
+        actualizarHora();
+        window.location.reload();
+      }
+    };
+
+    actualizarHora(); // Actualiza inmediatamente al cargar
+    const intervalo = setInterval(verificarYActualizar, 60000); // Verifica cada minuto
+
     return () => clearInterval(intervalo);
   }, []);
 
@@ -43,7 +42,7 @@ const Procesos = () => {
     <div>
       <div className='bg-gray-200 p-4 mb-4 rounded flex justify-between xs:hidden md:flex'>
         <div className='flex gap-1'>
-          <img src="/img/clock.png" alt="clock" width={25}/>
+          <img src="/img/clock.png" alt="reloj" width={25}/>
           <p className='text-gray-700 font-bold uppercase'>Última actualización: {ultimaActualizacion}</p>
         </div>
         <div>

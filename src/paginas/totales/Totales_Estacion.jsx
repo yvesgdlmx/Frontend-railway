@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from '@heroicons/react/24/solid';
 import Totales_Surtido_Estacion from "../../components/totales_estacion/Totales_Surtido_Estacion";
 import Totales_Tallado_Estacion from "../../components/totales_estacion/Totales_Tallado_Estacion";
@@ -25,20 +26,22 @@ const TituloSeccion = ({ titulo, isOpen, toggle }) => (
   </div>
 );
 
-const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
+const SeccionMenu = ({ id, titulo, isOpen, toggle, children }) => {
     const contentRef = useRef(null);
     const [height, setHeight] = useState(0);
 
     useEffect(() => {
         if (isOpen) {
+          setTimeout(() => {
             setHeight(contentRef.current.scrollHeight);
+          }, 100); // Aumenta el tiempo de espera a 300ms
         } else {
-            setHeight(0);
+          setHeight(0);
         }
-    }, [isOpen]);
+      }, [isOpen]);
 
     return (
-        <div className="overflow-hidden">
+        <div className="overflow-hidden" id={id}>
             <TituloSeccion 
                 titulo={titulo} 
                 isOpen={isOpen} 
@@ -60,6 +63,7 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
 };
 
 const Totales_Estacion = () => {
+    const location = useLocation();
     const [secciones, setSecciones] = useState({
         surtido: false,
         tallado: false,
@@ -84,38 +88,52 @@ const Totales_Estacion = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const seccionAAbrir = params.get('seccion');
+        if (seccionAAbrir) {
+          setSecciones(prev => ({ ...prev, [seccionAAbrir]: true }));
+          setTimeout(() => {
+            const element = document.getElementById(seccionAAbrir);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 100);
+        }
+      }, [location]);
+
     return (
         <div className="flex flex-col space-y-2 min-w-full mt-6 px-4 md:px-0">
             <div className="md:hidden">
                 {/* Secciones desplegables para móviles */}
-                <SeccionMenu titulo="Surtido" isOpen={secciones.surtido} toggle={() => toggleSeccion('surtido')}>
+                <SeccionMenu id="surtido" titulo="Surtido" isOpen={secciones.surtido} toggle={() => toggleSeccion('surtido')}>
                     <Totales_Surtido_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Tallado" isOpen={secciones.tallado} toggle={() => toggleSeccion('tallado')}>
+                <SeccionMenu id='tallado' titulo="Bloqueo de Tallado" isOpen={secciones.tallado} toggle={() => toggleSeccion('tallado')}>
                     <Totales_Tallado_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Generado" isOpen={secciones.generado} toggle={() => toggleSeccion('generado')}>
+                <SeccionMenu id='generado' titulo="Generado" isOpen={secciones.generado} toggle={() => toggleSeccion('generado')}>
                     <Totales_Generado_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Pulido" isOpen={secciones.pulido} toggle={() => toggleSeccion('pulido')}>
+                <SeccionMenu id="pulido" titulo="Pulido" isOpen={secciones.pulido} toggle={() => toggleSeccion('pulido')}>
                     <Totales_Pulido_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Engraver" isOpen={secciones.engraver} toggle={() => toggleSeccion('engraver')}>
+                <SeccionMenu id='engraver' titulo="Engraver" isOpen={secciones.engraver} toggle={() => toggleSeccion('engraver')}>
                     <Totales_Engraver_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="AR" isOpen={secciones.ar} toggle={() => toggleSeccion('ar')}>
+                <SeccionMenu id='ar' titulo="AR" isOpen={secciones.ar} toggle={() => toggleSeccion('ar')}>
                     <Totales_AR_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Desbloqueo" isOpen={secciones.desbloqueo} toggle={() => toggleSeccion('desbloqueo')}>
+                <SeccionMenu id='desbloqueo' titulo="Desbloqueo" isOpen={secciones.desbloqueo} toggle={() => toggleSeccion('desbloqueo')}>
                     <Totales_Desbloqueo_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Terminado" isOpen={secciones.terminado} toggle={() => toggleSeccion('terminado')}>
+                <SeccionMenu id='terminado' titulo="Bloqueo de Terminado" isOpen={secciones.terminado} toggle={() => toggleSeccion('terminado')}>
                     <Totales_Terminado_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Biselado" isOpen={secciones.biselado} toggle={() => toggleSeccion('biselado')}>
+                <SeccionMenu id='biselado' titulo="Biselado" isOpen={secciones.biselado} toggle={() => toggleSeccion('biselado')}>
                     <Totales_Biselado_Estacion/>
                 </SeccionMenu>
-                <SeccionMenu titulo="Producción" isOpen={secciones.produccion} toggle={() => toggleSeccion('produccion')}>
+                <SeccionMenu id='produccion' titulo="Producción" isOpen={secciones.produccion} toggle={() => toggleSeccion('produccion')}>
                     <Totales_Produccion_Estacion/>
                 </SeccionMenu>
             </div>

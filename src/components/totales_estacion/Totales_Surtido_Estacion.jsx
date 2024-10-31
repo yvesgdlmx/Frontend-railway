@@ -149,15 +149,17 @@ const Totales_Surtido_Estacion = () => {
                     </thead>
                     <tbody className="text-center bg-white">
                         <tr className="font-semibold text-gray-700">
+                        <td>
                             <Link to={'/totales_surtido_maquina'} className="link__tabla">
                                 <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
                                     <img src="./img/ver.png" alt="" width={25} className="relative left-6"/>
-                                    <td className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
+                                    <div className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
                                         Surtido <br />
                                         <span className="text-gray-500">Meta: <span>{meta}</span></span>
-                                    </td>
+                                    </div>
                                 </div>
                             </Link>
+                        </td>
                             {filaGenerados.map((generado, index) => (
                                 <td key={index} className={`py-2 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white`}>
                                     <span className={getClassName(generado, meta)}>{generado}</span>
