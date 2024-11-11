@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import Layout from './layouts/Layout';
-import Procesos from './paginas/Procesos';
+import Procesos from './paginas/procesos';
 import ScrollToTop from './components/others/ScrollToTop';
 /*Totales estacion*/
 import Totales_Estacion from './paginas/totales/Totales_Estacion';
@@ -41,6 +41,8 @@ import Tableros_Tallado_Terminado from './paginas/tableros/Tableros_Tallado_Term
 import AuthLayout from './layouts/AuthLayout';
 import Login from './components/others/Login';
 import { AuthProvider } from '../context/AuthProvider';
+/* Reportes */
+import Reporte from './paginas/reportes/Reporte';
 
 function App() {
 
@@ -81,6 +83,7 @@ function App() {
                       <Route path='/tableros_tallado' element={<Tableros_Tallado/>}/>
                       <Route path='/tableros_terminado' element={<Tableros_Terminado/>}/>
                       <Route path='/tableros_tallado_terminado' element={<Tableros_Tallado_Terminado/>}/>
+                      <Route path='/reportes' element={<Reporte/>} />
                   </Route>
                   <Route path='/auth' element={<AuthLayout/>}>
                     <Route index element={<Login/>}/>

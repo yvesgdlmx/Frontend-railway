@@ -8,7 +8,8 @@ const Layout = () => {
     const menuRefs = {
         metas: useRef(null),
         tableros: useRef(null),
-        historial: useRef(null)
+        historial: useRef(null),
+        reportes: useRef(null)
     };
     const { auth, cerrarSesionAuth } = useAuth(); // Obtener el estado de autenticación
 
@@ -165,6 +166,25 @@ const Layout = () => {
                                 </div>
                             )}
                         </div>
+                        <div className="relative" ref={menuRefs.reportes}>
+                            <button 
+                                onClick={() => toggleMenu('reportes')} 
+                                className="hover:text-gray-900 focus:outline-none uppercase"
+                            >
+                                Reportes
+                            </button>
+                            {menuVisible === 'reportes' && (
+                                <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg">
+                                    <ul className="py-1 text-slate-700">
+                                        <li>
+                                            <Link to={'/reportes'} onClick={handleMenuItemClick}>
+                                                <p className="block px-4 py-2 hover:bg-gray-100">WIP Detallado</p>
+                                            </Link>
+                                        </li>
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                         {auth && auth.id ? (
                             <button onClick={handleLogout} className="hover:text-gray-900 focus:outline-none uppercase">
                                 Logout
@@ -233,6 +253,25 @@ const Layout = () => {
                                         <li>
                                             <Link to={'/historial_por_rangos'} onClick={handleMenuItemClick} className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
                                                 Historial por rango de días
+                                            </Link>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <p className="flex items-center p-3 text-gray-700 font-semibold">
+                                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Reportes
+                                    </p>
+                                    <ul className="ml-6 mt-2 space-y-2">
+                                        <li>
+                                            <Link 
+                                                to={'/reportes'} 
+                                                onClick={handleMenuItemClick} 
+                                                className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                                            >
+                                                WIP Detallado
                                             </Link>
                                         </li>
                                     </ul>
