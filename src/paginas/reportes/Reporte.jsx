@@ -118,17 +118,44 @@ const Reporte = () => {
       }
     };
 
-    const actualizarHora = () => {
+const actualizarHora = () => {
+    const ahora = new Date();
+    let ultimaActualizacion;
+    
+    if (ahora.getMinutes() >= 35) {
+      // Si ya pasó el minuto 35 de esta hora, la última actualización fue a las :35 de esta hora
+      ultimaActualizacion = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), ahora.getHours(), 35, 0);
+    } else {
+      // Si aún no son las :35, la última actualización fue a las :35 de la hora anterior
+      ultimaActualizacion = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), ahora.getHours() - 1, 35, 0);
+    }
+    
+    const horaFormateada = ultimaActualizacion.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setUltimaActualizacion(horaFormateada);
+  };
+
+    const calcularTiempoHastaProximaActualizacion = () => {
       const ahora = new Date();
-      ahora.setMinutes(0, 0, 0); // Redondea a la hora más cercana
-      const horaFormateada = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setUltimaActualizacion(horaFormateada);
+      const proximaActualizacion = new Date(ahora);
+      
+      if (ahora.getMinutes() >= 35) {
+        proximaActualizacion.setHours(ahora.getHours() + 1);
+      }
+      
+      proximaActualizacion.setMinutes(35, 0, 0);
+      
+      return proximaActualizacion - ahora;
     };
 
     fetchDatos();
-    const intervalo = setInterval(fetchDatos, 3600000); // Actualizar cada hora
 
-    return () => clearInterval(intervalo);
+    const timeout = setTimeout(() => {
+      fetchDatos();
+      const intervalo = setInterval(fetchDatos, 3600000);
+      return () => clearInterval(intervalo);
+    }, calcularTiempoHastaProximaActualizacion());
+
+    return () => clearTimeout(timeout);
   }, []);
 
   if (!datosAgrupados) {
