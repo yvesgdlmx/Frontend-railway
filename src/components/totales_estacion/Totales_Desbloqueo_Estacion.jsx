@@ -1,16 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
-import formatearHora from "../../../helpers/formatearHora";
 import moment from 'moment-timezone';
-
 moment.tz.setDefault('America/Mexico_City');
 
 const Totales_Desbloqueo_Estacion = () => {
     const location = useLocation();
     const desbloqueoRef = useRef(null);
     const [registros, setRegistros] = useState([]);
-    const [meta, setMeta] = useState(0);
     const [totalesPorTurno, setTotalesPorTurno] = useState({
         matutino: 0,
         vespertino: 0,
@@ -27,17 +24,6 @@ const Totales_Desbloqueo_Estacion = () => {
           }, 100);
         }
     }, [location]);
-
-    useEffect(() => {
-        const obtenerMeta = async () => {
-            const { data } = await clienteAxios(`/metas/metas-manuales`);
-            const metaDesblocking = data.registros.find(registro => registro.name === '19 DEBLOCKING');
-            if (metaDesblocking) {
-                setMeta(metaDesblocking.meta);
-            }
-        };
-        obtenerMeta();
-    }, []);
 
     useEffect(() => {
         const obtenerRegistros = async () => {
@@ -93,21 +79,6 @@ const Totales_Desbloqueo_Estacion = () => {
         setTotalesPorTurno(totales);
     };
 
-    const obtenerHoraActual = () => {
-        return moment().format('HH:mm');
-    };
-
-    const ajustarMetaPorTurno = (horaInicio, horaActual, metaPorHora) => {
-        const inicioTurno = moment(horaInicio, 'HH:mm');
-        const actual = moment(horaActual, 'HH:mm');
-        if (actual.isBefore(inicioTurno)) {
-            actual.add(1, 'day');
-        }
-        const duracion = moment.duration(actual.diff(inicioTurno));
-        const horasTranscurridas = Math.max(1, Math.ceil(duracion.asHours()));
-        return horasTranscurridas * metaPorHora;
-    };
-
     const hitsPorHora = agruparHitsPorHora();
     const horasOrdenadas = Object.keys(hitsPorHora).sort((a, b) => {
         const momentA = moment(a, 'HH:mm');
@@ -117,19 +88,11 @@ const Totales_Desbloqueo_Estacion = () => {
         return momentB.diff(momentA);
     });
     const filaGenerados = horasOrdenadas.map((hora) => hitsPorHora[hora]);
-    const horaActual = obtenerHoraActual();
-    const metaMatutinoFinal = ajustarMetaPorTurno("06:30", horaActual, meta);
-    const metaVespertinoFinal = ajustarMetaPorTurno("14:30", horaActual, meta);
-    const metaNocturnoFinal = ajustarMetaPorTurno("22:30", horaActual, meta);
 
     const calcularRangoHoras = (horaInicio) => {
         const inicio = moment(horaInicio, 'HH:mm');
         const fin = moment(horaInicio, 'HH:mm').add(1, 'hour');
         return `${inicio.format('HH:mm')} - ${fin.format('HH:mm')}`;
-    };
-
-    const getClassName = (hits, metaPorTurno) => {
-        return hits >= metaPorTurno ? "text-green-800" : "text-red-800";
     };
 
     return (
@@ -152,14 +115,13 @@ const Totales_Desbloqueo_Estacion = () => {
                                 <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
                                 <img src="./img/ver.png" alt="" width={25} className="relative left-6"/>
                                     <td className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-center">
-                                        Desbloqueo <br />
-                                        <span className="text-gray-500">Meta: <span>{meta}</span></span>
+                                        Desbloqueo
                                     </td>
                                 </div>
                             </Link>
                             {filaGenerados.map((generado, index) => (
                                 <td key={index} className="py-2 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-center">
-                                    <span className={getClassName(generado, meta)}>{generado}</span>
+                                    {generado}
                                 </td>
                             ))}
                         </tr>
@@ -170,33 +132,29 @@ const Totales_Desbloqueo_Estacion = () => {
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Matutino: 
-                            <span className={`${getClassName(totalesPorTurno.matutino, metaMatutinoFinal)} ml-1 font-bold`}>
+                            <span className="ml-1 font-bold text-gray-700">
                                 {totalesPorTurno.matutino}
                             </span> 
-                            / Meta: <span className="text-gray-600 font-bold ml-1">{metaMatutinoFinal}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Vespertino: 
-                            <span className={`${getClassName(totalesPorTurno.vespertino, metaVespertinoFinal)} ml-1 font-bold`}>
+                            <span className="ml-1 font-bold text-gray-700">
                                 {totalesPorTurno.vespertino}
                             </span> 
-                            / Meta: <span className="text-gray-600 font-bold ml-1">{metaVespertinoFinal}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Nocturno: 
-                            <span className={`${getClassName(totalesPorTurno.nocturno, metaNocturnoFinal)} ml-1 font-bold`}>
+                            <span className="ml-1 font-bold text-gray-700">
                                 {totalesPorTurno.nocturno}
                             </span> 
-                            / Meta: <span className="text-gray-600 font-bold ml-1">{metaNocturnoFinal}</span>
                         </p>
                     </div>
                 </div>
             </div>
-            
             {/* Diseño tipo card para pantallas pequeñas y medianas */}
             <div className="block lg:hidden mt-4">
                 <div className="bg-white shadow-md rounded-lg mb-4 p-6">
@@ -204,20 +162,15 @@ const Totales_Desbloqueo_Estacion = () => {
                         <span className="font-bold text-gray-700">Nombre:</span>
                         <span className="font-bold text-gray-700">Desbloqueo</span>
                     </div>
-                    <div className="flex justify-between border-b py-4">
-                        <span className="font-bold text-gray-700">Meta:</span>
-                        <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
-                    </div>
                     <div className="py-4">
                         <span className="font-bold text-gray-700">Horas:</span>
                         {horasOrdenadas.map((hora, idx) => {
                             const totalHits = hitsPorHora[hora];
                             const bgColor = idx % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300';
-                            const hitsClass = totalHits >= meta ? "text-green-800" : "text-red-800";
                             return (
                                 <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
                                     <span className="font-bold text-gray-700">{calcularRangoHoras(hora)}:</span>
-                                    <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
+                                    <span className="font-bold text-gray-700">{totalHits}</span>
                                 </div>
                             );
                         })}
@@ -234,24 +187,21 @@ const Totales_Desbloqueo_Estacion = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <span className="block text-gray-600">Matutino: </span>
-                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metaMatutinoFinal)}`}>
+                                    <span className="font-semibold text-md text-gray-700">
                                         {totalesPorTurno.matutino}
                                     </span>
-                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metaMatutinoFinal}</span>
                                 </div>
                                 <div>
                                     <span className="block text-gray-600">Vespertino: </span>
-                                    <span className={`text-md font-semibold ${getClassName(totalesPorTurno.vespertino, metaVespertinoFinal)}`}>
+                                    <span className="text-md font-semibold text-gray-700">
                                         {totalesPorTurno.vespertino}
                                     </span>
-                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metaVespertinoFinal}</span>
                                 </div>
                                 <div className="col-span-2">
                                     <span className="block text-gray-600">Nocturno: </span>
-                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metaNocturnoFinal)}`}>
+                                    <span className="font-semibold text-md text-gray-700">
                                         {totalesPorTurno.nocturno}
                                     </span>
-                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metaNocturnoFinal}</span>
                                 </div>
                             </div>
                         </div>

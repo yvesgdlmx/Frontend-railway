@@ -50,8 +50,8 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
   );
 };
 
-const Totales_AR_Maquina = () => {
-  const maquinas = ['52 FUSION', '53 1200 D', '55 TLF 1200.1', '56 TLF 1200.2'];
+const Totales_Recubrimiento_Maquina = () => {
+  const maquinas = ['60 AR ENTRADA', '61 AR SALIDA'];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -302,4 +302,4 @@ const Totales_AR_Maquina = () => {
   );
 }
 
-export default Totales_AR_Maquina;
+export default Totales_Recubrimiento_Maquina;

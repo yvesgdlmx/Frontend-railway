@@ -26,6 +26,12 @@ const Navegacion = () => {
         <Link to="/totales_ar_maquina" className="text-white">
           <li className={`bg-blue-500 p-2 rounded text-center font-bold transition-colors duration-400 ${location.pathname === '/totales_ar_maquina' ? 'bg-white text-blue-500 border border-blue-500' : 'hover:bg-white hover:text-blue-500'}`}>AR</li>
         </Link>
+        <Link to="/totales_hardcoat_maquina" className="text-white">
+          <li className={`bg-blue-500 p-2 rounded text-center font-bold transition-colors duration-400 ${location.pathname === '/totales_hardcoat_maquina' ? 'bg-white text-blue-500 border border-blue-500' : 'hover:bg-white hover:text-blue-500'}`}>Hard Coat</li>
+        </Link>
+        <Link to="/totales_recubrimiento_maquina" className="text-white">
+          <li className={`bg-blue-500 p-2 rounded text-center font-bold transition-colors duration-400 ${location.pathname === '/totales_recubrimiento_maquina' ? 'bg-white text-blue-500 border border-blue-500' : 'hover:bg-white hover:text-blue-500'}`}>Recubrimiento</li>
+        </Link>
         <Link to="/totales_terminado_maquina" className="text-white">
           <li className={`bg-blue-500 p-2 rounded text-center font-bold transition-colors duration-400 ${location.pathname === '/totales_terminado_maquina' ? 'bg-white text-blue-500 border border-blue-500' : 'hover:bg-white hover:text-blue-500'}`}>Bloqueo de terminado</li>
         </Link>

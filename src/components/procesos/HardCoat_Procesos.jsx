@@ -3,26 +3,23 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 
-const Desbloqueo_Procesos = () => {
+const HardCoat_Procesos = () => {
   const [totalHits, setTotalHits] = useState(0);
   const [ultimaHora, setUltimaHora] = useState("");
   const [siguienteHora, setSiguienteHora] = useState("");
-  const [meta, setMeta] = useState(0);
   const [hitsMatutino, setHitsMatutino] = useState(0);
   const [hitsVespertino, setHitsVespertino] = useState(0);
   const [hitsNocturno, setHitsNocturno] = useState(0);
-  const [metaMatutino, setMetaMatutino] = useState(0);
-  const [metaVespertino, setMetaVespertino] = useState(0);
-  const [metaNocturno, setMetaNocturno] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const responseMetas = await clienteAxios.get('/metas/metas-manuales');
-        const metasDesbloqueo = responseMetas.data.registros.filter(registro => registro.name.includes('DEBLOCKING'));
-        const sumaMetas = metasDesbloqueo.reduce((acc, curr) => acc + curr.meta, 0);
         const responseRegistros = await clienteAxios.get('/manual/manual/actualdia');
-        const registros = responseRegistros.data.registros.filter(registro => registro.name.includes('DEBLOCKING'));
+        const numerosFiltrados = [46, 48, 49, 50, 91, 92];
+        const registros = responseRegistros.data.registros.filter(registro => {
+        const num = parseInt(registro.name.split(' ')[0], 10);
+        return numerosFiltrados.includes(num);
+        });
 
         // Obtener la fecha y hora actual
         const ahora = moment().tz('America/Mexico_City');
@@ -57,9 +54,6 @@ const Desbloqueo_Procesos = () => {
 
         const horaFinal = moment(formattedLastHour);
         horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
-        const horasTranscurridas = horaFinal.diff(inicioHoy, 'hours', true);
-        setMeta(Math.round(horasTranscurridas) * sumaMetas);
-
         const siguienteHoraDate = moment(horaFinal).add(30, 'minutes');
         setSiguienteHora(siguienteHoraDate.format('HH:mm'));
 
@@ -82,13 +76,6 @@ const Desbloqueo_Procesos = () => {
         setHitsMatutino(hitsMatutino);
         setHitsVespertino(hitsVespertino);
         setHitsNocturno(hitsNocturno);
-
-        const horasMatutino = 8; // 8 horas para el turno matutino
-        const horasVespertino = 7; // 7 horas para el turno vespertino
-        const horasNocturno = 9; // 8 horas para el turno nocturno
-        setMetaMatutino(horasMatutino * sumaMetas);
-        setMetaVespertino(horasVespertino * sumaMetas);
-        setMetaNocturno(horasNocturno * sumaMetas);
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
@@ -96,39 +83,35 @@ const Desbloqueo_Procesos = () => {
     fetchData();
   }, []);
 
-  const getClassName = (hits, meta) => {
-    return hits >= meta ? "text-green-700" : "text-red-700";
-  };
-
   return (
     <div className='bg-white p-4 rounded-xl'>
      {/* Enlace para pantallas grandes */}
-     <Link to='/totales_estacion#desbloqueo' className='hidden lg:block'>
+     <Link to='/totales_estacion#hardcoat' className='hidden lg:block'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
-          <h2 className='text-white font-bold uppercase'>Desbloqueo</h2>
+          <h2 className='text-white font-bold uppercase'>Hard Coat</h2>
           <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
         </div>
       </Link>
 
       {/* Enlace para pantallas pequeñas y medianas */}
-      <Link to='/totales_estacion?seccion=desbloqueo' className='block lg:hidden'>
+      <Link to='/totales_estacion?seccion=hardcoat' className='block lg:hidden'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
-          <h2 className='text-white font-bold uppercase'>Desbloqueo</h2>
+          <h2 className='text-white font-bold uppercase'>HardCoat</h2>
           <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
         </div>
       </Link>
-      <p className='font-light mb-2'>Mostrando información del área de desbloqueo.</p>
+      <p className='font-light mb-2'>Mostrando información del área de Hard Coat.</p>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Trabajos: <span className={meta > totalHits ? "text-red-700" : "text-green-700"}>{totalHits}</span></p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Trabajos: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{totalHits}</span></p>
       </div>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{hitsMatutino}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{hitsVespertino}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{hitsNocturno}</span></p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Matutino: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{hitsMatutino}</span></p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Vespertino: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{hitsVespertino}</span></p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Nocturno: <span className='font-semibold text-green-700 xs:text-sm md:text-md'>{hitsNocturno}</span></p>
       </div>
     </div>
   );
 };
 
-export default Desbloqueo_Procesos;
+export default HardCoat_Procesos;

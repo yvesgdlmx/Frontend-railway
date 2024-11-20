@@ -9,6 +9,7 @@ const agruparDatos = (registros) => {
     pulido: [],
     engraver: [],
     ar: [],
+    recubrimiento: [],
     desbloqueo: [],
     bloqueoTerminado: [],
     biselado: [],
@@ -29,8 +30,10 @@ const agruparDatos = (registros) => {
       grupos.pulido.push({ nombre: estacion, valor: total });
     } else if (['272 ENGRVR 3', '273 ENGRVR 4', '270 ENGRVR 1', '271 ENGRVR 2'].includes(estacion)) {
       grupos.engraver.push({ nombre: estacion, valor: total });
-    } else if (['55 TLF 1200.1', '56 TLF 1200.2'].includes(estacion)) {
+    } else if (['52 FUSION', '53 1200 D', '54 OAC.120', '55 TLF 1200.1', '56 TLF 1200.2'].includes(estacion)) {
       grupos.ar.push({ nombre: estacion, valor: total });
+    } else if (['60 AR ENTRADA', '61 AR SALIDA'].includes(estacion)) {
+      grupos.recubrimiento.push({ nombre: estacion, valor: total });
     } else if (estacion === '320 DEBLOCKING 1') {
       grupos.desbloqueo.push({ nombre: estacion, valor: total });
     } else if (['280 FINBLKR 1', '281 FINBLKR 2', '282 FINBLKR 3'].includes(estacion)) {
@@ -182,6 +185,7 @@ const actualizarHora = () => {
         <ModuloReporte titulo="Engraver" datos={datosAgrupados.engraver} />
         <ModuloReporte titulo="Debloqueo" datos={datosAgrupados.desbloqueo[0] || { nombre: "320 DEBLOCKING 1", valor: 0 }} esCompacto={true} />
         <ModuloReporte titulo="AR" datos={datosAgrupados.ar} />
+        <ModuloReporte titulo='Recubrimiento' datos={datosAgrupados.recubrimiento} />
         <ModuloReporte titulo="Hard Coat" datos={datosAgrupados.HardCoat} />
         <ModuloReporte titulo="Bloqueo de Terminado" datos={datosAgrupados.bloqueoTerminado} />
         <ModuloReporte titulo="Biselado" datos={datosAgrupados.biselado} />

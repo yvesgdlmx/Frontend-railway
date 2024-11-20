@@ -30,7 +30,7 @@ const Totales_AR_Estacion = () => {
         const obtenerRegistros = async () => {
             const { data } = await clienteAxios(`/manual/manual/actualdia`);
             const registrosAR = data.registros.filter(registro => {
-                return ['91', '92', '52', '53', '54', '55', '56'].some(num => registro.name.includes(num));
+                return ['52', '53', '54', '55', '56'].some(num => registro.name.includes(num));
             });
             const ahora = moment();
             let inicioHoy = moment().startOf('day').add(6, 'hours').add(30, 'minutes');

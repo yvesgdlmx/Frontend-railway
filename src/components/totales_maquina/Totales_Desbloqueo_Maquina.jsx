@@ -54,7 +54,7 @@ const Totales_Desbloqueo_Maquina = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       window.location.reload();
-    }, 300000); // Actualiza cada 5 minutos
+    }, 300000);
     return () => clearInterval(interval);
   }, []);
 
@@ -63,13 +63,8 @@ const Totales_Desbloqueo_Maquina = () => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
   };
 
-  const getClassName = (hits, metaPorTurno) => {
-    return hits >= metaPorTurno ? "text-green-500" : "text-red-500";
-  };
-  
   const [registros, setRegistros] = useState([]);
   const [horasUnicas, setHorasUnicas] = useState([]);
-  const [meta, setMeta] = useState(0);
   const [totalesAcumulados, setTotalesAcumulados] = useState(0);
   const [totalesPorTurno, setTotalesPorTurno] = useState({
     matutino: 0,
@@ -80,26 +75,18 @@ const Totales_Desbloqueo_Maquina = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const responseMetas = await clienteAxios('/metas/metas-manuales');
-        const metasJobComplete = responseMetas.data.registros.filter(meta => meta.name.includes('DEBLOCKING'));
-        const sumaMetas = metasJobComplete.reduce((acc, meta) => acc + meta.meta, 0);
-        setMeta(sumaMetas);
-
         const responseRegistros = await clienteAxios('/manual/manual/actualdia');
         const dataRegistros = responseRegistros.data.registros || [];
 
-        // Calcular el inicio y fin del período deseado
         const ahora = moment().tz('America/Mexico_City');
         let inicioHoy = moment().tz('America/Mexico_City').startOf('day').add(6, 'hours').add(30, 'minutes');
         let finHoy = moment(inicioHoy).add(1, 'days');
 
-        // Si es antes de las 06:30, ajustamos al día anterior
         if (ahora.isBefore(inicioHoy)) {
           inicioHoy.subtract(1, 'days');
           finHoy.subtract(1, 'days');
         }
 
-        // Filtrar registros en el intervalo de tiempo deseado
         const registrosFiltrados = dataRegistros.filter(registro => {
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
           return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, '[]') && registro.name.includes('DEBLOCKING');
@@ -113,12 +100,13 @@ const Totales_Desbloqueo_Maquina = () => {
           horas.add(registro.hour);
           totalAcumulado += parseInt(registro.hits || 0);
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
+          
           if (fechaHoraRegistro.isBetween(inicioHoy, moment(inicioHoy).add(8, 'hours'), null, '[)')) {
-            totales.matutino += registro.hits;
+            totales.matutino += parseInt(registro.hits || 0);
           } else if (fechaHoraRegistro.isBetween(moment(inicioHoy).add(8, 'hours'), moment(inicioHoy).add(15, 'hours'), null, '[)')) {
-            totales.vespertino += registro.hits;
+            totales.vespertino += parseInt(registro.hits || 0);
           } else {
-            totales.nocturno += registro.hits;
+            totales.nocturno += parseInt(registro.hits || 0);
           }
         });
 
@@ -154,9 +142,7 @@ const Totales_Desbloqueo_Maquina = () => {
       const hourMoment = moment(r.hour, 'HH:mm:ss');
       const startMoment = moment(horaInicio, 'HH:mm');
       const endMoment = moment(horaFin, 'HH:mm');
-      
       if (startMoment.isAfter(endMoment)) {
-        // Caso especial para el intervalo que cruza la medianoche
         return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
       } else {
         return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
@@ -166,7 +152,6 @@ const Totales_Desbloqueo_Maquina = () => {
 
   return (
     <div className="max-w-screen-xl">
-      {/* Diseño tipo card para pantallas pequeñas y medianas */}
       <div className="lg:hidden mt-4">
         <SeccionMenu 
           titulo="Desbloqueo"
@@ -176,11 +161,7 @@ const Totales_Desbloqueo_Maquina = () => {
           <div className="bg-white shadow-md rounded-lg p-6">
             <div className="flex justify-between border-b pb-2">
               <span className="font-bold text-gray-700">Total Acumulado:</span>
-              <span className={`font-bold ${getClassName(totalesAcumulados, meta)}`}>{totalesAcumulados}</span>
-            </div>
-            <div className="flex justify-between border-b py-4">
-              <span className="font-bold text-gray-700">Meta:</span>
-              <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
+              <span className="font-bold text-gray-700">{totalesAcumulados}</span>
             </div>
             <div className="py-4">
               <span className="font-bold text-gray-700">Horas:</span>
@@ -197,11 +178,10 @@ const Totales_Desbloqueo_Maquina = () => {
                   }
                 }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
                 const bgColor = idx % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300';
-                const hitsClass = totalHits >= (meta / horasUnicas.length) ? "text-green-500" : "text-red-500";
                 return (
                   <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
                     <span className="font-bold text-gray-700">{hora}:</span>
-                    <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
+                    <span className="font-bold text-gray-700">{totalHits}</span>
                   </div>
                 );
               })}
@@ -209,7 +189,7 @@ const Totales_Desbloqueo_Maquina = () => {
           </div>
         </SeccionMenu>
       </div>
-      {/* Diseño de tabla para pantallas grandes */}
+
       <div className="hidden lg:block">
         <Navegacion/>
         <table className="min-w-full bg-white border">
@@ -217,7 +197,6 @@ const Totales_Desbloqueo_Maquina = () => {
             <tr className="bg-blue-500 text-white">
               <th className="py-2 px-4 border-b" style={{ minWidth: '250px' }}>Nombre</th>
               <th className="py-2 px-4 border-b">Total Acumulado</th>
-              <th className="py-2 px-4 border-b">Meta</th>
               {horasUnicas.map((hora, index) => (
                 <th key={index} className="py-2 px-4 border-b whitespace-nowrap">{hora}</th>
               ))}
@@ -227,16 +206,13 @@ const Totales_Desbloqueo_Maquina = () => {
             <tr className="font-semibold text-gray-700">
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Desbloqueo</td>
               <td className="py-2 px-4 border-b font-bold">{totalesAcumulados}</td>
-              <td className="py-2 px-4 border-b font-bold">{meta || 'No definida'}</td>
               {horasUnicas.map((hora, idx) => {
                 const [horaInicio, horaFin] = hora.split(' - ');
                 const totalHits = registros.filter(r => {
                   const hourMoment = moment(r.hour, 'HH:mm:ss');
                   const startMoment = moment(horaInicio, 'HH:mm');
                   const endMoment = moment(horaFin, 'HH:mm');
-                  
                   if (startMoment.isAfter(endMoment)) {
-                    // Caso especial para el intervalo que cruza la medianoche
                     return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
                   } else {
                     return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
@@ -252,85 +228,58 @@ const Totales_Desbloqueo_Maquina = () => {
             <tr className="font-semibold bg-green-200 text-gray-700">
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Totales</td>
               <td className="py-2 px-4 border-b fw font-bold">{totalesAcumulados}</td>
-              <td className="py-2 px-4 border-b fw font-bold">{meta}</td>
               {sumaHitsPorHora.map((sumaHits, index) => (
-                <td key={index} className="font-bold py-2 px-4 border-b fw">{sumaHits}</td>
+                <td key={index} className="font-bold py-2 px-4 border-b fw">
+                  {sumaHits}
+                </td>
               ))}
             </tr>
           </tbody>
         </table>
       </div>
-      {/* Totales por turno */}
+
       <div className='mt-4 font-semibold mb-4'>
-        {/* Diseño para pantallas pequeñas y medianas */}
         <div className='lg:hidden space-y-4'>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Matutino</h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className={`text-lg ${getClassName(totalesPorTurno.matutino, meta * 8 / 24)}`}>
-                {totalesPorTurno.matutino}
-              </span>
-            </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-gray-600">Meta:</span>
-              <span className="text-lg font-bold text-gray-800">{Math.round(meta * 8 / 24)}</span>
+              <span className="text-lg text-gray-700">{totalesPorTurno.matutino}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Vespertino</h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className={`text-lg ${getClassName(totalesPorTurno.vespertino, meta * 7 / 24)}`}>
-                {totalesPorTurno.vespertino}
-              </span>
-            </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-gray-600">Meta:</span>
-              <span className="text-lg font-bold text-gray-800">{Math.round(meta * 7 / 24)}</span>
+              <span className="text-lg text-gray-700">{totalesPorTurno.vespertino}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Nocturno</h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className={`text-lg ${getClassName(totalesPorTurno.nocturno, meta * 9 / 24)}`}>
-                {totalesPorTurno.nocturno}
-              </span>
-            </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-gray-600">Meta:</span>
-              <span className="text-lg font-bold text-gray-800">{Math.round(meta * 9 / 24)}</span>
+              <span className="text-lg text-gray-700">{totalesPorTurno.nocturno}</span>
             </div>
           </div>
         </div>
-        {/* Diseño original para pantallas grandes */}
+
         <div className='hidden lg:flex lg:flex-row justify-around'>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
               Total Matutino: 
-              <span className={getClassName(totalesPorTurno.matutino, meta * 8 / 24)}>
-                {totalesPorTurno.matutino}
-              </span> 
-              / Meta: <span className="text-gray-600 font-bold">{Math.round(meta * 8 / 24)}</span>
+              <span className="text-gray-700"> {totalesPorTurno.matutino}</span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
               Total Vespertino: 
-              <span className={getClassName(totalesPorTurno.vespertino, meta * 7 / 24)}>
-                {totalesPorTurno.vespertino}
-              </span> 
-              / Meta: <span className="text-gray-600 font-bold">{Math.round(meta * 7 / 24)}</span>
+              <span className="text-gray-700"> {totalesPorTurno.vespertino}</span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
               Total Nocturno: 
-              <span className={getClassName(totalesPorTurno.nocturno, meta * 9 / 24)}>
-                {totalesPorTurno.nocturno}
-              </span> 
-              / Meta: <span className="text-gray-600 font-bold">{Math.round(meta * 9 / 24)}</span>
+              <span className="text-gray-700"> {totalesPorTurno.nocturno}</span>
             </p>
           </div>
         </div>

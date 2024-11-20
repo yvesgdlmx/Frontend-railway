@@ -11,6 +11,8 @@ import Totales_Biselado_Estacion from "../../components/totales_estacion/Totales
 import Totales_AR_Estacion from "../../components/totales_estacion/Totales_AR_Estacion";
 import Totales_Desbloqueo_Estacion from "../../components/totales_estacion/Totales_Desbloqueo_Estacion";
 import Totales_Produccion_Estacion from "../../components/totales_estacion/Totales_Produccion_Estacion";
+import Totales_HardCoat_Estacion from "../../components/totales_estacion/Totales_HardCoat_Estacion";
+import Totales_Recubrimiento_Estacion from "../../components/totales_estacion/Totales_Recubrimiento_Estacion";
 
 // Componente para el título desplegable
 const TituloSeccion = ({ titulo, isOpen, toggle }) => (
@@ -71,6 +73,8 @@ const Totales_Estacion = () => {
         pulido: false,
         engraver: false,
         ar: false,
+        hardcoat: false,
+        recubrimiento: false,
         desbloqueo: false,
         terminado: false,
         biselado: false,
@@ -124,6 +128,12 @@ const Totales_Estacion = () => {
                 <SeccionMenu id='ar' titulo="AR" isOpen={secciones.ar} toggle={() => toggleSeccion('ar')}>
                     <Totales_AR_Estacion/>
                 </SeccionMenu>
+                <SeccionMenu id='hardcoat' titulo="Hard Coat" isOpen={secciones.hardcoat} toggle={() => toggleSeccion('hardcoat')}>
+                    <Totales_HardCoat_Estacion/>
+                </SeccionMenu>
+                <SeccionMenu id='recubrimiento' titulo="Recubrimiento" isOpen={secciones.recubrimiento} toggle={() => toggleSeccion('recubrimiento')}>
+                    <Totales_Recubrimiento_Estacion/>
+                </SeccionMenu>
                 <SeccionMenu id='desbloqueo' titulo="Desbloqueo" isOpen={secciones.desbloqueo} toggle={() => toggleSeccion('desbloqueo')}>
                     <Totales_Desbloqueo_Estacion/>
                 </SeccionMenu>
@@ -145,6 +155,8 @@ const Totales_Estacion = () => {
                 <Totales_Pulido_Estacion/>
                 <Totales_Engraver_Estacion/>
                 <Totales_AR_Estacion/>
+                <Totales_HardCoat_Estacion/>
+                <Totales_Recubrimiento_Estacion/>
                 <Totales_Desbloqueo_Estacion/>
                 <Totales_Terminado_Estacion/>
                 <Totales_Biselado_Estacion/>

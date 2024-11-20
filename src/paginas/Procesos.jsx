@@ -9,6 +9,8 @@ import Desbloqueo_Procesos from '../components/procesos/Desbloqueo_Procesos';
 import Terminado_Procesos from '../components/procesos/Terminado_Procesos';
 import Biselado_Procesos from '../components/procesos/Biselado_Procesos';
 import Produccion_Procesos from '../components/procesos/Produccion_Procesos';
+import HardCoat_Procesos from '../components/procesos/HardCoat_Procesos';
+import Recubrimiento_Procesos from '../components/procesos/Recubrimiento_Procesos';
 
 const Procesos = () => {
   const [ultimaActualizacion, setUltimaActualizacion] = useState('');
@@ -56,6 +58,8 @@ const Procesos = () => {
         <Pulido_Procesos />
         <Engraver_Procesos />
         <AR_Procesos />
+        <HardCoat_Procesos/>
+        <Recubrimiento_Procesos/>
         <Desbloqueo_Procesos />
         <Terminado_Procesos />
         <Biselado_Procesos />

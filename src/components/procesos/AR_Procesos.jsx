@@ -17,7 +17,7 @@ const AR_Procesos = () => {
         const responseRegistros = await clienteAxios.get('/manual/manual/actualdia');
         const registros = responseRegistros.data.registros.filter(registro => {
           const num = parseInt(registro.name.split(' ')[0], 10);
-          return num === 91 || num === 92 || (num >= 52 && num <= 56);
+          return (num >= 52 && num <= 56);
         });
 
         // Obtener la fecha y hora actual
