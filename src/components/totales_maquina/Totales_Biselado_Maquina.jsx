@@ -21,7 +21,6 @@ const TituloSeccion = ({ titulo, isOpen, toggle }) => (
 const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
   const contentRef = useRef(null);
   const [height, setHeight] = useState(0);
-
   useEffect(() => {
       if (isOpen) {
           setHeight(contentRef.current.scrollHeight);
@@ -29,7 +28,6 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
           setHeight(0);
       }
   }, [isOpen]);
-
   return (
       <div className="overflow-hidden mb-4">
           <TituloSeccion 
@@ -60,7 +58,6 @@ const Totales_Biselado_Maquina = () => {
   }, []);
 
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
-
   const toggleSeccion = (celula) => {
       setSeccionesAbiertas(prev => ({ ...prev, [celula]: !prev[celula] }));
   };
@@ -91,6 +88,18 @@ const Totales_Biselado_Maquina = () => {
     "309 EDGER 10",
     "310 EDGER 11",
     "311 EDFGER 12",
+    "313 EDGER 13",
+    "314 EDGER 14",
+    "316 EDGER 15",
+    "317 EDGER 16",
+    "327 EDGER 17",
+    "328 EDGER 18",
+    "329 EDGER 19",
+    "330 EDGER 20",
+    "331 EDGER 21",
+    "332 EDGER 22",
+    "333 EDGER 23",
+    "334 EDGER 24",
     "312 RAZR",
     "318 HSE 1",
     "319 HSE 2"
@@ -131,7 +140,8 @@ const Totales_Biselado_Maquina = () => {
         });
 
         const totalesPorMaquina = calcularTotalesPorTurnoYMaquina(registrosFiltrados, inicioHoy);
-        setTotalesPorTurnoYMaquina(totalesPorMaquina)
+        console.log("Totales por turno y máquina:", totalesPorMaquina);
+        setTotalesPorTurnoYMaquina(totalesPorMaquina);
 
         const registrosAgrupados = registrosFiltrados.reduce((acc, registro) => {
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, ' ');
@@ -141,12 +151,10 @@ const Totales_Biselado_Maquina = () => {
           acc[celula].push(registro);
           return acc;
         }, {});
-
         setRegistrosAgrupados(registrosAgrupados);
 
         const horas = new Set();
         const acumulados = {};
-
         registrosFiltrados.forEach(registro => {
           horas.add(registro.hour);
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, ' ');
@@ -175,7 +183,6 @@ const Totales_Biselado_Maquina = () => {
         console.error("Error al cargar los datos:", error);
       }
     };
-
     cargarDatos();
   }, []);
 
@@ -185,7 +192,6 @@ const Totales_Biselado_Maquina = () => {
       vespertino: 0,
       nocturno: 0
     };
-
     registros.forEach(registro => {
       const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
       if (fechaHoraRegistro.isBetween(inicioHoy, moment(inicioHoy).add(8, 'hours'), null, '[)')) {
@@ -196,7 +202,6 @@ const Totales_Biselado_Maquina = () => {
         totales.nocturno += registro.hits;
       }
     });
-
     setTotalesPorTurno(totales);
   };
 
@@ -212,8 +217,16 @@ const Totales_Biselado_Maquina = () => {
 
     registros.forEach(registro => {
       const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, ' ');
+      if (!totales[celula]) {
+        console.warn(`Célula no encontrada: ${celula}`);
+        totales[celula] = {
+          matutino: 0,
+          vespertino: 0,
+          nocturno: 0
+        };
+      }
+
       const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-      
       if (fechaHoraRegistro.isBetween(inicioHoy, moment(inicioHoy).add(8, 'hours'), null, '[)')) {
         totales[celula].matutino += parseInt(registro.hits || 0);
       } else if (fechaHoraRegistro.isBetween(moment(inicioHoy).add(8, 'hours'), moment(inicioHoy).add(15, 'hours'), null, '[)')) {
@@ -241,7 +254,6 @@ const Totales_Biselado_Maquina = () => {
       const hourMoment = moment(r.hour, 'HH:mm:ss');
       const startMoment = moment(horaInicio, 'HH:mm');
       const endMoment = moment(horaFin, 'HH:mm');
-      
       if (startMoment.isAfter(endMoment)) {
         // Caso especial para el intervalo que cruza la medianoche
         return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
@@ -260,21 +272,19 @@ const Totales_Biselado_Maquina = () => {
   return (
     <>
       <div className="max-w-screen-xl">
-       {/* Diseño tipo card para pantallas pequeñas y medianas */}
-     <div className="lg:hidden mt-4">
+        {/* Diseño tipo card para pantallas pequeñas y medianas */}
+        <div className="lg:hidden mt-4">
           {ordenCelulas.map((celula, index) => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
             const metaAcumulada = meta * horasUnicas.length;
             const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
-            const totalesTurno = totalesPorTurnoYMaquina[celula];
-
+            const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
             // Calcular horas transcurridas en cada turno
             const horasMatutino = Math.min(moment().diff(moment().startOf('day').add(6, 'hours').add(30, 'minutes'), 'hours'), 8);
             const horasVespertino = Math.min(Math.max(moment().diff(moment().startOf('day').add(14, 'hours').add(30, 'minutes'), 'hours'), 0), 7);
             const horasNocturno = Math.min(Math.max(moment().diff(moment().startOf('day').add(21, 'hours').add(30, 'minutes'), 'hours'), 0), 9);
-
             // Calcular metas ajustadas según horas transcurridas
             const metaMatutino = meta * horasMatutino;
             const metaVespertino = meta * horasVespertino;
@@ -343,6 +353,7 @@ const Totales_Biselado_Maquina = () => {
             );
           })}
         </div>
+
         {/* Diseño de tabla para pantallas grandes */}
         <div className="hidden lg:block">
           <Navegacion/>
@@ -365,18 +376,15 @@ const Totales_Biselado_Maquina = () => {
                 const registrosCelula = registrosAgrupados[celula] || [];
                 const totalAcumulado = totalesAcumulados[celula] || 0;
                 const meta = metasPorMaquina[celula] || 0;
-                const totalesTurno = totalesPorTurnoYMaquina[celula];
-                
+                const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
                 // Calcular horas transcurridas en cada turno
                 const horasMatutino = Math.min(moment().diff(moment().startOf('day').add(6, 'hours').add(30, 'minutes'), 'hours'), 8);
                 const horasVespertino = Math.min(Math.max(moment().diff(moment().startOf('day').add(14, 'hours').add(30, 'minutes'), 'hours'), 0), 7);
                 const horasNocturno = Math.min(Math.max(moment().diff(moment().startOf('day').add(21, 'hours').add(30, 'minutes'), 'hours'), 0), 9);
-
                 // Calcular metas ajustadas según horas transcurridas
                 const metaMatutino = meta * horasMatutino;
                 const metaVespertino = meta * horasVespertino;
                 const metaNocturno = meta * horasNocturno;
-
                 const bgColor = index % 2 === 0 ? 'bg-gray-200' : 'bg-white';
                 return (
                   <tr key={index} className={`font-semibold text-gray-700 ${bgColor}`}>
@@ -439,6 +447,7 @@ const Totales_Biselado_Maquina = () => {
             </tbody>
           </table>
         </div>
+
         {/* Totales por turno */}
         <div className='mt-4 font-semibold mb-4'>
           {/* Diseño para pantallas pequeñas y medianas */}
@@ -456,7 +465,6 @@ const Totales_Biselado_Maquina = () => {
                 <span className="text-lg font-bold text-gray-800">{metaMatutinoFinal}</span>
               </div>
             </div>
-
             <div className="bg-white p-4 rounded-lg shadow-md">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Vespertino</h3>
               <div className="flex justify-between items-center">
@@ -470,7 +478,6 @@ const Totales_Biselado_Maquina = () => {
                 <span className="text-lg font-bold text-gray-800">{metaVespertinoFinal}</span>
               </div>
             </div>
-
             <div className="bg-white p-4 rounded-lg shadow-md">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Nocturno</h3>
               <div className="flex justify-between items-center">
@@ -485,7 +492,6 @@ const Totales_Biselado_Maquina = () => {
               </div>
             </div>
           </div>
-
           {/* Diseño original para pantallas grandes */}
           <div className='hidden lg:flex lg:flex-row justify-around'>
             <div className="bg-white p-2 px-10 rounded-lg">
