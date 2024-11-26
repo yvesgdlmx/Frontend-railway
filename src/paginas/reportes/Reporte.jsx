@@ -56,7 +56,7 @@ const agruparDatos = (registros) => {
       grupos.desbloqueo = [datos];
     } else if (['280 FINBLKR 1', '281 FINBLKR 2', '282 FINBLKR 3'].includes(estacion)) {
       grupos.bloqueoTerminado.push(datos);
-    } else if (['299 BISPHERA', '300 EDGER 1', '301 EDGER 2', '302 EDGER 3', '303 EDGER 4', '304 EDGER 5', '305 EDGER 6', '306 EDGER 7', '307 EDGER 8', '308 EDGER 9', '309 EDGER 10', '310 EDGER 11', '311 EDFGER 12', '312 RAZR', '318 HSE 1', '319 HSE 2'].includes(estacion)) {
+    } else if (['299 BISPHERA', '300 EDGER 1', '301 EDGER 2', '302 EDGER 3', '303 EDGER 4', '304 EDGER 5', '305 EDGER 6', '306 EDGER 7', '307 EDGER 8', '308 EDGER 9', '309 EDGER 10', '310 EDGER 11', '311 EDFGER 12', '312 RAZR', '313 EDGER 13', '314 EDGER 14', '316 EDGER 15', '317 EDGER 16', '327 EDGER 17', '328 EDGER 18', '329 EDGER 19', '330 EDGER 20', '331 EDGER 21', '332 EDGER 22', '333 EDGER 23', '334 EDGER 24', '318 HSE 1', '319 HSE 2'].includes(estacion)) {
       grupos.biselado.push(datos);
     } else if (estacion === '32 JOB COMPLETE') {
       grupos.produccion.push(datos);
