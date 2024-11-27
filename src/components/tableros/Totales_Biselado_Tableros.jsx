@@ -37,7 +37,21 @@ const Totales_Biselado_Tableros = () => {
     "309 EDGER 10",
     "310 EDGER 11",
     "311 EDFGER 12",
-    "312 RAZR"
+    "313 EDGER 13",
+    "314 EDGER 14",
+    "316 EDGER 15",
+    "317 EDGER 16",
+    "327 EDGER 17",
+    "328 EDGER 18",
+    "329 EDGER 19",
+    "330 EDGER 20",
+    "331 EDGER 21",
+    "332 EDGER 22",
+    "333 EDGER 23",
+    "334 EDGER 24",
+    "312 RAZR",
+    "318 HSE 1",
+    "319 HSE 2"
   ];
 
   useEffect(() => {
