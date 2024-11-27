@@ -18,12 +18,9 @@ const agruparDatos = (registros) => {
     HardCoat: []
   };
 
-  // Primero agrupamos por estación
   const totalesPorEstacion = {};
-
   registros.forEach(registro => {
     const { estacion, total, sf } = registro;
-    
     if (!totalesPorEstacion[estacion]) {
       totalesPorEstacion[estacion] = { 
         nombre: estacion,
@@ -36,10 +33,9 @@ const agruparDatos = (registros) => {
     totalesPorEstacion[estacion].total += total;
   });
 
-  // Asignar a los grupos usando los totales agrupados
   Object.entries(totalesPorEstacion).forEach(([estacion, datos]) => {
-    if (estacion === '19 LENS LOG-SF') {
-      grupos.surtido = [datos];
+    if (['19 LENS LOG-SF', '20 LENS LOG-FIN'].includes(estacion)) {
+      grupos.surtido.push(datos);
     } else if (['220 SRFBLK 1', '221 SRFBLK 2', '222 SRFBLK 3', '223 SRFBLK 4', '224 SRFBLK 5', '225 SRFBLK 6'].includes(estacion)) {
       grupos.bloqueoTallado.push(datos);
     } else if (['241 GENERATOR 1', '242 GENERATOR 2', '243 ORBIT 4 LA', '244 ORBIT 3 LA', '245 ORBIT 1 LA', '246 ORBIT 2 LA', '247 SCHNIDER 1', '248 SCHNIDER 2'].includes(estacion)) {
@@ -66,7 +62,6 @@ const agruparDatos = (registros) => {
       grupos.HardCoat.push(datos);
     }
   });
-
   return grupos;
 };
 
@@ -189,7 +184,7 @@ const Reporte = () => {
   }, []);
 
   if (!datosAgrupados) {
-    return <div>Cargando...</div>;
+    return <div>Cargando...</div>
   }
 
   return (
@@ -205,7 +200,7 @@ const Reporte = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ModuloReporte titulo="En Cola" datos={datosAgrupados.enCola} />
-        <ModuloReporte titulo="Surtido" datos={datosAgrupados.surtido[0] || { nombre: "Trabajos en Surtido", total: 0, F: 0, S: 0 }} esCompacto={true} />
+        <ModuloReporte titulo="Surtido" datos={datosAgrupados.surtido} />
         <ModuloReporte titulo="Bloqueo de Tallado" datos={datosAgrupados.bloqueoTallado} />
         <ModuloReporte titulo="Generado" datos={datosAgrupados.generadores} />
         <ModuloReporte titulo="Pulido" datos={datosAgrupados.pulido} />
