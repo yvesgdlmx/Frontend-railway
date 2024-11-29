@@ -240,7 +240,7 @@ const Reporte = () => {
       <div className="bg-white p-4 mb-6 rounded shadow-md">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Resumen por Cliente</h3>
+            <h3 className="lg:text-lg font-semibold text-gray-400 lg:text-gray-500 mb-3 uppercase text-center">Resumen por Cliente</h3>
             <div className="grid grid-cols-3 gap-4">
               {Object.entries(totalesPorCliente).map(([cliente, datos]) => (
                 <div key={cliente} className="bg-gray-100 p-3 rounded-lg text-center">
@@ -250,11 +250,13 @@ const Reporte = () => {
                   <div className="border-t border-gray-200 pt-2 mt-1">
                     <div className="grid grid-cols-2 gap-1 text-xs">
                       <div>
-                        <p className="text-gray-500">Finished</p>
+                        <p className='text-gray-500 lg:hidden'>F</p>
+                        <p className="text-gray-500 hidden lg:block">Finished</p>
                         <p className="text-green-600 font-semibold">{Math.round(datos.finished)}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Semifinished</p>
+                        <p className='text-gray-500 lg:hidden'>S</p>
+                        <p className="text-gray-500 hidden lg:block">Semifinished</p>
                         <p className="text-yellow-600 font-semibold">{Math.round(datos.semifinished)}</p>
                       </div>
                     </div>
@@ -271,20 +273,20 @@ const Reporte = () => {
             </div>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Resumen Finished y Semifinished</h3>
+            <h3 className="lg:text-lg font-semibold text-gray-400 lg:text-gray-500 mb-3 uppercase text-center">Resumen Finished y Semifinished</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-100 p-3 rounded-lg text-center">
-                <p className="text-sm font-medium text-gray-600">Finished</p>
+              <div className="bg-gray-100 p-3 rounded-lg text-center min-h-32">
+                <p className="text-sm font-medium text-gray-600 mt-4">Finished</p>
                 <p className="text-2xl font-bold text-green-600">{totalesFinishedSemifinished.finished}</p>
                 <p className="text-xs text-gray-500">trabajos</p>
               </div>
               <div className="bg-gray-100 p-3 rounded-lg text-center">
-                <p className="text-sm font-medium text-gray-600">Semifinished</p>
+                <p className="text-sm font-medium text-gray-600 mt-4">Semifinished</p>
                 <p className="text-2xl font-bold text-yellow-600">{totalesFinishedSemifinished.semifinished}</p>
                 <p className="text-xs text-gray-500">trabajos</p>
               </div>
             </div>
-            <div className="mt-4 bg-blue-100 p-3 rounded-lg text-center">
+            <div className="mt-4 bg-blue-100 p-3 rounded-lg text-center lg:relative top-3">
               <p className="text-sm font-medium text-gray-600">Total General</p>
               <p className="text-2xl font-bold text-blue-600">
                 {totalesFinishedSemifinished.finished + totalesFinishedSemifinished.semifinished}
