@@ -140,7 +140,7 @@ const ModuloReporte = ({ titulo, datos, esCompacto = false }) => {
                   <span className="text-lg font-semibold text-blue-500">{item.total}</span>
                   <span className="text-gray-600 text-xs ml-1">trabajos</span>
                   <div className="text-xs text-gray-500 mt-1">
-                    F: {item.F} | S: {item.S}
+                    T: {item.F} | S: {item.S}
                   </div>
                 </div>
               ))}
@@ -153,11 +153,11 @@ const ModuloReporte = ({ titulo, datos, esCompacto = false }) => {
                   <p className="text-lg font-semibold text-blue-500">{totalTrabajos}</p>
                 </div>
                 <div className="bg-gray-100 p-2 rounded-lg text-center">
-                  <p className="text-xs text-gray-600">Finished</p>
+                  <p className="text-xs text-gray-600">Terminado</p>
                   <p className="text-lg font-semibold text-blue-500">{totalFinished}</p>
                 </div>
                 <div className="bg-gray-100 p-2 rounded-lg text-center">
-                  <p className="text-xs text-gray-600">Semifinished</p>
+                  <p className="text-xs text-gray-600">Semiterminado</p>
                   <p className="text-lg font-semibold text-blue-500">{totalSemifinished}</p>
                 </div>
               </div>
@@ -250,13 +250,13 @@ const Reporte = () => {
                   <div className="border-t border-gray-200 pt-2 mt-1">
                     <div className="grid grid-cols-2 gap-1 text-xs">
                       <div>
-                        <p className='text-gray-500 lg:hidden'>F</p>
-                        <p className="text-gray-500 hidden lg:block">Finished</p>
+                        <p className='text-gray-500 lg:hidden'>T</p>
+                        <p className="text-gray-500 hidden lg:block">Terminado</p>
                         <p className="text-green-600 font-semibold">{Math.round(datos.finished)}</p>
                       </div>
                       <div>
                         <p className='text-gray-500 lg:hidden'>S</p>
-                        <p className="text-gray-500 hidden lg:block">Semifinished</p>
+                        <p className="text-gray-500 hidden lg:block">Semiterminado</p>
                         <p className="text-yellow-600 font-semibold">{Math.round(datos.semifinished)}</p>
                       </div>
                     </div>
@@ -273,15 +273,15 @@ const Reporte = () => {
             </div>
           </div>
           <div>
-            <h3 className="lg:text-lg font-semibold text-gray-400 lg:text-gray-500 mb-3 uppercase text-center">Resumen Finished y Semifinished</h3>
+            <h3 className="lg:text-lg font-semibold text-gray-400 lg:text-gray-500 mb-3 uppercase text-center">Resumen Terminado y Semiterminado</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-100 p-3 rounded-lg text-center min-h-32">
-                <p className="text-sm font-medium text-gray-600 mt-4">Finished</p>
+                <p className="text-sm font-medium text-gray-600 mt-4">Terminado</p>
                 <p className="text-2xl font-bold text-green-600">{totalesFinishedSemifinished.finished}</p>
                 <p className="text-xs text-gray-500">trabajos</p>
               </div>
               <div className="bg-gray-100 p-3 rounded-lg text-center">
-                <p className="text-sm font-medium text-gray-600 mt-4">Semifinished</p>
+                <p className="text-sm font-medium text-gray-600 mt-4">Semiterminado</p>
                 <p className="text-2xl font-bold text-yellow-600">{totalesFinishedSemifinished.semifinished}</p>
                 <p className="text-xs text-gray-500">trabajos</p>
               </div>
