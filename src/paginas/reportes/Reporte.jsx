@@ -19,20 +19,54 @@ const agruparDatos = (registros) => {
   };
 
   const totalesPorEstacion = {};
+  const totalesPorCliente = {
+    NVI: { total: 0, finished: 0, semifinished: 0 },
+    HOYA: { total: 0, finished: 0, semifinished: 0 },
+    INK: { total: 0, finished: 0, semifinished: 0 }
+  };
+  const totalesFinishedSemifinished = {
+    finished: 0,
+    semifinished: 0
+  };
+
   registros.forEach(registro => {
-    const { estacion, total, sf } = registro;
+    const { estacion, total, sf, NVI, HOYA, INK, f_count, s_count } = registro;
     if (!totalesPorEstacion[estacion]) {
-      totalesPorEstacion[estacion] = { 
+      totalesPorEstacion[estacion] = {
         nombre: estacion,
-        F: 0, 
-        S: 0, 
-        total: 0 
+        F: 0,
+        S: 0,
+        total: 0
       };
     }
     totalesPorEstacion[estacion][sf] += total;
     totalesPorEstacion[estacion].total += total;
+
+    // Distribuir f_count y s_count proporcionalmente entre los clientes
+    const totalClientes = NVI + HOYA + INK;
+    if (totalClientes > 0) {
+      const factorNVI = NVI / totalClientes;
+      const factorHOYA = HOYA / totalClientes;
+      const factorINK = INK / totalClientes;
+
+      totalesPorCliente.NVI.total += NVI;
+      totalesPorCliente.NVI.finished += f_count * factorNVI;
+      totalesPorCliente.NVI.semifinished += s_count * factorNVI;
+
+      totalesPorCliente.HOYA.total += HOYA;
+      totalesPorCliente.HOYA.finished += f_count * factorHOYA;
+      totalesPorCliente.HOYA.semifinished += s_count * factorHOYA;
+
+      totalesPorCliente.INK.total += INK;
+      totalesPorCliente.INK.finished += f_count * factorINK;
+      totalesPorCliente.INK.semifinished += s_count * factorINK;
+    }
+
+    totalesFinishedSemifinished.finished += f_count;
+    totalesFinishedSemifinished.semifinished += s_count;
   });
 
+  // Clasificación de estaciones
   Object.entries(totalesPorEstacion).forEach(([estacion, datos]) => {
     if (['19 LENS LOG-SF', '20 LENS LOG-FIN'].includes(estacion)) {
       grupos.surtido.push(datos);
@@ -62,14 +96,14 @@ const agruparDatos = (registros) => {
       grupos.HardCoat.push(datos);
     }
   });
-  return grupos;
+
+  return { grupos, totalesPorCliente, totalesFinishedSemifinished };
 };
 
 const ModuloReporte = ({ titulo, datos, esCompacto = false }) => {
   const totalTrabajos = esCompacto ? datos.total : datos.reduce((sum, item) => sum + item.total, 0);
   const totalFinished = esCompacto ? datos.F : datos.reduce((sum, item) => sum + item.F, 0);
   const totalSemifinished = esCompacto ? datos.S : datos.reduce((sum, item) => sum + item.S, 0);
-
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col" style={{minHeight: '300px'}}>
       <div className="bg-blue-500 px-4 py-2">
@@ -137,14 +171,18 @@ const ModuloReporte = ({ titulo, datos, esCompacto = false }) => {
 
 const Reporte = () => {
   const [datosAgrupados, setDatosAgrupados] = useState(null);
+  const [totalesPorCliente, setTotalesPorCliente] = useState(null);
+  const [totalesFinishedSemifinished, setTotalesFinishedSemifinished] = useState(null);
   const [ultimaActualizacion, setUltimaActualizacion] = useState('');
 
   useEffect(() => {
     const fetchDatos = async () => {
       try {
         const response = await clienteAxios.get('/reportes/reportes/produccion');
-        const grupos = agruparDatos(response.data.registros);
+        const { grupos, totalesPorCliente, totalesFinishedSemifinished } = agruparDatos(response.data.registros);
         setDatosAgrupados(grupos);
+        setTotalesPorCliente(totalesPorCliente);
+        setTotalesFinishedSemifinished(totalesFinishedSemifinished);
         actualizarHora();
       } catch (error) {
         console.error('Error al obtener los datos:', error);
@@ -183,7 +221,7 @@ const Reporte = () => {
     return () => clearTimeout(timeout);
   }, []);
 
-  if (!datosAgrupados) {
+  if (!datosAgrupados || !totalesPorCliente || !totalesFinishedSemifinished) {
     return <div>Cargando...</div>
   }
 
@@ -198,6 +236,65 @@ const Reporte = () => {
           <p className='font-medium text-gray-800 uppercase'>Actualización cada hora</p>
         </div>
       </div>
+
+      <div className="bg-white p-4 mb-6 rounded shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Resumen por Cliente</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {Object.entries(totalesPorCliente).map(([cliente, datos]) => (
+                <div key={cliente} className="bg-gray-100 p-3 rounded-lg text-center">
+                  <p className="text-sm font-medium text-gray-600">{cliente}</p>
+                  <p className="text-2xl font-bold text-blue-600">{datos.total}</p>
+                  <p className="text-xs text-gray-500 mb-2">trabajos</p>
+                  <div className="border-t border-gray-200 pt-2 mt-1">
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <div>
+                        <p className="text-gray-500">Finished</p>
+                        <p className="text-green-600 font-semibold">{Math.round(datos.finished)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Semifinished</p>
+                        <p className="text-yellow-600 font-semibold">{Math.round(datos.semifinished)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 bg-blue-100 p-3 rounded-lg text-center">
+              <p className="text-sm font-medium text-gray-600">Total General</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {Object.values(totalesPorCliente).reduce((a, b) => a + b.total, 0)}
+              </p>
+              <p className="text-xs text-gray-500">trabajos totales</p>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Resumen Finished y Semifinished</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-100 p-3 rounded-lg text-center">
+                <p className="text-sm font-medium text-gray-600">Finished</p>
+                <p className="text-2xl font-bold text-green-600">{totalesFinishedSemifinished.finished}</p>
+                <p className="text-xs text-gray-500">trabajos</p>
+              </div>
+              <div className="bg-gray-100 p-3 rounded-lg text-center">
+                <p className="text-sm font-medium text-gray-600">Semifinished</p>
+                <p className="text-2xl font-bold text-yellow-600">{totalesFinishedSemifinished.semifinished}</p>
+                <p className="text-xs text-gray-500">trabajos</p>
+              </div>
+            </div>
+            <div className="mt-4 bg-blue-100 p-3 rounded-lg text-center">
+              <p className="text-sm font-medium text-gray-600">Total General</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {totalesFinishedSemifinished.finished + totalesFinishedSemifinished.semifinished}
+              </p>
+              <p className="text-xs text-gray-500">trabajos totales</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ModuloReporte titulo="En Cola" datos={datosAgrupados.enCola} />
         <ModuloReporte titulo="Surtido" datos={datosAgrupados.surtido} />
@@ -212,6 +309,7 @@ const Reporte = () => {
         <ModuloReporte titulo="Bloqueo de Terminado" datos={datosAgrupados.bloqueoTerminado} />
         <ModuloReporte titulo="Biselado" datos={datosAgrupados.biselado} />
       </div>
+
       <div className="mt-8 bg-blue-50 p-4 rounded-lg border border-blue-200">
         <h3 className="text-lg font-semibold text-blue-700 mb-2">Notas importantes</h3>
         <p className="text-gray-600">
