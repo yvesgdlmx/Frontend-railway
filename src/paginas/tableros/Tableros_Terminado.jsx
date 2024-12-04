@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Totales_Terminado_Tableros from '../../components/tableros/Totales_Terminado_Tableros';
 import Totales_Biselado_Tableros from '../../components/tableros/Totales_Biselado_Tableros';
+import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
 
 const Tableros_Terminado = () => {
-  const componentes = ['TotalesTerminado', 'TotalesBiselado'];
+  const componentes = ['TotalesSurtido', 'TotalesTerminado', 'TotalesBiselado'];
   const [componenteActivo, setComponenteActivo] = useState(componentes[0]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [contador, setContador] = useState(10);
@@ -116,6 +117,7 @@ const Tableros_Terminado = () => {
             Cambio en: {contador}s
           </div>
         )}
+        {componenteActivo === 'TotalesSurtido' && <Totales_Surtido_Tableros/>}
         {componenteActivo === 'TotalesTerminado' && <Totales_Terminado_Tableros/>}
         {componenteActivo === 'TotalesBiselado' && <Totales_Biselado_Tableros />}
       </div>

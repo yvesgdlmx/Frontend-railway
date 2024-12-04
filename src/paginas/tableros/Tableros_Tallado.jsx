@@ -3,9 +3,10 @@ import Totales_Generado_Tableros from '../../components/tableros/Totales_Generad
 import Totales_Pulido_Tableros from '../../components/tableros/Totales_Pulido_Tableros'
 import Totales_Tallado_Tableros from '../../components/tableros/Totales_Tallado_Tableros';
 import Totales_Engraver_Tableros from '../../components/tableros/Totales_Engraver_Tableros';
+import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
 
 const Tableros_Tallado = () => {
-  const componentes = ['TotalesTallado', 'TotalesGenerado', 'TotalesPulido', 'TotalesEngraver'];
+  const componentes = ['TotalesSurtido', 'TotalesTallado', 'TotalesGenerado', 'TotalesPulido', 'TotalesEngraver'];
   const [componenteActivo, setComponenteActivo] = useState(componentes[0]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [contador, setContador] = useState(10);
@@ -118,6 +119,7 @@ const Tableros_Tallado = () => {
             Cambio en: {contador}s
           </div>
         )}
+        {componenteActivo === 'TotalesSurtido' && <Totales_Surtido_Tableros/>}
         {componenteActivo === 'TotalesTallado' && <Totales_Tallado_Tableros/>}
         {componenteActivo === 'TotalesGenerado' && <Totales_Generado_Tableros />}
         {componenteActivo === 'TotalesPulido' && <Totales_Pulido_Tableros />}
