@@ -45,6 +45,7 @@ import Login from './components/others/Login';
 import { AuthProvider } from '../context/AuthProvider';
 /* Reportes */
 import Reporte from './paginas/reportes/Reporte';
+import ReporteTrabajosNuevos from './paginas/reportes/ReporteTrabajosNuevos'
 
 function App() {
 
@@ -88,6 +89,7 @@ function App() {
                       <Route path='/tableros_terminado' element={<Tableros_Terminado/>}/>
                       <Route path='/tableros_tallado_terminado' element={<Tableros_Tallado_Terminado/>}/>
                       <Route path='/reportes' element={<Reporte/>} />
+                      <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos/>} />
                   </Route>
                   <Route path='/auth' element={<AuthLayout/>}>
                     <Route index element={<Login/>}/>
