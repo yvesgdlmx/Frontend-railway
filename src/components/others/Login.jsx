@@ -45,8 +45,8 @@ const Login = () => {
         className="bg-gray-800 rounded-lg shadow-xl overflow-hidden max-w-lg w-full"
       >
         <div className="p-8">
-          <h2 className="text-center text-3xl font-extrabold text-white">Welcome Back</h2>
-          <p className="mt-4 text-center text-gray-400">Sign in to continue</p>
+          <h2 className="text-center text-3xl font-extrabold text-white">Bienvenido</h2>
+          <p className="mt-4 text-center text-gray-400">Inicia sesión para continuar</p>
           {msg && <Alerta alerta={alerta} />}
           <form method="POST" action="#" className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm">
@@ -97,7 +97,7 @@ const Login = () => {
               </div>
               <div className="text-sm">
                 <a className="font-medium text-indigo-500 hover:text-indigo-400" href="#">
-                  Forgot your password?
+                  ¿Olviaste tu password?
                 </a>
               </div>
             </div>
@@ -106,15 +106,15 @@ const Login = () => {
                 className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 type="submit"
               >
-                Sign In
+                Iniciar sesión
               </button>
             </div>
           </form>
         </div>
         <div className="px-8 py-4 bg-gray-700 text-center">
-          <span className="text-gray-400">Don't have an account?</span>
+          <span className="text-gray-400">¿Aún no tienes una cuenta? </span>
           <Link className="font-medium text-indigo-500 hover:text-indigo-400" to="#">
-            Sign up
+            Crear una
           </Link>
         </div>
       </div>
