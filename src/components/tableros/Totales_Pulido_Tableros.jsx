@@ -162,7 +162,7 @@ const Totales_Pulido_Tableros = () => {
     <>
       <div className="w-full px-4">
         <div className="hidden lg:block overflow-x-auto">
-          <table className="min-w-full bg-white border text-lg font-bold">
+          <table className="min-w-full bg-white border text-md font-bold">
             <thead>
               <tr className="bg-blue-500 text-white">
                 <th className="py-4 px-6 border-b" style={{ minWidth: '250px' }}>Nombre</th>
