@@ -279,6 +279,15 @@ const Layout = () => {
                                                 WIP Detallado
                                             </Link>
                                         </li>
+                                        <li>
+                                            <Link 
+                                                to={'/reportes_trabajos_nuevos'} 
+                                                onClick={handleMenuItemClick} 
+                                                className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                                            >
+                                                WIP Detallado
+                                            </Link>
+                                        </li>
                                     </ul>
                                 </li>
                             </ul>
