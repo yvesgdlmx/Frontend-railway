@@ -5,7 +5,7 @@ import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_
 import Totales_Biselado2_Tableros from '../../components/tableros/Totales_Biselado2_Tableros';
 
 const Tableros_Terminado = () => {
-  const componentes = ['TotalesSurtido', 'TotalesTerminado', 'TotalesBiselado'];
+  const componentes = ['TotalesTerminado', 'TotalesBiselado', 'TotalesBiselado2'];
   const [componenteActivo, setComponenteActivo] = useState(componentes[0]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [contador, setContador] = useState(10);
