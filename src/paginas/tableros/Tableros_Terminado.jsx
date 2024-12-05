@@ -58,14 +58,14 @@ const Tableros_Terminado = () => {
     const currentIndex = componentes.indexOf(componenteActivo);
     const newIndex = (currentIndex - 1 + componentes.length) % componentes.length;
     setComponenteActivo(componentes[newIndex]);
-    setContador(10); // Reinicia el contador
+    setContador(30); // Reinicia el contador
   };
 
   const cambiarComponenteSiguiente = () => {
     const currentIndex = componentes.indexOf(componenteActivo);
     const newIndex = (currentIndex + 1) % componentes.length;
     setComponenteActivo(componentes[newIndex]);
-    setContador(10); // Reinicia el contador
+    setContador(30); // Reinicia el contador
   };
 
   return (
@@ -118,7 +118,6 @@ const Tableros_Terminado = () => {
             Cambio en: {contador}s
           </div>
         )}
-        {componenteActivo === 'TotalesSurtido' && <Totales_Surtido_Tableros/>}
         {componenteActivo === 'TotalesTerminado' && <Totales_Terminado_Tableros/>}
         {componenteActivo === 'TotalesBiselado' && <Totales_Biselado_Tableros />}
         {componenteActivo === 'TotalesBiselado2' && <Totales_Biselado2_Tableros />}
