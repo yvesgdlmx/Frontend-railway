@@ -31,14 +31,10 @@ const ReporteTrabajosNuevos = () => {
     const obtenerDatos = async () => {
       try {
         const respuesta = await clienteAxios.get('/reportes/reportes/nuevos');
-        console.log('Respuesta completa:', respuesta);
-        if (respuesta.data && Array.isArray(respuesta.data.registros)) {
-          setRegistros(respuesta.data.registros);
-        } else {
-          console.error('Estructura de datos incorrecta:', respuesta.data);
-        }
+        console.log('Datos obtenidos:', respuesta.data.registros); // Agrega este console.log
+        setRegistros(respuesta.data.registros); // Accede a la propiedad 'registros'
       } catch (error) {
-        console.error('Error detallado:', error.response || error);
+        console.error('Error al obtener los datos:', error);
       }
     };
     obtenerDatos();
