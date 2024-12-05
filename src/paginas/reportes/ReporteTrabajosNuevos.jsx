@@ -31,7 +31,7 @@ const ReporteTrabajosNuevos = () => {
     const obtenerDatos = async () => {
       try {
         const respuesta = await clienteAxios.get('/reportes/reportes/nuevos');
-        console.log(respuesta.registros)
+        console.log(respuesta.data.registros)
         setRegistros(respuesta.data.registros); // Accede a la propiedad 'registros'
       } catch (error) {
         console.error('Error al obtener los datos:', error);
