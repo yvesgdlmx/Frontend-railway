@@ -18,6 +18,7 @@ const TituloSeccion = ({ titulo, isOpen, toggle }) => (
   </div>
 );
 
+
 const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
   const contentRef = useRef(null);
   const [height, setHeight] = useState(0);
