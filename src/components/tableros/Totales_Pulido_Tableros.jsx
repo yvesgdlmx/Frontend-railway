@@ -144,16 +144,20 @@ const Totales_Pulido_Tableros = () => {
 
   const sumaHitsPorHora = horasUnicas.map(hora => {
     const [horaInicio, horaFin] = hora.split(' - ');
-    return Object.values(registrosAgrupados).flat().filter(r => {
-      const hourMoment = moment(r.hour, 'HH:mm:ss');
-      const startMoment = moment(horaInicio, 'HH:mm');
-      const endMoment = moment(horaFin, 'HH:mm');
-      if (startMoment.isAfter(endMoment)) {
-        return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
-      } else {
-        return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
-      }
-    }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
+    return ordenCelulas.reduce((total, celula) => {
+      const registrosCelula = registrosAgrupados[celula] || [];
+      const totalHits = registrosCelula.filter(r => {
+        const hourMoment = moment(r.hour, 'HH:mm:ss');
+        const startMoment = moment(horaInicio, 'HH:mm');
+        const endMoment = moment(horaFin, 'HH:mm');
+        if (startMoment.isAfter(endMoment)) {
+          return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
+        } else {
+          return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
+        }
+      }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
+      return total + totalHits;
+    }, 0);
   });
 
   const claseSumaTotalAcumulados = sumaTotalAcumulados >= (metaMatutinoFinal + metaVespertinoFinal + metaNocturnoFinal) ? "text-green-500" : "text-red-500";
