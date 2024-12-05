@@ -59,14 +59,14 @@ const Tableros_Tallado = () => {
     const currentIndex = componentes.indexOf(componenteActivo);
     const newIndex = (currentIndex - 1 + componentes.length) % componentes.length;
     setComponenteActivo(componentes[newIndex]);
-    setContador(10); // Reinicia el contador
+    setContador(30); // Reinicia el contador
   };
 
   const cambiarComponenteSiguiente = () => {
     const currentIndex = componentes.indexOf(componenteActivo);
     const newIndex = (currentIndex + 1) % componentes.length;
     setComponenteActivo(componentes[newIndex]);
-    setContador(10); // Reinicia el contador
+    setContador(30); // Reinicia el contador
   };
 
   return (
