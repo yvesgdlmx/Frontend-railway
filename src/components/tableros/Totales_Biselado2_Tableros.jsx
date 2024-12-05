@@ -3,7 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from 'moment-timezone';
 
-const Totales_Biselado_Tableros = () => {
+const Totales_Biselado2_Tableros = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       window.location.reload();
@@ -23,19 +23,22 @@ const Totales_Biselado_Tableros = () => {
   });
 
   const ordenCelulas = [
-    "298 DOUBLER",
-    "299 BISPHERA",
-    "300 EDGER 1",
-    "301 EDGER 2",
-    "302 EDGER 3",
-    "303 EDGER 4",
-    "304 EDGER 5",
-    "305 EDGER 6",
-    "306 EDGER 7",
-    "307 EDGER 8",
-    "308 EDGER 9",
-    "309 EDGER 10",
-    "310 EDGER 11",
+    "311 EDFGER 12",
+    "313 EDGER 13",
+    "314 EDGER 14",
+    "316 EDGER 15",
+    "317 EDGER 16",
+    "327 EDGER 17",
+    "328 EDGER 18",
+    "329 EDGER 19",
+    "330 EDGER 20",
+    "331 EDGER 21",
+    "332 EDGER 22",
+    "333 EDGER 23",
+    "334 EDGER 24",
+    "312 RAZR",
+    "318 HSE 1",
+    "319 HSE 2"
   ];
 
   useEffect(() => {
@@ -231,4 +234,4 @@ const Totales_Biselado_Tableros = () => {
   );
 };
 
-export default Totales_Biselado_Tableros;
+export default Totales_Biselado2_Tableros;
