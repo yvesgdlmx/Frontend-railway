@@ -1,16 +1,8 @@
 import { useEffect, useState } from "react";
 import clienteAxios from "../../../config/clienteAxios";
-import Navegacion from "../others/Navegacion";
 import moment from 'moment-timezone';
 
 const Totales_Biselado2_Tableros = () => {
-  useEffect(() => {
-    const interval = setInterval(() => {
-      window.location.reload();
-    }, 300000); // Actualiza cada 5 minutos
-    return () => clearInterval(interval);
-  }, []);
-
   const [registros, setRegistros] = useState([]);
   const [horasUnicas, setHorasUnicas] = useState([]);
   const [metasPorMaquina, setMetasPorMaquina] = useState({});
@@ -21,6 +13,7 @@ const Totales_Biselado2_Tableros = () => {
     vespertino: 0,
     nocturno: 0
   });
+  const [totalGeneral, setTotalGeneral] = useState(0); // Estado para el total general
 
   const ordenCelulas = [
     "311 EDFGER 12",
@@ -57,11 +50,9 @@ const Totales_Biselado2_Tableros = () => {
 
         const responseRegistros = await clienteAxios('/biselado/biselado/actualdia');
         const dataRegistros = responseRegistros.data.registros || [];
-
         const ahora = moment().tz('America/Mexico_City');
         let inicioHoy = moment().tz('America/Mexico_City').startOf('day').add(6, 'hours').add(30, 'minutes');
         let finHoy = moment(inicioHoy).add(1, 'days');
-
         if (ahora.isBefore(inicioHoy)) {
           inicioHoy.subtract(1, 'days');
           finHoy.subtract(1, 'days');
@@ -80,12 +71,10 @@ const Totales_Biselado2_Tableros = () => {
           acc[celula].push(registro);
           return acc;
         }, {});
-
         setRegistrosAgrupados(registrosAgrupados);
 
         const horas = new Set();
         const acumulados = {};
-
         registrosFiltrados.forEach(registro => {
           horas.add(registro.hour);
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, ' ');
@@ -105,7 +94,6 @@ const Totales_Biselado2_Tableros = () => {
           const momentoFinal = moment(momentoInicial).add(1, 'hour');
           return `${momentoInicial.format('HH:mm')} - ${momentoFinal.format('HH:mm')}`;
         });
-
         setHorasUnicas(horasConFormato);
         setTotalesAcumulados(acumulados);
         calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
@@ -116,13 +104,18 @@ const Totales_Biselado2_Tableros = () => {
     cargarDatos();
   }, []);
 
+  useEffect(() => {
+    // Calcula el total general cada vez que cambian los totales acumulados
+    const nuevoTotalGeneral = Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0);
+    setTotalGeneral(nuevoTotalGeneral);
+  }, [totalesAcumulados]);
+
   const calcularTotalesPorTurno = (registros, inicioHoy) => {
     const totales = {
       matutino: 0,
       vespertino: 0,
       nocturno: 0
     };
-
     registros.forEach(registro => {
       const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
       if (fechaHoraRegistro.isBetween(inicioHoy, moment(inicioHoy).add(8, 'hours'), null, '[)')) {
@@ -133,14 +126,17 @@ const Totales_Biselado2_Tableros = () => {
         totales.nocturno += parseInt(registro.hits || 0);
       }
     });
-
     setTotalesPorTurno(totales);
   };
 
-  const sumaTotalAcumulados = Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0);
-  const sumaTotalMetas = Object.keys(metasPorMaquina).reduce((acc, celula) => {
+  const sumaTotalAcumulados = ordenCelulas.reduce((acc, celula) => {
+    return acc + (totalesAcumulados[celula] || 0);
+  }, 0);
+
+  const sumaTotalMetas = ordenCelulas.reduce((acc, celula) => {
     return acc + (metasPorMaquina[celula] || 0);
   }, 0);
+
   const metaMatutinoFinal = sumaTotalMetas * 8;
   const metaVespertinoFinal = sumaTotalMetas * 7;
   const metaNocturnoFinal = sumaTotalMetas * 4;
@@ -160,10 +156,6 @@ const Totales_Biselado2_Tableros = () => {
   });
 
   const claseSumaTotalAcumulados = sumaTotalAcumulados >= (metaMatutinoFinal + metaVespertinoFinal + metaNocturnoFinal) ? "text-green-500" : "text-red-500";
-
-  const getClassName = (hits, metaPorTurno) => {
-    return hits >= metaPorTurno ? "text-green-500" : "text-red-500";
-  };
 
   return (
     <>
@@ -216,7 +208,7 @@ const Totales_Biselado2_Tableros = () => {
                 );
               })}
               <tr className="font-semibold bg-green-200 text-gray-700">
-                <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Totales</td>
+                <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Subtotal</td>
                 <td className={`py-2 px-4 border-b fw font-bold ${claseSumaTotalAcumulados}`}>{sumaTotalAcumulados}</td>
                 <td className="py-2 px-4 border-b fw font-bold">{sumaTotalMetas}</td>
                 {sumaHitsPorHora.map((sumaHits, index) => {
@@ -228,6 +220,10 @@ const Totales_Biselado2_Tableros = () => {
               </tr>
             </tbody>
           </table>
+        </div>
+        {/* Mostrar total general */}
+        <div className="mt-4 text-xl font-bold text-white">
+          Total General: {totalGeneral}
         </div>
       </div>
     </>

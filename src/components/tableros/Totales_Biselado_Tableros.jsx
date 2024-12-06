@@ -134,8 +134,10 @@ const Totales_Biselado_Tableros = () => {
     setTotalesPorTurno(totales);
   };
 
-  const sumaTotalAcumulados = Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0);
-  const sumaTotalMetas = Object.keys(metasPorMaquina).reduce((acc, celula) => {
+  const sumaTotalAcumulados = ordenCelulas.reduce((acc, celula) => {
+    return acc + (totalesAcumulados[celula] || 0);
+  }, 0);
+  const sumaTotalMetas = ordenCelulas.reduce((acc, celula) => {
     return acc + (metasPorMaquina[celula] || 0);
   }, 0);
   const metaMatutinoFinal = sumaTotalMetas * 8;
@@ -213,7 +215,7 @@ const Totales_Biselado_Tableros = () => {
                 );
               })}
               <tr className="font-semibold bg-green-200 text-gray-700">
-                <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Totales</td>
+                <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Subtotal</td>
                 <td className={`py-2 px-4 border-b fw font-bold ${claseSumaTotalAcumulados}`}>{sumaTotalAcumulados}</td>
                 <td className="py-2 px-4 border-b fw font-bold">{sumaTotalMetas}</td>
                 {sumaHitsPorHora.map((sumaHits, index) => {
