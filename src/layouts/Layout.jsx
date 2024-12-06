@@ -183,7 +183,7 @@ const Layout = () => {
                                         </li>
                                         <li>
                                             <Link to={'/reportes_trabajos_nuevos'} onClick={handleMenuItemClick}>
-                                                <p className="block px-4 py-2 hover:bg-gray-100">WIP Detallado</p>
+                                                <p className="block px-4 py-2 hover:bg-gray-100">Reporte de trabajos nuevos</p>
                                             </Link>
                                         </li>
                                     </ul>
