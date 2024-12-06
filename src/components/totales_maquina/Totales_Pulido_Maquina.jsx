@@ -23,31 +23,31 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
   const [height, setHeight] = useState(0);
 
   useEffect(() => {
-      if (isOpen) {
-          setHeight(contentRef.current.scrollHeight);
-      } else {
-          setHeight(0);
-      }
+    if (isOpen) {
+      setHeight(contentRef.current.scrollHeight);
+    } else {
+      setHeight(0);
+    }
   }, [isOpen]);
 
   return (
-      <div className="overflow-hidden mb-4">
-          <TituloSeccion 
-              titulo={titulo} 
-              isOpen={isOpen} 
-              toggle={toggle}
-          />
-          <div 
-              ref={contentRef}
-              style={{ maxHeight: isOpen ? `${height}px` : '0px' }}
-              className={`
-                  transition-all duration-300 ease-in-out
-                  ${isOpen ? 'opacity-100 mt-4' : 'opacity-0'}
-              `}
-          >
-              {children}
-          </div>
+    <div className="overflow-hidden mb-4">
+      <TituloSeccion 
+        titulo={titulo} 
+        isOpen={isOpen} 
+        toggle={toggle}
+      />
+      <div 
+        ref={contentRef}
+        style={{ maxHeight: isOpen ? `${height}px` : '0px' }}
+        className={`
+          transition-all duration-300 ease-in-out
+          ${isOpen ? 'opacity-100 mt-4' : 'opacity-0'}
+        `}
+      >
+        {children}
       </div>
+    </div>
   );
 };
 
@@ -60,10 +60,9 @@ const Totales_Pulido_Maquina = () => {
   }, []);
 
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
-
-    const toggleSeccion = (celula) => {
-        setSeccionesAbiertas(prev => ({ ...prev, [celula]: !prev[celula] }));
-    };
+  const toggleSeccion = (celula) => {
+    setSeccionesAbiertas(prev => ({ ...prev, [celula]: !prev[celula] }));
+  };
 
   const [totalesPorTurnoYMaquina, setTotalesPorTurnoYMaquina] = useState({});
   const [horasUnicas, setHorasUnicas] = useState([]);
@@ -109,25 +108,23 @@ const Totales_Pulido_Maquina = () => {
         const responseRegistros = await clienteAxios('/pulido/pulido/actualdia');
         const dataRegistros = responseRegistros.data.registros || [];
 
-        // Calcular el inicio y fin del período deseado
         const ahora = moment().tz('America/Mexico_City');
         let inicioHoy = moment().tz('America/Mexico_City').startOf('day').add(6, 'hours').add(30, 'minutes');
         let finHoy = moment(inicioHoy).add(1, 'days');
 
-        // Si es antes de las 06:30, ajustamos al día anterior
         if (ahora.isBefore(inicioHoy)) {
           inicioHoy.subtract(1, 'days');
           finHoy.subtract(1, 'days');
         }
 
-        // Filtrar registros en el intervalo de tiempo deseado
         const registrosFiltrados = dataRegistros.filter(registro => {
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
           return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, '[]');
         });
 
         const totalesPorMaquina = calcularTotalesPorTurnoYMaquina(registrosFiltrados, inicioHoy);
-        setTotalesPorTurnoYMaquina(totalesPorMaquina)
+        console.log("Totales por turno y máquina:", totalesPorMaquina);
+        setTotalesPorTurnoYMaquina(totalesPorMaquina);
 
         const registrosAgrupados = registrosFiltrados.reduce((acc, registro) => {
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, ' ');
@@ -137,12 +134,10 @@ const Totales_Pulido_Maquina = () => {
           acc[celula].push(registro);
           return acc;
         }, {});
-
         setRegistrosAgrupados(registrosAgrupados);
 
         const horas = new Set();
         const acumulados = {};
-
         registrosFiltrados.forEach(registro => {
           horas.add(registro.hour);
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, ' ');
@@ -171,7 +166,6 @@ const Totales_Pulido_Maquina = () => {
         console.error("Error al cargar los datos:", error);
       }
     };
-
     cargarDatos();
   }, []);
 
@@ -181,18 +175,16 @@ const Totales_Pulido_Maquina = () => {
       vespertino: 0,
       nocturno: 0
     };
-
     registros.forEach(registro => {
       const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
       if (fechaHoraRegistro.isBetween(inicioHoy, moment(inicioHoy).add(8, 'hours'), null, '[)')) {
-        totales.matutino += registro.hits;
+        totales.matutino += parseInt(registro.hits || 0);
       } else if (fechaHoraRegistro.isBetween(moment(inicioHoy).add(8, 'hours'), moment(inicioHoy).add(15, 'hours'), null, '[)')) {
-        totales.vespertino += registro.hits;
+        totales.vespertino += parseInt(registro.hits || 0);
       } else {
-        totales.nocturno += registro.hits;
+        totales.nocturno += parseInt(registro.hits || 0);
       }
     });
-
     setTotalesPorTurno(totales);
   };
 
@@ -205,11 +197,17 @@ const Totales_Pulido_Maquina = () => {
         nocturno: 0
       };
     });
-
     registros.forEach(registro => {
       const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, ' ');
+      if (!totales[celula]) {
+        console.warn(`Célula no encontrada: ${celula}`);
+        totales[celula] = {
+          matutino: 0,
+          vespertino: 0,
+          nocturno: 0
+        };
+      }
       const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-      
       if (fechaHoraRegistro.isBetween(inicioHoy, moment(inicioHoy).add(8, 'hours'), null, '[)')) {
         totales[celula].matutino += parseInt(registro.hits || 0);
       } else if (fechaHoraRegistro.isBetween(moment(inicioHoy).add(8, 'hours'), moment(inicioHoy).add(15, 'hours'), null, '[)')) {
@@ -218,7 +216,6 @@ const Totales_Pulido_Maquina = () => {
         totales[celula].nocturno += parseInt(registro.hits || 0);
       }
     });
-
     return totales;
   };
 
@@ -233,18 +230,20 @@ const Totales_Pulido_Maquina = () => {
 
   const sumaHitsPorHora = horasUnicas.map(hora => {
     const [horaInicio, horaFin] = hora.split(' - ');
-    return Object.values(registrosAgrupados).flat().filter(r => {
-      const hourMoment = moment(r.hour, 'HH:mm:ss');
-      const startMoment = moment(horaInicio, 'HH:mm');
-      const endMoment = moment(horaFin, 'HH:mm');
-      
-      if (startMoment.isAfter(endMoment)) {
-        // Caso especial para el intervalo que cruza la medianoche
-        return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
-      } else {
-        return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
-      }
-    }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
+    return ordenCelulas.reduce((total, celula) => {
+      const registrosCelula = registrosAgrupados[celula] || [];
+      const totalHits = registrosCelula.filter(r => {
+        const hourMoment = moment(r.hour, 'HH:mm:ss');
+        const startMoment = moment(horaInicio, 'HH:mm');
+        const endMoment = moment(horaFin, 'HH:mm');
+        if (startMoment.isAfter(endMoment)) {
+          return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
+        } else {
+          return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
+        }
+      }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
+      return total + totalHits;
+    }, 0);
   });
 
   const claseSumaTotalAcumulados = sumaTotalAcumulados >= (metaMatutinoFinal + metaVespertinoFinal + metaNocturnoFinal) ? "text-green-500" : "text-red-500";
@@ -256,22 +255,20 @@ const Totales_Pulido_Maquina = () => {
   return (
     <>
       <div className="max-w-screen-xl">
-         {/* Diseño tipo card para pantallas pequeñas y medianas */}
-     <div className="lg:hidden mt-4">
+        {/* Diseño tipo card para pantallas pequeñas y medianas */}
+        <div className="lg:hidden mt-4">
           {ordenCelulas.map((celula, index) => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
             const metaAcumulada = meta * horasUnicas.length;
             const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
-            const totalesTurno = totalesPorTurnoYMaquina[celula];
+            const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
 
-            // Calcular horas transcurridas en cada turno
             const horasMatutino = Math.min(moment().diff(moment().startOf('day').add(6, 'hours').add(30, 'minutes'), 'hours'), 8);
             const horasVespertino = Math.min(Math.max(moment().diff(moment().startOf('day').add(14, 'hours').add(30, 'minutes'), 'hours'), 0), 7);
             const horasNocturno = Math.min(Math.max(moment().diff(moment().startOf('day').add(21, 'hours').add(30, 'minutes'), 'hours'), 0), 9);
 
-            // Calcular metas ajustadas según horas transcurridas
             const metaMatutino = meta * horasMatutino;
             const metaVespertino = meta * horasVespertino;
             const metaNocturno = meta * horasNocturno;
@@ -339,8 +336,9 @@ const Totales_Pulido_Maquina = () => {
             );
           })}
         </div>
-       {/* Diseño de tabla para pantallas grandes */}
-       <div className="hidden lg:block">
+
+        {/* Diseño de tabla para pantallas grandes */}
+        <div className="hidden lg:block">
           <Navegacion/>
           <table className="min-w-full bg-white border">
             <thead>
@@ -361,19 +359,18 @@ const Totales_Pulido_Maquina = () => {
                 const registrosCelula = registrosAgrupados[celula] || [];
                 const totalAcumulado = totalesAcumulados[celula] || 0;
                 const meta = metasPorMaquina[celula] || 0;
-                const totalesTurno = totalesPorTurnoYMaquina[celula];
-                
-                // Calcular horas transcurridas en cada turno
+                const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
+
                 const horasMatutino = Math.min(moment().diff(moment().startOf('day').add(6, 'hours').add(30, 'minutes'), 'hours'), 8);
                 const horasVespertino = Math.min(Math.max(moment().diff(moment().startOf('day').add(14, 'hours').add(30, 'minutes'), 'hours'), 0), 7);
                 const horasNocturno = Math.min(Math.max(moment().diff(moment().startOf('day').add(21, 'hours').add(30, 'minutes'), 'hours'), 0), 9);
 
-                // Calcular metas ajustadas según horas transcurridas
                 const metaMatutino = meta * horasMatutino;
                 const metaVespertino = meta * horasVespertino;
                 const metaNocturno = meta * horasNocturno;
 
                 const bgColor = index % 2 === 0 ? 'bg-gray-200' : 'bg-white';
+
                 return (
                   <tr key={index} className={`font-semibold text-gray-700 ${bgColor}`}>
                     <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>{celula}</td>
@@ -435,8 +432,9 @@ const Totales_Pulido_Maquina = () => {
             </tbody>
           </table>
         </div>
-         {/* Totales por turno */}
-         <div className='mt-4 font-semibold mb-4'>
+
+        {/* Totales por turno */}
+        <div className='mt-4 font-semibold mb-4'>
           {/* Diseño para pantallas pequeñas y medianas */}
           <div className='lg:hidden space-y-4'>
             <div className="bg-white p-4 rounded-lg shadow-md">
@@ -452,7 +450,6 @@ const Totales_Pulido_Maquina = () => {
                 <span className="text-lg font-bold text-gray-800">{metaMatutinoFinal}</span>
               </div>
             </div>
-
             <div className="bg-white p-4 rounded-lg shadow-md">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Vespertino</h3>
               <div className="flex justify-between items-center">
@@ -466,7 +463,6 @@ const Totales_Pulido_Maquina = () => {
                 <span className="text-lg font-bold text-gray-800">{metaVespertinoFinal}</span>
               </div>
             </div>
-
             <div className="bg-white p-4 rounded-lg shadow-md">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Nocturno</h3>
               <div className="flex justify-between items-center">
