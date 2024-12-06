@@ -30,6 +30,7 @@ const Totales_Pulido_Tableros = () => {
     "258 POLISHR 4",
     "259 POLISHR 5",
     "260 POLISHR 6",
+    "261 POLISHR 7",
     "262 POLISHR 8",
     "265 POLISHR 12",
     "266 MULTIFLEX 1",
