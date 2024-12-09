@@ -39,6 +39,37 @@ const ReporteTrabajosNuevos = () => {
     obtenerDatos();
   }, []);
 
+  // Calcular los totales
+  const calcularTotales = () => {
+    return registros.reduce((totales, registro) => {
+      return {
+        total_new_jobs: totales.total_new_jobs + registro.total_new_jobs,
+        ink_jobs: totales.ink_jobs + registro.ink_jobs,
+        ink_no_ar: totales.ink_no_ar + registro.ink_no_ar,
+        ink_ar: totales.ink_ar + registro.ink_ar,
+        hoya_jobs: totales.hoya_jobs + registro.hoya_jobs,
+        hoya_no_ar: totales.hoya_no_ar + registro.hoya_no_ar,
+        hoya_ar: totales.hoya_ar + registro.hoya_ar,
+        nvi_jobs: totales.nvi_jobs + registro.nvi_jobs,
+        nvi_no_ar: totales.nvi_no_ar + registro.nvi_no_ar,
+        nvi_ar: totales.nvi_ar + registro.nvi_ar,
+      };
+    }, {
+      total_new_jobs: 0,
+      ink_jobs: 0,
+      ink_no_ar: 0,
+      ink_ar: 0,
+      hoya_jobs: 0,
+      hoya_no_ar: 0,
+      hoya_ar: 0,
+      nvi_jobs: 0,
+      nvi_no_ar: 0,
+      nvi_ar: 0,
+    });
+  };
+
+  const totales = calcularTotales();
+
   return (
     <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen">
       <div className='bg-gray-200 p-4 mb-4 rounded flex justify-between xs:hidden md:flex'>
@@ -83,6 +114,20 @@ const ReporteTrabajosNuevos = () => {
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.nvi_ar}</td>
               </tr>
             ))}
+            {/* Fila de totales */}
+            <tr className="bg-green-50 text-gray-800 font-bold">
+              <td className="py-3 px-5 border">Totales</td>
+              <td className="py-3 px-5 border">{totales.total_new_jobs}</td>
+              <td className="py-3 px-5 border">{totales.ink_jobs}</td>
+              <td className="py-3 px-5 border">{totales.ink_no_ar}</td>
+              <td className="py-3 px-5 border">{totales.ink_ar}</td>
+              <td className="py-3 px-5 border">{totales.hoya_jobs}</td>
+              <td className="py-3 px-5 border">{totales.hoya_no_ar}</td>
+              <td className="py-3 px-5 border">{totales.hoya_ar}</td>
+              <td className="py-3 px-5 border">{totales.nvi_jobs}</td>
+              <td className="py-3 px-5 border">{totales.nvi_no_ar}</td>
+              <td className="py-3 px-5 border">{totales.nvi_ar}</td>
+            </tr>
           </tbody>
         </table>
         <div className="hidden lg:block mt-8 bg-blue-50 p-4 rounded-lg border border-blue-200">
