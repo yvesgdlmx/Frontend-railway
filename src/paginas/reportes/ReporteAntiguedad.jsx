@@ -65,8 +65,8 @@ const ReporteAntiguedad = () => {
 
   const calcularTotalRegistrosAntiguos = (registros) => {
     const total = registros.reduce((acc, registro) => {
-      const dias = differenceInDays(parseISO(registro.today), parseISO(registro.enter_date));
-      if (dias >= 3) { // Cambiar a >= 3 para incluir el día inicial
+      const dias = differenceInDays(parseISO(registro.today), parseISO(registro.enter_date)) - 1;
+      if (dias >= 3) {
         return acc + registro.ink_ip + registro.hoya_ip + registro.nvi_ip;
       }
       return acc;
@@ -127,8 +127,8 @@ const ReporteAntiguedad = () => {
               const dias = differenceInDays(
                 parseISO(registro.today), 
                 parseISO(registro.enter_date)
-              );
-              if (dias >= 3) { // Cambiar a >= 3 para incluir el día inicial
+              ) - 1;
+              if (dias >= 3) {
                 return total + registro.ink_ip + registro.hoya_ip + registro.nvi_ip;
               }
               return total;
@@ -221,8 +221,8 @@ const ReporteAntiguedad = () => {
                           const diasDiferencia = differenceInDays(
                             parseISO(registro.today), 
                             parseISO(registro.enter_date)
-                          );
-                          const esAntiguo = diasDiferencia >= 3; // Cambiar a >= 3 para incluir el día inicial
+                          ) - 1;
+                          const esAntiguo = diasDiferencia >= 3;
                           return (
                             <tr key={index} className={`hover:bg-gray-50 transition-colors duration-150 ${esAntiguo ? 'bg-yellow-50' : ''}`}>
                               <td className="px-3 py-2 whitespace-nowrap text-gray-600">
@@ -254,8 +254,8 @@ const ReporteAntiguedad = () => {
                           const dias = differenceInDays(
                             parseISO(registro.today), 
                             parseISO(registro.enter_date)
-                          );
-                          if (dias >= 3) { // Cambiar a >= 3 para incluir el día inicial
+                          ) - 1;
+                          if (dias >= 3) {
                             return total + registro.ink_ip + registro.hoya_ip + registro.nvi_ip;
                           }
                           return total;
