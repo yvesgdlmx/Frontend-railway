@@ -3,9 +3,10 @@ import Totales_Terminado_Tableros from '../../components/tableros/Totales_Termin
 import Totales_Biselado_Tableros from '../../components/tableros/Totales_Biselado_Tableros';
 import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
 import Totales_Biselado2_Tableros from '../../components/tableros/Totales_Biselado2_Tableros';
+import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
 
 const Tableros_Terminado = () => {
-  const componentes = ['TotalesTerminado', 'TotalesBiselado', 'TotalesBiselado2'];
+  const componentes = ['TotalesTerminado', 'TotalesBiselado', 'TotalesBiselado2', 'TotalesProduccion'];
   const [componenteActivo, setComponenteActivo] = useState(componentes[0]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [contador, setContador] = useState(10);
@@ -19,7 +20,7 @@ const Tableros_Terminado = () => {
             const nextIndex = (currentIndex + 1) % componentes.length;
             return componentes[nextIndex];
           });
-          return 30;
+          return 10;
         }
         return prev - 1;
       });
@@ -121,6 +122,7 @@ const Tableros_Terminado = () => {
         {componenteActivo === 'TotalesTerminado' && <Totales_Terminado_Tableros/>}
         {componenteActivo === 'TotalesBiselado' && <Totales_Biselado_Tableros />}
         {componenteActivo === 'TotalesBiselado2' && <Totales_Biselado2_Tableros />}
+        {componenteActivo === 'TotalesProduccion' && <Totales_Produccion_Tableros />}
       </div>
     </div>
   );
