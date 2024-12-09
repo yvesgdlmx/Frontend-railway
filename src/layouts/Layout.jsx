@@ -181,6 +181,11 @@ const Layout = () => {
                                                 <p className="block px-4 py-2 hover:bg-gray-100">WIP Detallado</p>
                                             </Link>
                                         </li>
+                                        <li>
+                                            <Link to={'/reportes_trabajos_nuevos'} onClick={handleMenuItemClick}>
+                                                <p className="block px-4 py-2 hover:bg-gray-100">Reporte de trabajos nuevos</p>
+                                            </Link>
+                                        </li>
                                     </ul>
                                 </div>
                             )}
@@ -272,6 +277,15 @@ const Layout = () => {
                                                 className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                                             >
                                                 WIP Detallado
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link 
+                                                to={'/reportes_trabajos_nuevos'} 
+                                                onClick={handleMenuItemClick} 
+                                                className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                                            >
+                                                Reportes trabajos nuevos
                                             </Link>
                                         </li>
                                     </ul>

@@ -31,7 +31,6 @@ const ReporteTrabajosNuevos = () => {
     const obtenerDatos = async () => {
       try {
         const respuesta = await clienteAxios.get('/reportes/reportes/nuevos');
-        console.log(respuesta.data)
         setRegistros(respuesta.data.registros); // Accede a la propiedad 'registros'
       } catch (error) {
         console.error('Error al obtener los datos:', error);
@@ -39,38 +38,6 @@ const ReporteTrabajosNuevos = () => {
     };
     obtenerDatos();
   }, []);
-
-  const acumularRegistros = (registros) => {
-    let acumulado = {
-      total_new_jobs: 0,
-      ink_jobs: 0,
-      ink_no_ar: 0,
-      ink_ar: 0,
-      hoya_jobs: 0,
-      hoya_no_ar: 0,
-      hoya_ar: 0,
-      nvi_jobs: 0,
-      nvi_no_ar: 0,
-      nvi_ar: 0,
-    };
-    return registros.map((registro) => {
-      acumulado = {
-        total_new_jobs: acumulado.total_new_jobs + registro.total_new_jobs,
-        ink_jobs: acumulado.ink_jobs + registro.ink_jobs,
-        ink_no_ar: acumulado.ink_no_ar + registro.ink_no_ar,
-        ink_ar: acumulado.ink_ar + registro.ink_ar,
-        hoya_jobs: acumulado.hoya_jobs + registro.hoya_jobs,
-        hoya_no_ar: acumulado.hoya_no_ar + registro.hoya_no_ar,
-        hoya_ar: acumulado.hoya_ar + registro.hoya_ar,
-        nvi_jobs: acumulado.nvi_jobs + registro.nvi_jobs,
-        nvi_no_ar: acumulado.nvi_no_ar + registro.nvi_no_ar,
-        nvi_ar: acumulado.nvi_ar + registro.nvi_ar,
-      };
-      return { ...registro, ...acumulado };
-    });
-  };
-
-  const registrosAcumulados = acumularRegistros(registros);
 
   return (
     <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen">
@@ -101,7 +68,7 @@ const ReporteTrabajosNuevos = () => {
             </tr>
           </thead>
           <tbody>
-            {registrosAcumulados.map((registro, index) => (
+            {registros.map((registro, index) => (
               <tr key={registro.id} className={`border-t border-gray-200 hover:bg-blue-100 ${index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}`}>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{`${registro.fecha} / ${registro.hora}`}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.total_new_jobs}</td>
@@ -129,7 +96,7 @@ const ReporteTrabajosNuevos = () => {
         </div>
         {/* Vista para móviles y pantallas medianas */}
         <div className="md:hidden space-y-4">
-          {registrosAcumulados.map((registro) => (
+          {registros.map((registro) => (
             <div key={registro.id} className="bg-white rounded-lg overflow-hidden border border-gray-200">
               <div className="bg-blue-600 text-white p-4">
                 <div className="font-semibold">Fecha: {`${registro.fecha} / ${registro.hora}`}</div>
