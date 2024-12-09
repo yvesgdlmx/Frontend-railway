@@ -85,7 +85,7 @@ const ReporteTrabajosNuevos = () => {
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg hidden md:table">
           <thead>
             <tr className="bg-blue-600 text-white">
-              <th className="py-3 px-5 text-left font-semibold">Fecha</th>
+              <th className="py-3 px-5 text-left font-semibold">Fecha y Hora</th>
               <th className="py-3 px-5 text-left font-semibold border">Total New Jobs</th>
               <th className="py-3 px-5 text-left font-semibold border">Ink Jobs</th>
               <th className="py-3 px-5 text-left font-semibold border">Ink No AR</th>
@@ -101,7 +101,10 @@ const ReporteTrabajosNuevos = () => {
           <tbody>
             {registros.map((registro, index) => (
               <tr key={registro.id} className={`border-t border-gray-200 hover:bg-blue-100 ${index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}`}>
-                <td className="py-3 px-5 border font-semibold text-gray-500">{`${registro.fecha} / ${registro.hora}`}</td>
+                <td className="py-3 px-5 border font-semibold text-gray-500">
+                  <div>{registro.fecha}</div>
+                  <div className="text-sm text-gray-400">{registro.hora}</div>
+                </td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.total_new_jobs}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.ink_jobs}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.ink_no_ar}</td>
@@ -115,7 +118,7 @@ const ReporteTrabajosNuevos = () => {
               </tr>
             ))}
             {/* Fila de totales */}
-            <tr className="bg-green-50 text-gray-800 font-bold">
+            <tr className="bg-green-200 text-gray-500 font-bold">
               <td className="py-3 px-5 border">Totales</td>
               <td className="py-3 px-5 border">{totales.total_new_jobs}</td>
               <td className="py-3 px-5 border">{totales.ink_jobs}</td>
@@ -142,54 +145,101 @@ const ReporteTrabajosNuevos = () => {
         {/* Vista para móviles y pantallas medianas */}
         <div className="md:hidden space-y-4">
           {registros.map((registro) => (
-            <div key={registro.id} className="bg-white rounded-lg overflow-hidden border border-gray-200">
+            <div key={registro.id} className="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-md">
               <div className="bg-blue-600 text-white p-4">
-                <div className="font-semibold">Fecha: {`${registro.fecha} / ${registro.hora}`}</div>
+                <div className="font-semibold text-lg">{registro.fecha}</div>
+                <div className="text-sm text-white">{registro.hora}</div>
               </div>
               <div className="p-4 grid grid-cols-2 gap-4">
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Total New Jobs:</span>
-                  <span className="font-bold text-gray-700">{registro.total_new_jobs}</span>
+                  <span className="font-bold text-gray-500">{registro.total_new_jobs}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Ink Jobs:</span>
-                  <span className="font-bold text-gray-700">{registro.ink_jobs}</span>
+                  <span className="font-bold text-gray-500">{registro.ink_jobs}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Ink No AR:</span>
-                  <span className="font-bold text-gray-700">{registro.ink_no_ar}</span>
+                  <span className="font-bold text-gray-500">{registro.ink_no_ar}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Ink AR:</span>
-                  <span className="font-bold text-gray-700">{registro.ink_ar}</span>
+                  <span className="font-bold text-gray-500">{registro.ink_ar}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Hoya Jobs:</span>
-                  <span className="font-bold text-gray-700">{registro.hoya_jobs}</span>
+                  <span className="font-bold text-gray-500">{registro.hoya_jobs}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Hoya No AR:</span>
-                  <span className="font-bold text-gray-700">{registro.hoya_no_ar}</span>
+                  <span className="font-bold text-gray-500">{registro.hoya_no_ar}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Hoya AR:</span>
-                  <span className="font-bold text-gray-700">{registro.hoya_ar}</span>
+                  <span className="font-bold text-gray-500">{registro.hoya_ar}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">NVI Jobs:</span>
-                  <span className="font-bold text-gray-700">{registro.nvi_jobs}</span>
+                  <span className="font-bold text-gray-500">{registro.nvi_jobs}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">NVI No AR:</span>
-                  <span className="font-bold text-gray-700">{registro.nvi_no_ar}</span>
+                  <span className="font-bold text-gray-500">{registro.nvi_no_ar}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">NVI AR:</span>
-                  <span className="font-bold text-gray-700">{registro.nvi_ar}</span>
+                  <span className="font-bold text-gray-500">{registro.nvi_ar}</span>
                 </div>
               </div>
             </div>
           ))}
+          {/* Totales en vista móvil */}
+          <div className="bg-green-50 rounded-lg overflow-hidden border border-gray-200 mt-4 shadow-md">
+            <div className="bg-blue-500 text-white p-4 font-bold text-lg">Totales</div>
+            <div className="p-4 grid grid-cols-2 gap-4">
+              <div className="flex justify-between">
+                <span className="text-gray-700">Total New Jobs:</span>
+                <span className="font-bold text-gray-600">{totales.total_new_jobs}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">Ink Jobs:</span>
+                <span className="font-bold text-gray-600">{totales.ink_jobs}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">Ink No AR:</span>
+                <span className="font-bold text-gray-600">{totales.ink_no_ar}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">Ink AR:</span>
+                <span className="font-bold text-gray-600">{totales.ink_ar}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">Hoya Jobs:</span>
+                <span className="font-bold text-gray-600">{totales.hoya_jobs}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">Hoya No AR:</span>
+                <span className="font-bold text-gray-600">{totales.hoya_no_ar}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">Hoya AR:</span>
+                <span className="font-bold text-gray-600">{totales.hoya_ar}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">NVI Jobs:</span>
+                <span className="font-bold text-gray-600">{totales.nvi_jobs}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">NVI No AR:</span>
+                <span className="font-bold text-gray-600">{totales.nvi_no_ar}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700">NVI AR:</span>
+                <span className="font-bold text-gray-600">{totales.nvi_ar}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
