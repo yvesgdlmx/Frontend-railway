@@ -69,9 +69,15 @@ const ReporteTrabajosNuevos = () => {
   };
 
   const totales = calcularTotales();
-  
-  // Ordenar registros por fecha de manera descendente
-  const registrosOrdenados = [...registros].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  // Ordenar registros por hora (más reciente primero)
+  const registrosOrdenados = [...registros].sort((a, b) => {
+    const horaA = a.hora; // Por ejemplo, "06:30:00"
+    const horaB = b.hora;
+
+    // Comparar las horas como cadenas de texto directamente, ya que están en formato HH:mm:ss
+    return horaB.localeCompare(horaA); // Orden descendente (más reciente primero)
+  });
 
   return (
     <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen">
