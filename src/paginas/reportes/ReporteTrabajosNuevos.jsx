@@ -69,6 +69,9 @@ const ReporteTrabajosNuevos = () => {
   };
 
   const totales = calcularTotales();
+  
+  // Ordenar registros por fecha de manera descendente
+  const registrosOrdenados = [...registros].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
   return (
     <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen">
@@ -99,7 +102,7 @@ const ReporteTrabajosNuevos = () => {
             </tr>
           </thead>
           <tbody>
-            {registros.map((registro, index) => (
+            {registrosOrdenados.map((registro, index) => (
               <tr key={registro.id} className={`border-t border-gray-200 hover:bg-blue-100 ${index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}`}>
                 <td className="py-3 px-5 border font-semibold text-gray-500">
                   <div>{registro.fecha}</div>
@@ -117,20 +120,6 @@ const ReporteTrabajosNuevos = () => {
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.nvi_ar}</td>
               </tr>
             ))}
-            {/* Fila de totales */}
-            <tr className="bg-green-200 text-gray-500 font-bold">
-              <td className="py-3 px-5 border">Totales</td>
-              <td className="py-3 px-5 border">{totales.total_new_jobs}</td>
-              <td className="py-3 px-5 border">{totales.ink_jobs}</td>
-              <td className="py-3 px-5 border">{totales.ink_no_ar}</td>
-              <td className="py-3 px-5 border">{totales.ink_ar}</td>
-              <td className="py-3 px-5 border">{totales.hoya_jobs}</td>
-              <td className="py-3 px-5 border">{totales.hoya_no_ar}</td>
-              <td className="py-3 px-5 border">{totales.hoya_ar}</td>
-              <td className="py-3 px-5 border">{totales.nvi_jobs}</td>
-              <td className="py-3 px-5 border">{totales.nvi_no_ar}</td>
-              <td className="py-3 px-5 border">{totales.nvi_ar}</td>
-            </tr>
           </tbody>
         </table>
         <div className="hidden lg:block mt-8 bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -144,7 +133,7 @@ const ReporteTrabajosNuevos = () => {
         </div>
         {/* Vista para móviles y pantallas medianas */}
         <div className="md:hidden space-y-4">
-          {registros.map((registro) => (
+          {registrosOrdenados.map((registro) => (
             <div key={registro.id} className="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-md">
               <div className="bg-blue-600 text-white p-4">
                 <div className="font-semibold text-lg">{registro.fecha}</div>
@@ -194,52 +183,6 @@ const ReporteTrabajosNuevos = () => {
               </div>
             </div>
           ))}
-          {/* Totales en vista móvil */}
-          <div className="bg-green-50 rounded-lg overflow-hidden border border-gray-200 mt-4 shadow-md">
-            <div className="bg-blue-500 text-white p-4 font-bold text-lg">Totales</div>
-            <div className="p-4 grid grid-cols-2 gap-4">
-              <div className="flex justify-between">
-                <span className="text-gray-700">Total New Jobs:</span>
-                <span className="font-bold text-gray-600">{totales.total_new_jobs}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">Ink Jobs:</span>
-                <span className="font-bold text-gray-600">{totales.ink_jobs}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">Ink No AR:</span>
-                <span className="font-bold text-gray-600">{totales.ink_no_ar}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">Ink AR:</span>
-                <span className="font-bold text-gray-600">{totales.ink_ar}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">Hoya Jobs:</span>
-                <span className="font-bold text-gray-600">{totales.hoya_jobs}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">Hoya No AR:</span>
-                <span className="font-bold text-gray-600">{totales.hoya_no_ar}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">Hoya AR:</span>
-                <span className="font-bold text-gray-600">{totales.hoya_ar}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">NVI Jobs:</span>
-                <span className="font-bold text-gray-600">{totales.nvi_jobs}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">NVI No AR:</span>
-                <span className="font-bold text-gray-600">{totales.nvi_no_ar}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">NVI AR:</span>
-                <span className="font-bold text-gray-600">{totales.nvi_ar}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
