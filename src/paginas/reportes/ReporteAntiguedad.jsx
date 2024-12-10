@@ -8,7 +8,7 @@ import {
   endOfWeek, 
   eachWeekOfInterval, 
   startOfMonth, 
-  endOfMonth 
+  endOfMonth,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -18,12 +18,18 @@ const ReporteAntiguedad = () => {
   const [totalRegistrosAntiguos, setTotalRegistrosAntiguos] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+  
   const nombresMeses = {
     '1': 'Enero', '2': 'Febrero', '3': 'Marzo', '4': 'Abril',
     '5': 'Mayo', '6': 'Junio', '7': 'Julio', '8': 'Agosto',
     '9': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
   };
+
+  useEffect(() => {
+    // Establecer el mes actual al montar el componente
+    const mesActual = new Date().getMonth() + 1; // getMonth devuelve un índice basado en cero
+    setMes(mesActual.toString());
+  }, []);
 
   useEffect(() => {
     const obtenerDatos = async () => {
@@ -153,7 +159,7 @@ const ReporteAntiguedad = () => {
   };
 
   const diasAgrupados = agruparPorDia(registros);
-
+  
   return (
     <div className="mx-auto p-4 bg-gray-50 min-h-screen">
       <div className="mx-auto">
