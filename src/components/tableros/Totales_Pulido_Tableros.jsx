@@ -25,7 +25,6 @@ const Totales_Pulido_Tableros = () => {
   const ordenCelulas = [
     "254 IFLEX SRVR",
     "255 POLISHR 1",
-    "256 POLISHR 2",
     "257 POLISHR 3",
     "258 POLISHR 4",
     "259 POLISHR 5",
