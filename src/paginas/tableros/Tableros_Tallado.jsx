@@ -21,7 +21,7 @@ const Tableros_Tallado = () => {
             const nextIndex = (currentIndex + 1) % componentes.length;
             return componentes[nextIndex];
           });
-          return 10;
+          return 30;
         }
         return prev - 1;
       });
