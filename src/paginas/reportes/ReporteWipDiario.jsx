@@ -7,7 +7,6 @@ const ReporteWipDiario = () => {
   const currentYear = today.getFullYear();
   const currentMonth = String(today.getMonth() + 1).padStart(2, '0'); // Los meses son 0-indexados
   const currentDay = String(today.getDate()).padStart(2, '0');
-  
   const [anio, setAnio] = useState(currentYear.toString());
   const [mes, setMes] = useState(currentMonth);
   const [dia, setDia] = useState(currentDay);
@@ -32,7 +31,7 @@ const ReporteWipDiario = () => {
 
   // Calcular WIP y otros campos para cada cliente
   const calculateWIP = () => {
-    if (!data) return {
+    if (!data || data.length === 0) return {
       nvi: { inicial: 0, recibidos: 0, enviados: 0, cancelados: 0, final: 0, semifinish: 0, finished: 0 },
       hoya: { inicial: 0, recibidos: 0, enviados: 0, cancelados: 0, final: 0 },
       ink: { inicial: 0, recibidos: 0, enviados: 0, cancelados: 0, final: 0 },
@@ -126,6 +125,12 @@ const ReporteWipDiario = () => {
           </select>
         </div>
       </div>
+      {/* Mensaje si no hay datos */}
+      {data && data.length === 0 && (
+        <div className="text-red-600 text-center mb-4">
+          No hay registros disponibles para la fecha seleccionada.
+        </div>
+      )}
       {/* Tablas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Tabla NVI */}
@@ -138,7 +143,7 @@ const ReporteWipDiario = () => {
                 <td className="py-3 px-6 border-b">{wipTotals.nvi.inicial}</td>
               </tr>
               <tr className="text-gray-700">
-              <td className="py-3 px-6 font-semibold border-b">Recibidos <span className='text-sm text-gray-500 ml-2 font-normal'>(Semiterminado: {data && data.find(item => item.accion === 'recibidos')?.semifinish_nvi}, Terminado: {data && data.find(item => item.accion === 'recibidos')?.finished_nvi})</span></td>
+                <td className="py-3 px-6 font-semibold border-b">Recibidos <span className='text-sm text-gray-500 ml-2 font-normal'>(Semiterminado: {data && data.find(item => item.accion === 'recibidos')?.semifinish_nvi}, Terminado: {data && data.find(item => item.accion === 'recibidos')?.finished_nvi})</span></td>
                 <td className="py-3 px-6 border-b">{wipTotals.nvi.recibidos}</td>
               </tr>
               <tr className="text-gray-700 bg-gray-100">
