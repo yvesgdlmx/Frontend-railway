@@ -10,8 +10,8 @@ const ReporteWipDiario = () => {
   const [anio, setAnio] = useState(currentYear.toString());
   const [mes, setMes] = useState(currentMonth);
   const [dia, setDia] = useState(currentDay);
-  const [data, setData] = useState(null);
-
+  const [data, setData] = useState([]);
+  
   const handleAnioChange = (e) => setAnio(e.target.value);
   const handleMesChange = (e) => setMes(e.target.value);
   const handleDiaChange = (e) => setDia(e.target.value);
@@ -19,9 +19,10 @@ const ReporteWipDiario = () => {
   const fetchData = async () => {
     try {
       const response = await clienteAxios.get(`/reportes/reportes/wiptotal/${anio}/${mes}/${dia}`);
-      setData(response.data.registros);
+      setData(response.data.registros || []); // Asegúrate de que sea un arreglo
     } catch (error) {
       console.error("Error al obtener los datos:", error);
+      setData([]); // En caso de error, también establece data como un arreglo vacío
     }
   };
 
@@ -126,7 +127,7 @@ const ReporteWipDiario = () => {
         </div>
       </div>
       {/* Mensaje si no hay datos */}
-      {data && data.length === 0 && (
+      {data.length === 0 && (
         <div className="text-red-600 text-center mb-4">
           No hay registros disponibles para la fecha seleccionada.
         </div>
@@ -143,7 +144,7 @@ const ReporteWipDiario = () => {
                 <td className="py-3 px-6 border-b">{wipTotals.nvi.inicial}</td>
               </tr>
               <tr className="text-gray-700">
-                <td className="py-3 px-6 font-semibold border-b">Recibidos <span className='text-sm text-gray-500 ml-2 font-normal'>(Semiterminado: {data && data.find(item => item.accion === 'recibidos')?.semifinish_nvi}, Terminado: {data && data.find(item => item.accion === 'recibidos')?.finished_nvi})</span></td>
+                <td className="py-3 px-6 font-semibold border-b">Recibidos <span className='text-sm text-gray-500 ml-2 font-normal'>(Semiterminado: {data.find(item => item.accion === 'recibidos')?.semifinish_nvi}, Terminado: {data.find(item => item.accion === 'recibidos')?.finished_nvi})</span></td>
                 <td className="py-3 px-6 border-b">{wipTotals.nvi.recibidos}</td>
               </tr>
               <tr className="text-gray-700 bg-gray-100">
