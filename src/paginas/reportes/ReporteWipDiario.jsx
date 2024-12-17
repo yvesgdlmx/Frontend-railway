@@ -84,7 +84,9 @@ const ReporteWipDiario = () => {
 
   return (
     <>
-    <Heading title="Reporte WIP Diario"/>
+    <div className='mt-6 md:mt-0'>
+      <Heading title="Reporte WIP Diario"/>
+    </div>
     <div className="w-full min-h-screen bg-gray-100 p-8">
       {/* Selectores de fecha */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">

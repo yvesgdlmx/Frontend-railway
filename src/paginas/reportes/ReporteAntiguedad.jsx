@@ -163,7 +163,9 @@ const ReporteAntiguedad = () => {
   
   return (
     <>
-    <Heading title="Reporte Antigüedad de trabajos" />
+     <div className='mt-6 md:mt-0'>
+      <Heading title="Reporte Antigüedad de trabajos" />
+    </div>
     <div className="mx-auto p-4 bg-gray-50 min-h-screen">
       <div className="mx-auto">
         <select 

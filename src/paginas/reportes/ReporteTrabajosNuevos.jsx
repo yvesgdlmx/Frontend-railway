@@ -82,7 +82,9 @@ const ReporteTrabajosNuevos = () => {
 
   return (
     <>
-    <Heading title="Reporte trabajos nuevos" />
+    <div className='mt-6 md:mt-0'>
+      <Heading title="Reporte trabajos nuevos" />
+    </div>
     <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen">
       <div className='bg-gray-200 p-4 mb-4 rounded flex justify-between xs:hidden md:flex'>
         <div className='flex gap-1'>
