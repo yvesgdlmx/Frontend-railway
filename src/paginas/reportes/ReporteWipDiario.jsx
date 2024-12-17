@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
+import Heading from '../../components/others/Heading';
 
 const ReporteWipDiario = () => {
   // Obtener la fecha actual
@@ -82,6 +83,8 @@ const ReporteWipDiario = () => {
   const wipTotals = calculateWIP();
 
   return (
+    <>
+    <Heading title="Reporte WIP Diario"/>
     <div className="w-full min-h-screen bg-gray-100 p-8">
       {/* Selectores de fecha */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -220,6 +223,7 @@ const ReporteWipDiario = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

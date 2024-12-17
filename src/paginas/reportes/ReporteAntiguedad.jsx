@@ -11,6 +11,7 @@ import {
   endOfMonth,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Heading from '../../components/others/Heading';
 
 const ReporteAntiguedad = () => {
   const [registros, setRegistros] = useState([]);
@@ -161,6 +162,8 @@ const ReporteAntiguedad = () => {
   const diasAgrupados = agruparPorDia(registros);
   
   return (
+    <>
+    <Heading title="Reporte Antigüedad de trabajos" />
     <div className="mx-auto p-4 bg-gray-50 min-h-screen">
       <div className="mx-auto">
         <select 
@@ -277,6 +280,7 @@ const ReporteAntiguedad = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

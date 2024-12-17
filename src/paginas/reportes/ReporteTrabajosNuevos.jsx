@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
+import Heading from '../../components/others/Heading';
 
 const ReporteTrabajosNuevos = () => {
   const [registros, setRegistros] = useState([]);
@@ -80,6 +81,8 @@ const ReporteTrabajosNuevos = () => {
   });
 
   return (
+    <>
+    <Heading title="Reporte trabajos nuevos" />
     <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen">
       <div className='bg-gray-200 p-4 mb-4 rounded flex justify-between xs:hidden md:flex'>
         <div className='flex gap-1'>
@@ -192,6 +195,7 @@ const ReporteTrabajosNuevos = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

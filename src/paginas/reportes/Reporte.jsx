@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
+import Heading from '../../components/others/Heading';
 
 const agruparDatos = (registros) => {
   const grupos = {
@@ -227,6 +228,7 @@ const Reporte = () => {
 
   return (
     <div className="mx-auto mt-6 md:mt-0">
+      <Heading title="Reporte wip detallado" />
       <div className='bg-gray-200 p-4 mb-6 rounded flex justify-between xs:hidden md:flex'>
         <div className='flex gap-1'>
           <img src="/img/clock.png" alt="reloj" width={25}/>
