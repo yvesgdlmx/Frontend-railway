@@ -80,7 +80,7 @@ const Layout = () => {
                                     <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg">
                                         <ul className="py-1 text-slate-700">
                                             <li>
-                                                <Link to={'/surtido_metas'} onClick={handleMenuItemClick}>
+                                                <Link to={'/manuales_metas'} onClick={handleMenuItemClick}>
                                                     <p className="block px-4 py-2 hover:bg-gray-100">Manuales</p>
                                                 </Link>
                                             </li>

@@ -18,7 +18,7 @@ import Totales_Desbloqueo_Maquina from './components/totales_maquina/Totales_Des
 import Totales_HardCoat_Maquina from './components/totales_maquina/Totales_HardCoat_Maquina';
 import Totales_Recubrimiento_Maquina from './components/totales_maquina/Totales_Recubrimiento_Maquina';
 /*Metas*/
-import Surtido_Metas from './paginas/metas/Surtido_Metas';
+import Manuales_Metas from './paginas/metas/Manuales_Metas';
 import Tallado_Metas from './paginas/metas/Tallado_Metas';
 import Generado_Metas from './paginas/metas/Generado_Metas';
 import Pulido_Metas from './paginas/metas/Pulido_Metas';
@@ -32,6 +32,7 @@ import Editar_Pulido from './paginas/metas/editar/Editar_Pulido';
 import Editar_Engraver from './paginas/metas/editar/Editar_Engraver';
 import Editar_Terminado from './paginas/metas/editar/Editar_Terminado';
 import Editar_Biselado from './paginas/metas/editar/Editar_Biselado';
+import Editar_Manuales from './paginas/metas/editar/Editar_Manuales';
 /*Historial*/
 import Historial_Por_Rangos from './paginas/historial/Historial_Por_Rangos';
 import Historial_Por_Dia from './paginas/historial/Historial_Por_Dia';
@@ -72,7 +73,7 @@ function App() {
                       <Route path='/totales_terminado_maquina' element={<Totales_Terminado_Maquina/>}/>
                       <Route path='/totales_biselado_maquina' element={<Totales_Biselado_Maquina/>}/>
                       <Route path='/totales_produccion_maquina' element={<Totales_Produccion_Maquina/>}/>
-                      <Route path='/surtido_metas' element={<Surtido_Metas/>}/>
+                      <Route path='/manuales_metas' element={<Manuales_Metas/>}/>
                       <Route path='/tallado_metas' element={<Tallado_Metas/>}/>
                       <Route path='/generado_metas' element={<Generado_Metas/>}/>
                       <Route path='/pulido_metas' element={<Pulido_Metas/>} />
@@ -85,6 +86,7 @@ function App() {
                       <Route path='/editar_engraver/:id' element={<Editar_Engraver/>}/>
                       <Route path='/editar_terminado/:id' element={<Editar_Terminado/>} />
                       <Route path='/editar_biselado/:id' element={<Editar_Biselado/>}/>
+                      <Route path='/editar_manuales/:id' element={<Editar_Manuales/>}/>
                       <Route path='/historial_por_rangos' element={<Historial_Por_Rangos/>} />
                       <Route path='/historial_por_dia' element={<Historial_Por_Dia/>} />
                       <Route path='/tableros_tallado' element={<Tableros_Tallado/>}/>

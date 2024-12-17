@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 
-const Surtido_Metas = () => {
+const Manuales_Metas = () => {
   const [metas, setMetas] = useState([]);
   const [totalMetas, setTotalMetas] = useState(0);
 
@@ -49,7 +49,7 @@ const Surtido_Metas = () => {
                     {meta.meta}
                   </td>
                   <td className="px-4 py-3 border border-gray-300 text-center">
-                    <Link to={`/editar-biselado/${meta.id}`}>
+                    <Link to={`/editar_manuales/${meta.id}`}>
                       <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-full transition duration-300">
                         Editar
                       </button>
@@ -70,4 +70,4 @@ const Surtido_Metas = () => {
   );
 };
 
-export default Surtido_Metas;
+export default Manuales_Metas;
