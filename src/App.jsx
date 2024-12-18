@@ -49,6 +49,7 @@ import Reporte from './paginas/reportes/Reporte';
 import ReporteTrabajosNuevos from './paginas/reportes/ReporteTrabajosNuevos'
 import ReporteAntiguedad from './paginas/reportes/ReporteAntiguedad';
 import ReporteWipDiario from './paginas/reportes/ReporteWipDiario';
+import ReportesTrabajosEnviados from './paginas/reportes/ReportesTrabajosEnviados';
 
 function App() {
 
@@ -96,6 +97,7 @@ function App() {
                       <Route path='/reportes_antiguedad' element={<ReporteAntiguedad/>} />
                       <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos/>} />
                       <Route path='/reportes_wip_diario' element={<ReporteWipDiario/>} />
+                      <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados/>} />
                   </Route>
                   <Route path='/auth' element={<AuthLayout/>}>
                     <Route index element={<Login/>}/>
