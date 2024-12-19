@@ -21,7 +21,6 @@ const TituloSeccion = ({ titulo, isOpen, toggle }) => (
 const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
   const contentRef = useRef(null);
   const [height, setHeight] = useState(0);
-
   useEffect(() => {
     if (isOpen) {
       setHeight(contentRef.current.scrollHeight);
@@ -29,7 +28,6 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
       setHeight(0);
     }
   }, [isOpen]);
-
   return (
     <div className="overflow-hidden mb-4">
       <TituloSeccion 
@@ -60,11 +58,10 @@ const Totales_Produccion_Maquina = () => {
   }, []);
 
   const [seccionAbierta, setSeccionAbierta] = useState(false);
-
   const toggleSeccion = () => {
     setSeccionAbierta(!seccionAbierta);
   };
-  
+
   const [registros, setRegistros] = useState([]);
   const [horasUnicas, setHorasUnicas] = useState([]);
   const [meta, setMeta] = useState(0);
@@ -88,7 +85,6 @@ const Totales_Produccion_Maquina = () => {
         const sumaMetas = metasJobComplete.reduce((acc, meta) => acc + meta.meta, 0);
         setMeta(sumaMetas);
         calcularMetasPorTurno(sumaMetas);
-
         const responseRegistros = await clienteAxios('/manual/manual/actualdia');
         const dataRegistros = responseRegistros.data.registros || [];
         const ahora = moment().tz('America/Mexico_City');
@@ -102,7 +98,6 @@ const Totales_Produccion_Maquina = () => {
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
           return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, '[]') && registro.name.includes('JOB COMPLETE');
         });
-
         procesarRegistros(registrosFiltrados, inicioHoy);
       } catch (error) {
         console.error("Error al cargar los datos:", error);
@@ -119,12 +114,10 @@ const Totales_Produccion_Maquina = () => {
     });
   };
 
-
   const procesarRegistros = (registrosFiltrados, inicioHoy) => {
     const horas = new Set();
     let totalAcumulado = 0;
     const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
-
     registrosFiltrados.forEach(registro => {
       horas.add(registro.hour);
       totalAcumulado += parseInt(registro.hits || 0);
@@ -137,7 +130,6 @@ const Totales_Produccion_Maquina = () => {
         totales.nocturno += parseInt(registro.hits || 0);
       }
     });
-
     const horasArray = Array.from(horas).sort((a, b) => {
       const momentA = moment(a, 'HH:mm:ss');
       const momentB = moment(b, 'HH:mm:ss');
@@ -145,14 +137,12 @@ const Totales_Produccion_Maquina = () => {
       if (momentB.isBefore(moment('06:30', 'HH:mm'))) momentB.add(1, 'day');
       return momentB.diff(momentA);
     });
-
     const horasConFormato = horasArray.map(hora => {
       const [horaInicial, minutos] = hora.split(':');
       const momentoInicial = moment(hora, 'HH:mm:ss');
       const momentoFinal = moment(momentoInicial).add(1, 'hour');
       return `${horaInicial}:${minutos} - ${momentoFinal.format('HH:mm')}`;
     });
-
     setHorasUnicas(horasConFormato);
     setTotalesAcumulados(totalAcumulado);
     setRegistros(registrosFiltrados);
@@ -174,7 +164,6 @@ const Totales_Produccion_Maquina = () => {
   });
 
   const claseSumaTotalAcumulados = totalesAcumulados >= (metasPorTurno.matutino + metasPorTurno.vespertino + metasPorTurno.nocturno) ? "text-green-500" : "text-red-500";
-
   const getClassName = (hits, metaPorTurno) => {
     return hits >= metaPorTurno ? "text-green-500" : "text-red-500";
   };
@@ -196,6 +185,10 @@ const Totales_Produccion_Maquina = () => {
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta:</span>
               <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
+            </div>
+            <div className="flex justify-between border-b py-4">
+              <span className="font-bold text-gray-700">Meta Acumulada:</span>
+              <span className="font-bold text-gray-700">{meta * horasUnicas.length}</span>
             </div>
             <div className="py-4">
               <span className="font-bold text-gray-700">Horas:</span>
@@ -232,6 +225,7 @@ const Totales_Produccion_Maquina = () => {
               <th className="py-2 px-4 border-b" style={{ minWidth: '250px' }}>Nombre</th>
               <th className="py-2 px-4 border-b">Total Acumulado</th>
               <th className="py-2 px-4 border-b">Meta</th>
+              <th className="py-2 px-4 border-b">Meta Acumulada</th> {/* Nueva columna */}
               {horasUnicas.map((hora, index) => (
                 <th key={index} className="py-2 px-4 border-b whitespace-nowrap">{hora}</th>
               ))}
@@ -242,6 +236,7 @@ const Totales_Produccion_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Producción</td>
               <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{totalesAcumulados}</td>
               <td className="py-2 px-4 border-b font-bold">{meta || 'No definida'}</td>
+              <td className="py-2 px-4 border-b font-bold">{meta * horasUnicas.length}</td> {/* Nueva columna */}
               {horasUnicas.map((hora, idx) => {
                 const [horaInicio, horaFin] = hora.split(' - ');
                 const totalHits = registros.filter(r => {
@@ -266,6 +261,7 @@ const Totales_Produccion_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Totales</td>
               <td className={`py-2 px-4 border-b fw font-bold ${claseSumaTotalAcumulados}`}>{totalesAcumulados}</td>
               <td className="py-2 px-4 border-b fw font-bold">{meta}</td>
+              <td className="py-2 px-4 border-b fw font-bold">{meta * horasUnicas.length}</td> {/* Nueva columna */}
               {sumaHitsPorHora.map((sumaHits, index) => {
                 const claseSumaHits = sumaHits >= meta ? "text-green-500" : "text-red-500";
                 return (
@@ -320,7 +316,6 @@ const Totales_Produccion_Maquina = () => {
             </div>
           </div>
         </div>
-
         {/* Diseño para pantallas grandes */}
         <div className='hidden lg:flex lg:flex-row justify-around'>
           <div className="bg-white p-2 px-10 rounded-lg">
