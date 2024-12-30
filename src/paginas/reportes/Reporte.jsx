@@ -91,7 +91,7 @@ const agruparDatos = (registros) => {
       grupos.biselado.push(datos);
     } else if (estacion === '32 JOB COMPLETE') {
       grupos.produccion.push(datos);
-    } else if (['136 Q-NVI P F', '137 Q-NVI PLY F', '138 Q-NVI B F AR', '139 Q-NVI BLY F', '141 Q-NVI BLY AR', 'Q-HOYA JOBS', 'Q-INK NO QOH', '140 Q-NVI BLY', '141 Q-NVI BLY AR', '142 Q-NVI BLY TR', '143 Q-NVI BLY AT', '144 Q-NVI CR A T', '145 Q-NVI PY AT', '146 Q-NVI PLY TR', '147 Q-NVI CR39', '148 Q-NVI PLY AR', '149 Q-NVI TRACE', '150 Q-DIG CALC', '151 Q-CALC FAIL', '152 Q-NVI JOBS', '153 Q-NVI NO ES', '154 Q-NVI AR', '155 Q-NVI NO QOH', 'Q-HOYA BAD PICK', 'Q-LENS ISSUE', 'Q-INK', 'Q-HIPWR', 'Q-HOYA NO QOH', 'Q-INK NO QOH', 'Q-JAI KUDO JOBS' ].includes(estacion)) {
+    } else if (['136 Q-NVI P F', '137 Q-NVI PLY F', '138 Q-NVI B F AR', '139 Q-NVI BLY F', '141 Q-NVI BLY AR', 'Q-HOYA JOBS', 'Q-INK NO QOH', '140 Q-NVI BLY', '141 Q-NVI BLY AR', '142 Q-NVI BLY TR', '143 Q-NVI BLY AT', '144 Q-NVI CR A T', '145 Q-NVI PY AT', '146 Q-NVI PLY TR', '147 Q-NVI CR39', '148 Q-NVI PLY AR', '149 Q-NVI TRACE', '150 Q-DIG CALC', '151 Q-CALC FAIL', '152 Q-NVI JOBS', '153 Q-NVI NO ES', '154 Q-NVI AR', '155 Q-NVI NO QOH', 'Q-HOYA BAD PICK', 'Q-LENS ISSUE', 'Q-INK', 'Q-HIPWR', 'Q-HOYA NO QOH', 'Q-INK NO QOH', 'Q-JAI KUDO JOBS', '134 Q-NVI B50 AR', '135 Q-NVI B50' ].includes(estacion)) {
       grupos.enCola.push(datos);
     } else if (['48 MR3.1', '50 MR3.3', '91 VELOCITY 1', '92 VELOCITY 2'].includes(estacion)) {
       grupos.HardCoat.push(datos);
