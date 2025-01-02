@@ -196,6 +196,7 @@ const Historial_Por_Rangos = () => {
         <div>
           <label className="block mb-1 sm:mb-2 text-gray-600">Año</label>
           <select className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg" value={anio} onChange={handleAnioChange}>
+            <option value="2025">2025</option>
             <option value="2024">2024</option>
             <option value="2023">2023</option>
           </select>
