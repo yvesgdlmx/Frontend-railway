@@ -169,7 +169,7 @@ const Totales_Desbloqueo_Estacion = () => {
                                         <img src="./img/ver.png" alt="" width={25} className="relative left-2" />
                                         <div className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
                                             Desbloqueo <br />
-                                            <span className="text-gray-500">Meta por hora: <span>{meta}</span></span>
+                                            <span className="text-gray-500">Meta: <span>{meta}</span></span>
                                         </div>
                                     </div>
                                 </Link>
