@@ -144,7 +144,7 @@ const Totales_Terminado_Estacion = () => {
                                 <img src="./img/ver.png" alt="" width={25} className="relative left-4"/>
                                     <td className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-center">
                                         Bloq. Terminado <br />
-                                        <span className="text-gray-500">Meta: <span>{meta}</span></span>
+                                        <span className="text-gray-500">Meta por hora: <span>{meta}</span></span>
                                     </td>
                                 </div>
                             </Link>
