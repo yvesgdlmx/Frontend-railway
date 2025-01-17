@@ -7,7 +7,7 @@ moment.tz.setDefault('America/Mexico_City');
 const Totales_Surtido_Estacion = () => {
     const location = useLocation();
     const [registros, setRegistros] = useState([]);
-    const [meta, setMeta] = useState(0);
+    const [metaTotal, setMetaTotal] = useState(0);
     const [totalesPorTurno, setTotalesPorTurno] = useState({
         matutino: 0,
         vespertino: 0,
@@ -38,10 +38,11 @@ const Totales_Surtido_Estacion = () => {
         const obtenerDatos = async () => {
             try {
                 const responseMetas = await clienteAxios('/metas/metas-manuales');
-                const metaLensLog = responseMetas.data.registros.find(registro => registro.name === '19 LENS LOG');
-                if (metaLensLog) {
-                    setMeta(metaLensLog.meta);
-                }
+                const meta19 = responseMetas.data.registros.find(registro => registro.name === '19 LENS LOG');
+                const meta20 = responseMetas.data.registros.find(registro => registro.name === '20 LENS LOG');
+                const sumaMeta = (meta19 ? meta19.meta : 0) + (meta20 ? meta20.meta : 0);
+                setMetaTotal(sumaMeta);
+
                 const responseRegistros = await clienteAxios('/manual/manual/actualdia');
                 const registrosLensLog = responseRegistros.data.registros.filter(registro => registro.name.includes('LENS LOG'));
                 const ahora = moment();
@@ -57,7 +58,7 @@ const Totales_Surtido_Estacion = () => {
                 });
                 setRegistros(registrosFiltrados);
                 calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
-                calcularMetasPorTurno(metaLensLog.meta);
+                calcularMetasPorTurno(sumaMeta);
             } catch (error) {
                 console.error("Error al obtener los datos:", error);
             }
@@ -84,35 +85,14 @@ const Totales_Surtido_Estacion = () => {
         setTotalesPorTurno(totales);
     };
 
-    const calcularMetasPorTurno = (metaPorHora) => {
-        const ahora = moment();
-        const inicioMatutino = moment().startOf('day').add(6, 'hours').add(30, 'minutes');
-        const finMatutino = moment(inicioMatutino).add(8, 'hours');
-
-        const inicioVespertino = moment(finMatutino);
-        const finVespertino = moment(inicioVespertino).add(7, 'hours');
-
-        const inicioNocturno = moment(finVespertino);
-        const finNocturno = moment(inicioNocturno).add(9, 'hours');
-
-        const horasTranscurridasMatutino = ahora.isBetween(inicioMatutino, finMatutino) 
-            ? ahora.diff(inicioMatutino, 'hours') 
-            : (ahora.isAfter(finMatutino) ? 8 : 0);
-
-        const horasTranscurridasVespertino = ahora.isBetween(inicioVespertino, finVespertino) 
-            ? ahora.diff(inicioVespertino, 'hours') 
-            : (ahora.isAfter(finVespertino) ? 7 : 0);
-
-        const horasTranscurridasNocturno = ahora.isBetween(inicioNocturno, finNocturno) 
-            ? ahora.diff(inicioNocturno, 'hours') 
-            : (ahora.isAfter(finNocturno) ? 9 : 0);
-
+    const calcularMetasPorTurno = (metaTotal) => {
         setMetasPorTurno({
-            matutino: horasTranscurridasMatutino * metaPorHora,
-            vespertino: horasTranscurridasVespertino * metaPorHora,
-            nocturno: horasTranscurridasNocturno * metaPorHora
+            matutino: 8 * metaTotal,
+            vespertino: 7 * metaTotal,
+            nocturno: 9 * metaTotal
         });
     };
+
     const agruparHitsPorHora = () => {
         const hitsPorHora = {};
         registros.forEach((registro) => {
@@ -135,11 +115,8 @@ const Totales_Surtido_Estacion = () => {
         if (momentB.isBefore(moment('06:30', 'HH:mm'))) momentB.add(1, 'day');
         return momentB.diff(momentA);
     });
+
     const filaGenerados = horasOrdenadas.map((hora) => hitsPorHora[hora]);
-    
-    const formatearHoraSinSegundos = (hora) => {
-        return moment(hora, 'HH:mm').format('HH:mm');
-    };
 
     const calcularRangoHoras = (horaInicio) => {
         const inicio = moment(horaInicio, 'HH:mm');
@@ -161,27 +138,27 @@ const Totales_Surtido_Estacion = () => {
                             <th className="py-2 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
                             {horasOrdenadas.map((hora) => (
                                 <th key={hora} className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
-                                    {calcularRangoHoras(formatearHoraSinSegundos(hora))}
+                                    {calcularRangoHoras(hora)}
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody className="text-center bg-white">
                         <tr className="font-semibold text-gray-700">
-                        <td>
-                            <Link to={'/totales_surtido_maquina'} className="link__tabla">
-                                <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
-                                    <img src="./img/ver.png" alt="" width={25} className="relative left-2"/>
-                                    <div className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
-                                        Surtido <br />
-                                        <span className="text-gray-500">Meta: <span>{meta}</span></span>
+                            <td>
+                                <Link to={'/totales_surtido_maquina'} className="link__tabla">
+                                    <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
+                                        <img src="./img/ver.png" alt="" width={25} className="relative left-2"/>
+                                        <div className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
+                                            Surtido <br />
+                                            <span className="text-gray-500">Meta por hora: <span>{metaTotal}</span></span>
+                                        </div>
                                     </div>
-                                </div>
-                            </Link>
-                        </td>
+                                </Link>
+                            </td>
                             {filaGenerados.map((generado, index) => (
                                 <td key={index} className={`py-2 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white`}>
-                                    <span className={getClassName(generado, meta)}>{generado}</span>
+                                    <span className={getClassName(generado, metaTotal)}>{generado}</span>
                                 </td>
                             ))}
                         </tr>
@@ -191,29 +168,29 @@ const Totales_Surtido_Estacion = () => {
                 <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Matutino: 
+                            Total Matutino Acumulado: 
                             <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
                                 {totalesPorTurno.matutino}
                             </span> 
-                         <span className="text-gray-600 font-semibold block">Meta: {metasPorTurno.matutino}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.matutino}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Vespertino: 
+                            Total Vespertino Acumulado: 
                             <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
                                 {totalesPorTurno.vespertino}
                             </span> 
-                            <span className="text-gray-600 font-semibold block">Meta: {metasPorTurno.vespertino}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.vespertino}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Nocturno: 
+                            Total Nocturno Acumulado: 
                             <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
                                 {totalesPorTurno.nocturno}
                             </span> 
-                            <span className="text-gray-600 font-semibold block">Meta: {metasPorTurno.nocturno}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.nocturno}</span>
                         </p>
                     </div>
                 </div>
@@ -227,17 +204,17 @@ const Totales_Surtido_Estacion = () => {
                     </div>
                     <div className="flex justify-between border-b py-4">
                         <span className="font-bold text-gray-700">Meta:</span>
-                        <span className="font-bold text-gray-700">{meta || 'No definida'}</span>
+                        <span className="font-bold text-gray-700">{metaTotal || 'No definida'}</span>
                     </div>
                     <div className="py-4">
                         <span className="font-bold text-gray-700">Horas:</span>
                         {horasOrdenadas.map((hora, idx) => {
                             const totalHits = hitsPorHora[hora];
                             const bgColor = idx % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300';
-                            const hitsClass = totalHits >= meta ? "text-green-500" : "text-red-500";
+                            const hitsClass = totalHits >= metaTotal ? "text-green-500" : "text-red-500";
                             return (
                                 <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
-                                    <span className="font-bold text-gray-700">{calcularRangoHoras(formatearHoraSinSegundos(hora))}:</span>
+                                    <span className="font-bold text-gray-700">{calcularRangoHoras(hora)}:</span>
                                     <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
                                 </div>
                             );

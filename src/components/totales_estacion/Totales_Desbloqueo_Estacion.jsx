@@ -94,23 +94,11 @@ const Totales_Desbloqueo_Estacion = () => {
         const inicioNocturno = moment(finVespertino);
         const finNocturno = moment(inicioNocturno).add(9, 'hours');
 
-        const horasTranscurridasMatutino = ahora.isBetween(inicioMatutino, finMatutino)
-            ? ahora.diff(inicioMatutino, 'hours')
-            : (ahora.isAfter(finMatutino) ? 8 : 0);
-
-        const horasTranscurridasVespertino = ahora.isBetween(inicioVespertino, finVespertino)
-            ? ahora.diff(inicioVespertino, 'hours')
-            : (ahora.isAfter(finVespertino) ? 7 : 0);
-
-        const horasTranscurridasNocturno = ahora.isBetween(inicioNocturno, finNocturno)
-            ? ahora.diff(inicioNocturno, 'hours')
-            : (ahora.isAfter(finNocturno) ? 9 : 0);
-
-        setMetasPorTurno({
-            matutino: horasTranscurridasMatutino * metaPorHora,
-            vespertino: horasTranscurridasVespertino * metaPorHora,
-            nocturno: horasTranscurridasNocturno * metaPorHora
-        });
+            setMetasPorTurno({
+                matutino: 8 * metaPorHora, // Meta acumulada para el turno matutino
+                vespertino: 7 * metaPorHora, // Meta fija para el turno vespertino
+                nocturno: 9 * metaPorHora // Meta fija para el turno nocturno
+            });
     };
 
     const agruparHitsPorHora = () => {
@@ -169,7 +157,7 @@ const Totales_Desbloqueo_Estacion = () => {
                                         <img src="./img/ver.png" alt="" width={25} className="relative left-2" />
                                         <div className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
                                             Desbloqueo <br />
-                                            <span className="text-gray-500">Meta: <span>{meta}</span></span>
+                                            <span className="text-gray-500">Meta por hora: <span>{meta}</span></span>
                                         </div>
                                     </div>
                                 </Link>
@@ -185,29 +173,29 @@ const Totales_Desbloqueo_Estacion = () => {
                 <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Matutino:
+                            Total Matutino Acumulado:
                             <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
                                 {totalesPorTurno.matutino}
                             </span>
-                            <span className="text-gray-600 font-semibold block">Meta: {metasPorTurno.matutino}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.matutino}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Vespertino:
+                            Total Vespertino Acumulado:
                             <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
                                 {totalesPorTurno.vespertino}
                             </span>
-                            <span className="text-gray-600 font-semibold block">Meta: {metasPorTurno.vespertino}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.vespertino}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Nocturno:
+                            Total Nocturno Acumulado:
                             <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
                                 {totalesPorTurno.nocturno}
                             </span>
-                            <span className="text-gray-600 font-semibold block">Meta: {metasPorTurno.nocturno}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.nocturno}</span>
                         </p>
                     </div>
                 </div>
