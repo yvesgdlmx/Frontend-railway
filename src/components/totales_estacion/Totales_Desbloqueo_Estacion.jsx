@@ -95,9 +95,9 @@ const Totales_Desbloqueo_Estacion = () => {
         const finNocturno = moment(inicioNocturno).add(9, 'hours');
 
             setMetasPorTurno({
-                matutino: 8 * metaPorHora, // Meta acumulada para el turno matutino
-                vespertino: 7 * metaPorHora, // Meta fija para el turno vespertino
-                nocturno: 9 * metaPorHora // Meta fija para el turno nocturno
+                matutino: 7 * metaPorHora, // Meta acumulada para el turno matutino
+                vespertino: 6 * metaPorHora, // Meta fija para el turno vespertino
+                nocturno: 7 * metaPorHora // Meta fija para el turno nocturno
             });
     };
 

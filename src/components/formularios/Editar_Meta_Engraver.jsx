@@ -19,7 +19,7 @@ const Editar_Meta_Engraver = ({ meta }) => {
   const editarMeta = async () => {
     try {
       const metaActualizada = { id: meta.id, name, meta: nuevaMeta };
-      const { data } = await clienteAxios.put(`/metas/metas-enrgavers/editar/${meta.id}`, metaActualizada);
+      const { data } = await clienteAxios.put(`/metas/metas-engravers/editar/${meta.id}`, metaActualizada);
       mostrarAlerta({
         msg: 'Meta actualizada correctamente',
         error: false

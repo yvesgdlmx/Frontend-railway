@@ -77,9 +77,9 @@ const Desbloqueo_Procesos = () => {
         setHitsVespertino(hitsVespertino);
         setHitsNocturno(hitsNocturno);
 
-        const horasMatutino = 8;
-        const horasVespertino = 7;
-        const horasNocturno = 9;
+        const horasMatutino = 7;
+        const horasVespertino = 6;
+        const horasNocturno = 7;
         
         setMetaMatutino(horasMatutino * sumaMetas);
         setMetaVespertino(horasVespertino * sumaMetas);

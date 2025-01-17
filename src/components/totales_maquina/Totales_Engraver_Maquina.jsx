@@ -203,9 +203,9 @@ const Totales_Engraver_Maquina = () => {
   }, 0);
 
   // Calcular metas finales por turno
-  const metaMatutinoFinal = sumaTotalMetas * 8;
-  const metaVespertinoFinal = sumaTotalMetas * 7;
-  const metaNocturnoFinal = sumaTotalMetas * 9;
+  const metaMatutinoFinal = sumaTotalMetas * 7;
+  const metaVespertinoFinal = sumaTotalMetas * 6;
+  const metaNocturnoFinal = sumaTotalMetas * 7;
 
   const sumaHitsPorHora = horasUnicas.map(hora => {
     const [horaInicio, horaFin] = hora.split(' - ');

@@ -82,9 +82,9 @@ const Engraver_Procesos = () => {
         setHitsVespertino(hitsVespertino);
         setHitsNocturno(hitsNocturno);
 
-        const horasMatutino = 8; // 8 horas para el turno matutino
-        const horasVespertino = 7; // 7 horas para el turno vespertino
-        const horasNocturno = 9; // 8 horas para el turno nocturno
+        const horasMatutino = 7; // 8 horas para el turno matutino
+        const horasVespertino = 6; // 7 horas para el turno vespertino
+        const horasNocturno = 7; // 8 horas para el turno nocturno
         setMetaMatutino(horasMatutino * sumaMetas);
         setMetaVespertino(horasVespertino * sumaMetas);
         setMetaNocturno(horasNocturno * sumaMetas);

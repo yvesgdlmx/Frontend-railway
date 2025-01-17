@@ -83,9 +83,9 @@ const Totales_Pulido_Estacion = () => {
 
     const calcularMetasPorTurno = (metaPorHora) => {
         setMetasPorTurno({
-            matutino: 8 * metaPorHora,
-            vespertino: 7 * metaPorHora,
-            nocturno: 9 * metaPorHora
+            matutino: 7 * metaPorHora,
+            vespertino: 6 * metaPorHora,
+            nocturno: 7 * metaPorHora
         });
     };
 

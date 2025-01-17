@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import clienteAxios from '../../../../config/clienteAxios';
 import Alerta from '../../../components/Alerta';
-import Editar_Meta_Generado from '../../../components/formularios/Editar_Meta_Generado';
+import Editar_Meta_Engraver from '../../../components/formularios/Editar_Meta_Engraver';
 
 const Editar_Engraver = () => {
   const [meta, setMeta] = useState({});
@@ -12,7 +12,7 @@ const Editar_Engraver = () => {
   useEffect(() => {
     const obtenerMeta = async () => {
       try {
-        const { data } = await clienteAxios(`/metas/metas-generadores/${id}`);
+        const { data } = await clienteAxios(`/metas/metas-engravers/${id}`);
         setMeta(data);
       } catch (error) {
         console.error(error);
@@ -25,7 +25,7 @@ const Editar_Engraver = () => {
   return (
     <>
       <div>
-        <Editar_Meta_Generado meta={meta} />
+        <Editar_Meta_Engraver meta={meta} />
       </div>
     </>
   );

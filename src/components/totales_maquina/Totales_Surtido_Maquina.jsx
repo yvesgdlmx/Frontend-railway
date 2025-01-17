@@ -68,7 +68,8 @@ const Totales_Surtido_Maquina = () => {
   const [seccionAbierta, setSeccionAbierta] = useState(false);
   const [registros, setRegistros] = useState([]);
   const [horasUnicas, setHorasUnicas] = useState([]);
-  const [meta, setMeta] = useState(0);
+  const [meta19, setMeta19] = useState(0);
+  const [meta20, setMeta20] = useState(0);
   const [totalesAcumulados, setTotalesAcumulados] = useState(0);
   const [registrosPorTipo, setRegistrosPorTipo] = useState({
     '19 LENS LOG-SF': [],
@@ -93,9 +94,16 @@ const Totales_Surtido_Maquina = () => {
     const cargarDatos = async () => {
       try {
         const responseMetas = await clienteAxios('/metas/metas-manuales');
-        const metasLensLog = responseMetas.data.registros.filter(meta => meta.name.includes('LENS LOG'));
-        const sumaMetas = metasLensLog.reduce((acc, meta) => acc + meta.meta, 0);
-        setMeta(sumaMetas);
+        console.log("Datos de metas:", responseMetas.data);
+
+        const meta19Obj = responseMetas.data.registros.find(meta => meta.name === '19 LENS LOG');
+        const meta20Obj = responseMetas.data.registros.find(meta => meta.name === '20 LENS LOG FIN');
+
+        console.log("Meta 19 LENS LOG:", meta19Obj);
+        console.log("Meta 20 LENS LOG FIN:", meta20Obj);
+
+        setMeta19(meta19Obj ? meta19Obj.meta : 0);
+        setMeta20(meta20Obj ? meta20Obj.meta : 0);
 
         const responseRegistros = await clienteAxios('/manual/manual/actualdia');
         const dataRegistros = responseRegistros.data.registros || [];
@@ -169,10 +177,11 @@ const Totales_Surtido_Maquina = () => {
   };
 
   const horasTranscurridas = calcularHorasTranscurridas(horasUnicas);
-  const claseTotal = evaluarTotalAcumulado(totalesAcumulados, meta, horasTranscurridas);
+  const claseTotal = evaluarTotalAcumulado(totalesAcumulados, meta19 + meta20, horasTranscurridas);
 
   // Calcular la meta acumulada total
-  const metaAcumuladaTotal = horasTranscurridas * meta;
+  const metaAcumuladaTotal19 = horasTranscurridas * meta19;
+  const metaAcumuladaTotal20 = horasTranscurridas * meta20;
 
   return (
     <div className="max-w-screen-xl">
@@ -214,8 +223,8 @@ const Totales_Surtido_Maquina = () => {
                 <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>
                   {registrosPorTipo[tipo].reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0)}
                 </td>
-                <td className="py-2 px-4 border-b font-bold">{meta / 2 || 'No definida'}</td>
-                <td className="py-2 px-4 border-b font-bold">{metaAcumuladaTotal / 2}</td> {/* Nueva columna */}
+                <td className="py-2 px-4 border-b font-bold">{tipo === '19 LENS LOG-SF' ? meta19 : meta20 || 'No definida'}</td>
+                <td className="py-2 px-4 border-b font-bold">{tipo === '19 LENS LOG-SF' ? metaAcumuladaTotal19 : metaAcumuladaTotal20}</td> {/* Nueva columna */}
                 {horasUnicas.map((hora, idx) => {
                   const [horaInicio, horaFin] = hora.split(' - ');
                   const totalHits = registrosPorTipo[tipo].filter(r => {
@@ -228,7 +237,7 @@ const Totales_Surtido_Maquina = () => {
                       return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
                     }
                   }).reduce((acc, curr) => acc + parseInt(curr.hits || 0), 0);
-                  const claseHitsIndividual = totalHits >= (meta / 2) ? "text-green-500" : "text-red-500";
+                  const claseHitsIndividual = totalHits >= (tipo === '19 LENS LOG-SF' ? meta19 : meta20) ? "text-green-500" : "text-red-500";
                   return (
                     <td key={idx} className={`font-bold py-2 px-4 border-b ${claseHitsIndividual}`}>
                       {totalHits}
@@ -242,8 +251,8 @@ const Totales_Surtido_Maquina = () => {
               <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>
                 {totalesAcumulados}
               </td>
-              <td className="py-2 px-4 border-b font-bold">{meta}</td>
-              <td className="py-2 px-4 border-b font-bold">{metaAcumuladaTotal}</td> {/* Nueva columna */}
+              <td className="py-2 px-4 border-b font-bold">{meta19 + meta20}</td>
+              <td className="py-2 px-4 border-b font-bold">{metaAcumuladaTotal19 + metaAcumuladaTotal20}</td> {/* Nueva columna */}
               {horasUnicas.map((hora, idx) => {
                 const totalHora = Object.values(registrosPorTipo).reduce((acc, registros) => {
                   return acc + registros.filter(r => {
@@ -259,7 +268,7 @@ const Totales_Surtido_Maquina = () => {
                   }).reduce((sum, curr) => sum + parseInt(curr.hits || 0), 0);
                 }, 0);
                 return (
-                  <td key={idx} className={`font-bold py-2 px-4 border-b ${totalHora >= meta ? "text-green-500" : "text-red-500"}`}>
+                  <td key={idx} className={`font-bold py-2 px-4 border-b ${totalHora >= (meta19 + meta20) ? "text-green-500" : "text-red-500"}`}>
                     {totalHora}
                   </td>
                 );
