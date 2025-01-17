@@ -15,6 +15,12 @@ const estaciones = {
   "Producción": ["32 JOB COMPLETE"],
 };
 
+// Mapeo de nombres
+const nombreMostrar = {
+  "19 LENS LOG": "19 LENS LOG SF",
+  "20 LENS LOG": "20 LENS LOG FIN"
+};
+
 const Historial_Por_Dia = () => {
   const yesterday = moment().subtract(1, 'days');
   const [anio, setAnio] = useState(yesterday.format('YYYY'));
@@ -23,6 +29,7 @@ const Historial_Por_Dia = () => {
   const [registros, setRegistros] = useState([]);
   const [metas, setMetas] = useState({});
 
+  // Funciones para manejar cambios en las fechas
   const handleAnioChange = (e) => setAnio(e.target.value);
   const handleMesChange = (e) => setMes(e.target.value);
   const handleDiaChange = (e) => setDia(e.target.value);
@@ -32,10 +39,8 @@ const Historial_Por_Dia = () => {
       try {
         const fechaInicio = moment(`${anio}-${mes}-${dia} 06:30`);
         const fechaFin = moment(fechaInicio).add(1, 'days').set({hour: 6, minute: 29});
-
         const { data: dataDiaActual } = await clienteAxios(`/historial/historial-2/${anio}/${mes}/${dia}`);
         const { data: dataDiaSiguiente } = await clienteAxios(`/historial/historial-2/${fechaFin.format('YYYY')}/${fechaFin.format('MM')}/${fechaFin.format('DD')}`);
-
         const registrosCombinados = [
           ...dataDiaActual.registros.filter(r => {
             const hora = moment(r.hour, 'HH:mm');
@@ -46,7 +51,6 @@ const Historial_Por_Dia = () => {
             return hora.isBefore(moment('06:30', 'HH:mm'));
           })
         ];
-
         console.log("Datos obtenidos de la API:", registrosCombinados);
         setRegistros(registrosCombinados);
       } catch (error) {
@@ -61,10 +65,10 @@ const Historial_Por_Dia = () => {
         const responseMetasLensLog = await clienteAxios.get('/metas/metas-manuales');
         const responseMetasGeneradores = await clienteAxios.get('/metas/metas-generadores');
         const responseMetasPulidos = await clienteAxios.get('/metas/metas-pulidos');
+
         const responseMetasEngravers = await clienteAxios.get('/metas/metas-engravers');
         const responseMetasTerminados = await clienteAxios.get('/metas/metas-terminados');
         const responseMetasBiselados = await clienteAxios.get('/metas/metas-biselados');
-
         const metasPorMaquinaTallados = responseMetasTallados.data.registros.reduce((acc, curr) => {
           acc[curr.name] = curr.meta;
           return acc;
@@ -95,7 +99,6 @@ const Historial_Por_Dia = () => {
           acc[curr.name.toUpperCase().trim()] = curr.meta;
           return acc;
         }, {});
-
         setMetas({
           ...metasPorMaquinaTallados,
           ...metasPorMaquinaLensLog,
@@ -127,7 +130,6 @@ const Historial_Por_Dia = () => {
     }
     acc[name].hits += hits;
     const hora = moment(registro.hour, 'HH:mm');
-    
     if (hora.isBetween(moment('06:30', 'HH:mm'), moment('14:29', 'HH:mm'), null, '[]')) {
       acc[name].turnos.matutino += hits;
     } else if (hora.isBetween(moment('14:30', 'HH:mm'), moment('21:29', 'HH:mm'), null, '[]')) {
@@ -167,7 +169,6 @@ const Historial_Por_Dia = () => {
   }, {});
 
   const totalHits = Object.values(registrosAgrupados).reduce((acc, { hits }) => acc + hits, 0);
-
   const totalHitsPorTurno = Object.values(hitsPorEstacionYTurno).reduce((acc, { matutino, vespertino, nocturno }) => {
     acc.matutino += matutino;
     acc.vespertino += vespertino;
@@ -182,33 +183,24 @@ const Historial_Por_Dia = () => {
   const renderizarTablasPorEstacion = () => {
     const fechaInicio = moment(`${anio}-${mes}-${dia} 06:30`).format('YYYY-MM-DD HH:mm');
     const fechaFin = moment(`${anio}-${mes}-${dia} 06:30`).add(1, 'days').format('YYYY-MM-DD HH:mm');
-    
     return Object.entries(estaciones).map(([nombreEstacion, maquinas]) => {
       const registrosEstacion = maquinas.map((maquina) => registrosAgrupados[maquina]).filter(Boolean);
       if (registrosEstacion.length === 0) return null;
       const totalHitsEstacion = registrosEstacion.reduce((total, registro) => total + registro.hits, 0);
       const turnosEstacion = hitsPorEstacionYTurno[nombreEstacion];
-      
-      // Calculamos la meta por hora para esta estación
       const metaPorHoraEstacion = maquinas.reduce((total, maquina) => total + (metas[maquina] || 0), 0);
       const metasPorTurno = calcularMetasPorTurno(metaPorHoraEstacion);
-
-      // Nuevo: Calcula la suma total de metas
       const totalMetaEstacion = registrosEstacion.reduce((total, registro, index) => {
         const maquina = maquinas[index];
         const metaMaquina = metas[maquina] || 0;
         return total + (metaMaquina * 24);
       }, 0);
-
       const claseMetaTotal = getClassName(totalHitsEstacion, totalMetaEstacion);
-
       return (
         <div key={nombreEstacion} className="mb-8">
           <p className="md:hidden text-center mb-2 text-sm text-gray-600">
             Rango de Fecha: {fechaInicio} - {fechaFin}
           </p>
-          
-          {/* Vista para pantallas grandes */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full bg-white border border-gray-300 shadow-lg rounded-lg table-fixed">
               <thead className="bg-blue-500 text-white">
@@ -225,9 +217,10 @@ const Historial_Por_Dia = () => {
                   const metaMaquina = metas[maquina] || 0;
                   const metaJornada = metaMaquina * 24;
                   const claseMeta = getClassName(registro.hits, metaJornada);
+                  const nombreMostrarMaquina = nombreMostrar[maquina] || maquina; // Usa el nombre mapeado si existe
                   return (
                     <tr key={index} className="bg-white even:bg-gray-100">
-                      <td className="w-1/4 py-2 px-4 border-b text-center">{maquina}</td>
+                      <td className="w-1/4 py-2 px-4 border-b text-center">{nombreMostrarMaquina}</td>
                       <td className="w-1/4 py-2 px-4 border-b text-center">{`${fechaInicio} - ${fechaFin}`}</td>
                       <td className={`w-1/4 py-2 px-4 border-b text-center font-semibold ${claseMeta}`}>{registro.hits}</td>
                       <td className="w-1/4 py-2 px-4 border-b text-center font-semibold">{metaJornada}</td>
@@ -252,23 +245,20 @@ const Historial_Por_Dia = () => {
               </tbody>
             </table>
           </div>
-          
-         {/* Vista para dispositivos móviles */}
           <div className="md:hidden bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
             <div className="bg-blue-500 text-white p-3">
               <h3 className="text-lg font-semibold">{nombreEstacion}</h3>
             </div>
-            
             <div className="p-4 space-y-4">
               {registrosEstacion.map((registro, index) => {
                 const maquina = maquinas[index];
                 const metaMaquina = metas[maquina] || 0;
                 const metaJornada = metaMaquina * 24;
                 const claseMeta = getClassName(registro.hits, metaJornada);
-                
+                const nombreMostrarMaquina = nombreMostrar[maquina] || maquina; // Usa el nombre mapeado si existe
                 return (
                   <div key={index} className="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span className="font-medium text-gray-700">{maquina}</span>
+                    <span className="font-medium text-gray-700">{nombreMostrarMaquina}</span>
                     <div className="text-right">
                       <span className="block">
                         <span className={claseMeta}>{registro.hits}</span>
@@ -286,9 +276,8 @@ const Historial_Por_Dia = () => {
                   <span className="text-gray-600"> / {totalMetaEstacion}</span>
                 </span>
               </div>
-          </div>
-            
-          <div className="bg-green-50 p-4 border-t border-gray-200">
+            </div>
+            <div className="bg-green-50 p-4 border-t border-gray-200">
               <h4 className="font-semibold text-green-700 mb-2">Turnos</h4>
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div>
