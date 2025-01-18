@@ -97,7 +97,7 @@ const Totales_Surtido_Maquina = () => {
         console.log("Datos de metas:", responseMetas.data);
 
         const meta19Obj = responseMetas.data.registros.find(meta => meta.name === '19 LENS LOG');
-        const meta20Obj = responseMetas.data.registros.find(meta => meta.name === '20 LENS LOG FIN');
+        const meta20Obj = responseMetas.data.registros.find(meta => meta.name === '20 LENS LOG');
 
         console.log("Meta 19 LENS LOG:", meta19Obj);
         console.log("Meta 20 LENS LOG FIN:", meta20Obj);
