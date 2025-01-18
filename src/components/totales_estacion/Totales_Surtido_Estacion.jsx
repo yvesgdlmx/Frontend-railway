@@ -167,30 +167,30 @@ const Totales_Surtido_Estacion = () => {
                 {/* Sección de totales para pantallas grandes */}
                 <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
-                        <p className="text-gray-600 text-sm md:text-base">
-                            Total Matutino Acumulado: 
+                    <p className="text-gray-600 text-sm md:text-base">
+                            Total Matutino: 
                             <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
                                 {totalesPorTurno.matutino}
                             </span> 
-                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.matutino}</span>
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.matutino}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
-                        <p className="text-gray-600 text-sm md:text-base">
-                            Total Vespertino Acumulado: 
+                    <p className="text-gray-600 text-sm md:text-base">
+                            Total Vespertino: 
                             <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
                                 {totalesPorTurno.vespertino}
                             </span> 
-                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.vespertino}</span>
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.vespertino}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg shadow-md">
-                        <p className="text-gray-600 text-sm md:text-base">
-                            Total Nocturno Acumulado: 
+                    <p className="text-gray-600 text-sm md:text-base">
+                            Total Nocturno: 
                             <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
                                 {totalesPorTurno.nocturno}
                             </span> 
-                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.nocturno}</span>
+                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.nocturno}</span>
                         </p>
                     </div>
                 </div>
