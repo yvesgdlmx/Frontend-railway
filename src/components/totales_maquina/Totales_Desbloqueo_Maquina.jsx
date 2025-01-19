@@ -20,6 +20,7 @@ const TituloSeccion = ({ titulo, isOpen, toggle }) => (
 const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
   const contentRef = useRef(null);
   const [height, setHeight] = useState(0);
+
   useEffect(() => {
     if (isOpen) {
       setHeight(contentRef.current.scrollHeight);
@@ -27,6 +28,7 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
       setHeight(0);
     }
   }, [isOpen]);
+
   return (
     <div className="overflow-hidden mb-4">
       <TituloSeccion 
@@ -96,10 +98,12 @@ const Totales_Desbloqueo_Maquina = () => {
           inicioHoy.subtract(1, 'days');
           finHoy.subtract(1, 'days');
         }
+
         const registrosFiltrados = dataRegistros.filter(registro => {
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
           return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, '[]') && registro.name.includes('DEBLOCKING');
         });
+
         procesarRegistros(registrosFiltrados, inicioHoy);
       } catch (error) {
         console.error("Error al cargar los datos:", error);
@@ -120,6 +124,7 @@ const Totales_Desbloqueo_Maquina = () => {
     const horas = new Set();
     let totalAcumulado = 0;
     const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
+
     registrosFiltrados.forEach(registro => {
       horas.add(registro.hour);
       totalAcumulado += parseInt(registro.hits || 0);
@@ -132,6 +137,7 @@ const Totales_Desbloqueo_Maquina = () => {
         totales.nocturno += parseInt(registro.hits || 0);
       }
     });
+
     const horasArray = Array.from(horas).sort((a, b) => {
       const momentA = moment(a, 'HH:mm:ss');
       const momentB = moment(b, 'HH:mm:ss');
@@ -139,12 +145,14 @@ const Totales_Desbloqueo_Maquina = () => {
       if (momentB.isBefore(moment('06:30', 'HH:mm'))) momentB.add(1, 'day');
       return momentB.diff(momentA);
     });
+
     const horasConFormato = horasArray.map(hora => {
       const [horaInicial, minutos] = hora.split(':');
       const momentoInicial = moment(hora, 'HH:mm:ss');
       const momentoFinal = moment(momentoInicial).add(1, 'hour');
       return `${horaInicial}:${minutos} - ${momentoFinal.format('HH:mm')}`;
     });
+
     setHorasUnicas(horasConFormato);
     setTotalesAcumulados(totalAcumulado);
     setRegistros(registrosFiltrados);
@@ -175,10 +183,11 @@ const Totales_Desbloqueo_Maquina = () => {
   };
 
   const claseTotal = evaluarTotalAcumulado(totalesAcumulados, meta, horasUnicas.length);
-
   const getClassName = (hits, metaPorTurno) => {
     return hits >= metaPorTurno ? "text-green-500" : "text-red-500";
   };
+
+  const metaAcumuladaTotal = horasUnicas.length * meta;
 
   return (
     <div className="max-w-screen-xl">
@@ -199,7 +208,7 @@ const Totales_Desbloqueo_Maquina = () => {
             </div>
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta Acumulada:</span>
-              <span className="font-bold text-gray-700">{metaAcumulada}</span>
+              <span className="font-bold text-gray-700">{metaAcumuladaTotal}</span>
             </div>
             <div className="py-4">
               <span className="font-bold text-gray-700">Horas:</span>
@@ -247,7 +256,7 @@ const Totales_Desbloqueo_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: '250px' }}>Desbloqueo</td>
               <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>{totalesAcumulados}</td>
               <td className="py-2 px-4 border-b font-bold">{meta || 'No definida'}</td>
-              <td className="py-2 px-4 border-b font-bold">{metaAcumulada}</td>
+              <td className="py-2 px-4 border-b font-bold">{metaAcumuladaTotal}</td>
               {horasUnicas.map((hora, idx) => {
                 const [horaInicio, horaFin] = hora.split(' - ');
                 const totalHits = registros.filter(r => {
@@ -272,7 +281,7 @@ const Totales_Desbloqueo_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold">Totales</td>
               <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>{totalesAcumulados}</td>
               <td className="py-2 px-4 border-b font-bold">{meta}</td>
-              <td className="py-2 px-4 border-b font-bold">{metaAcumulada}</td>
+              <td className="py-2 px-4 border-b font-bold">{metaAcumuladaTotal}</td>
               {sumaHitsPorHora.map((sumaHits, index) => {
                 const claseSumaHits = sumaHits >= meta ? "text-green-500" : "text-red-500";
                 return (
