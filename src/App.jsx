@@ -45,6 +45,8 @@ const ReporteAntiguedad = lazy(() => import('./paginas/reportes/ReporteAntigueda
 const ReporteTrabajosNuevos = lazy(() => import('./paginas/reportes/ReporteTrabajosNuevos'));
 const ReporteWipDiario = lazy(() => import('./paginas/reportes/ReporteWipDiario'));
 const ReportesTrabajosEnviados = lazy(() => import('./paginas/reportes/ReportesTrabajosEnviados'));
+const ResumenTrabajo = lazy(() => import('./paginas/reportes/ResumenTrabajo'));
+
 
 function App() {
   return (
@@ -92,6 +94,7 @@ function App() {
               <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos />} />
               <Route path='/reportes_wip_diario' element={<ReporteWipDiario />} />
               <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
+              <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
             </Route>
             <Route path='/auth' element={<AuthLayout />}>
               <Route index element={<Login />} />

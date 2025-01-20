@@ -201,6 +201,11 @@ const Layout = () => {
                                                 <p className="block px-4 py-2 hover:bg-gray-100">Trabajos Enviados</p>
                                             </Link>
                                         </li>
+                                        <li>
+                                            <Link to={'/reportes_resumen_trabajo'} onClick={handleMenuItemClick}>
+                                                <p className="block px-4 py-2 hover:bg-gray-100">Resumen de trabajos</p>
+                                            </Link>
+                                        </li>
                                     </ul>
                                 </div>
                             )}
@@ -328,6 +333,15 @@ const Layout = () => {
                                                 className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                                             >
                                             Trabajos enviados
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link 
+                                                to={'/reportes_resumen_trabajo'} 
+                                                onClick={handleMenuItemClick} 
+                                                className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                                            >
+                                            Resumen de trabajos
                                             </Link>
                                         </li>
                                     </ul>
