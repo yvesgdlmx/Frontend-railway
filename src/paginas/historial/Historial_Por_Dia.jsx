@@ -65,40 +65,51 @@ const Historial_Por_Dia = () => {
         const responseMetasLensLog = await clienteAxios.get('/metas/metas-manuales');
         const responseMetasGeneradores = await clienteAxios.get('/metas/metas-generadores');
         const responseMetasPulidos = await clienteAxios.get('/metas/metas-pulidos');
-
         const responseMetasEngravers = await clienteAxios.get('/metas/metas-engravers');
         const responseMetasTerminados = await clienteAxios.get('/metas/metas-terminados');
         const responseMetasBiselados = await clienteAxios.get('/metas/metas-biselados');
+
         const metasPorMaquinaTallados = responseMetasTallados.data.registros.reduce((acc, curr) => {
           acc[curr.name] = curr.meta;
           return acc;
         }, {});
+
         const metasPorMaquinaLensLog = responseMetasLensLog.data.registros.reduce((acc, curr) => {
           if (curr.name.includes('LENS LOG') || curr.name.includes('JOB COMPLETE') || curr.name.includes('DEBLOCKING')) {
-            acc[curr.name] = curr.meta;
+            if (curr.name === '19 LENS LOG' || curr.name === '20 LENS LOG FIN') {
+              acc['LENS LOG TOTAL'] = (acc['LENS LOG TOTAL'] || 0) + curr.meta;
+            } else {
+              acc[curr.name] = curr.meta;
+            }
           }
           return acc;
         }, {});
+
         const metasPorMaquinaGeneradores = responseMetasGeneradores.data.registros.reduce((acc, curr) => {
           acc[curr.name.toUpperCase().trim()] = curr.meta;
           return acc;
         }, {});
+
         const metasPorMaquinaPulidos = responseMetasPulidos.data.registros.reduce((acc, curr) => {
           acc[curr.name.toUpperCase().trim()] = curr.meta;
           return acc;
         }, {});
+
         const metasPorMaquinaEngravers = responseMetasEngravers.data.registros.reduce((acc, curr) => {
           acc[curr.name.toUpperCase().trim()] = curr.meta;
           return acc;
         }, {});
+
         const metasPorMaquinaTerminados = responseMetasTerminados.data.registros.reduce((acc, curr) => {
           acc[curr.name.toUpperCase().trim()] = curr.meta;
           return acc;
         }, {});
+
         const metasPorMaquinaBiselados = responseMetasBiselados.data.registros.reduce((acc, curr) => {
           acc[curr.name.toUpperCase().trim()] = curr.meta;
           return acc;
         }, {});
+
         setMetas({
           ...metasPorMaquinaTallados,
           ...metasPorMaquinaLensLog,
@@ -116,11 +127,10 @@ const Historial_Por_Dia = () => {
     obtenerRegistros();
     obtenerMetas();
   }, [anio, mes, dia]);
-
   const calcularMetasPorTurno = (metaPorHora) => ({
-    matutino: metaPorHora * 8,
-    vespertino: metaPorHora * 7,
-    nocturno: metaPorHora * 9
+    matutino: metaPorHora * 7,
+    vespertino: metaPorHora * 6,
+    nocturno: metaPorHora * 7
   });
 
   const registrosAgrupados = registros.reduce((acc, registro) => {
@@ -140,8 +150,6 @@ const Historial_Por_Dia = () => {
     return acc;
   }, {});
 
-  console.log("Registros agrupados:", registrosAgrupados);
-
   const hitsPorEstacion = Object.entries(estaciones).reduce((acc, [nombreEstacion, maquinas]) => {
     acc[nombreEstacion] = 0;
     maquinas.forEach(maquina => {
@@ -152,8 +160,6 @@ const Historial_Por_Dia = () => {
     });
     return acc;
   }, {});
-
-  console.log("Hits por estación:", hitsPorEstacion);
 
   const hitsPorEstacionYTurno = Object.entries(estaciones).reduce((acc, [nombreEstacion, maquinas]) => {
     acc[nombreEstacion] = { matutino: 0, vespertino: 0, nocturno: 0 };
@@ -188,7 +194,12 @@ const Historial_Por_Dia = () => {
       if (registrosEstacion.length === 0) return null;
       const totalHitsEstacion = registrosEstacion.reduce((total, registro) => total + registro.hits, 0);
       const turnosEstacion = hitsPorEstacionYTurno[nombreEstacion];
-      const metaPorHoraEstacion = maquinas.reduce((total, maquina) => total + (metas[maquina] || 0), 0);
+      const metaPorHoraEstacion = maquinas.reduce((total, maquina) => {
+        if (maquina === '19 LENS LOG' || maquina === '20 LENS LOG FIN') {
+          return total + (metas['LENS LOG TOTAL'] || 0);
+        }
+        return total + (metas[maquina] || 0);
+      }, 0);
       const metasPorTurno = calcularMetasPorTurno(metaPorHoraEstacion);
       const totalMetaEstacion = registrosEstacion.reduce((total, registro, index) => {
         const maquina = maquinas[index];
