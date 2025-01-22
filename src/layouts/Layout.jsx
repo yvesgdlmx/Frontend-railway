@@ -252,7 +252,7 @@ const Layout = () => {
                                             Metas
                                         </p>
                                         <ul className="ml-6 mt-2 space-y-2">
-                                            {['Manuales', 'Bloqueo de tallado', 'Generadores', 'Pulido', 'Engraver', 'Bloqueo de terminado', 'Biselado'].map((item, index) => (
+                                            {['Manuales', 'tallado', 'Generado', 'Pulido', 'Engraver', 'terminado', 'Biselado'].map((item, index) => (
                                                 <li key={index}>
                                                     <Link to={`/${item.toLowerCase().replace(/ /g, '_')}_metas`} onClick={handleMenuItemClick} className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
                                                         {item}
