@@ -26,7 +26,11 @@ const ResumenTrabajo = () => {
         const response = await clienteAxios.get(`/reportes/reportes/resumen/${anio}/${mes}/${dia}`);
         console.log('Datos originales:', response.data.resumenDia);
         const datosAgrupados = agruparPorHora(response.data.resumenDia);
-        console.log('Datos agrupados:', datosAgrupados);
+  
+        // Ordena los datos por hora de forma descendente
+        datosAgrupados.sort((a, b) => b.hora.localeCompare(a.hora));
+  
+        console.log('Datos agrupados y ordenados:', datosAgrupados);
         setDatosAPI(datosAgrupados);
       } catch (error) {
         console.error("Error al obtener los datos de la API:", error);
@@ -62,7 +66,7 @@ const ResumenTrabajo = () => {
 
   return (
     <>
-      <div>
+      <div className='mt-4 md:mt-0'>
         <Heading title="Reporte Resumen de trabajos" />
       </div>
       <div className="min-h-screen bg-gray-50">
@@ -122,7 +126,13 @@ const ResumenTrabajo = () => {
                         </button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-6 mb-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 mb-6">
+                      <div className="bg-yellow-50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
+                        <span className="text-sm font-medium text-gray-600">NVI En Proceso</span>
+                        <div className="text-2xl font-bold text-yellow-700 mt-1">
+                          {formatNumber(bloque.datos.reduce((acc, curr) => acc + curr.nvi_en_proceso, 0))}
+                        </div>
+                      </div>
                       <div className="bg-blue-50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
                         <span className="text-sm font-medium text-gray-600">No Surtido Terminado</span>
                         <div className="text-2xl font-bold text-blue-700 mt-1">
@@ -149,7 +159,7 @@ const ResumenTrabajo = () => {
                       </div>
                     </div>
                     <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                      expandidos[bloque.hora] ? 'opacity-100' : 'max-h-0 opacity-0'
+                      expandidos[bloque.hora] ? 'opacity-100 max-h-screen' : 'max-h-0 opacity-0'
                     }`}>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
