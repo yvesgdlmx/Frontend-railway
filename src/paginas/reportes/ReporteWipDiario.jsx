@@ -29,7 +29,6 @@ const ReporteWipDiario = () => {
   const currentYear = today.getFullYear();
   const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
   const currentDay = String(today.getDate()).padStart(2, '0');
-
   const [anio, setAnio] = useState(currentYear.toString());
   const [mes, setMes] = useState(currentMonth);
   const [dia, setDia] = useState(currentDay);
@@ -67,7 +66,7 @@ const ReporteWipDiario = () => {
 
   const calculateWIP = () => {
     const totals = {
-      nvi: { inicial: 0, recibidos: 0, enviados: 0, cancelados: 0, final: 0, semifinish: 0, finished: 0 },
+      nvi: { inicial: 0, recibidos: 0, enviados: 0, cancelados: 0, final: 0, semifinishRec: 0, finishedRec: 0, semifinishEnv: 0, finishedEnv: 0 },
       hoya: { inicial: 0, recibidos: 0, enviados: 0, cancelados: 0, final: 0 },
       ink: { inicial: 0, recibidos: 0, enviados: 0, cancelados: 0, final: 0 },
     };
@@ -86,12 +85,14 @@ const ReporteWipDiario = () => {
           totals.ink.inicial = item.total_ink;
         } else if (item.accion === 'recibidos') {
           totals.nvi.recibidos = item.total_nvi;
+          totals.nvi.semifinishRec = item.semifinish_nvi;
+          totals.nvi.finishedRec = item.finished_nvi;
           totals.hoya.recibidos = item.total_hoya;
           totals.ink.recibidos = item.total_ink;
         } else if (item.accion === 'enviados') {
           totals.nvi.enviados = item.total_nvi;
-          totals.nvi.semifinish = item.semifinish_nvi;
-          totals.nvi.finished = item.finished_nvi;
+          totals.nvi.semifinishEnv = item.semifinish_nvi;
+          totals.nvi.finishedEnv = item.finished_nvi;
           totals.hoya.enviados = item.total_hoya;
           totals.ink.enviados = item.total_ink;
         }
@@ -112,7 +113,6 @@ const ReporteWipDiario = () => {
     totals.nvi.inicial -= totals.nvi.recibidos;
     totals.hoya.inicial -= totals.hoya.recibidos;
     totals.ink.inicial -= totals.ink.recibidos;
-
     totals.nvi.final = totals.nvi.inicial + totals.nvi.recibidos - totals.nvi.enviados - totals.nvi.cancelados;
     totals.hoya.final = totals.hoya.inicial + totals.hoya.recibidos - totals.hoya.enviados - totals.hoya.cancelados;
     totals.ink.final = totals.ink.inicial + totals.ink.recibidos - totals.ink.enviados - totals.ink.cancelados;
@@ -186,11 +186,25 @@ const ReporteWipDiario = () => {
                     <td className="py-3 px-6 border-b">{wipTotals[cliente].inicial}</td>
                   </tr>
                   <tr className="text-gray-700">
-                    <td className="py-3 px-6 font-semibold border-b">Recibidos</td>
+                    <td className="py-3 px-6 font-semibold border-b">
+                      Recibidos
+                      {cliente === 'nvi' && (
+                        <span className="text-xs text-gray-500 ml-2">
+                          (Semi-Finished: {wipTotals.nvi.semifinishRec}, Finished: {wipTotals.nvi.finishedRec})
+                        </span>
+                      )}
+                    </td>
                     <td className="py-3 px-6 border-b">{wipTotals[cliente].recibidos}</td>
                   </tr>
                   <tr className="text-gray-700 bg-gray-100">
-                    <td className="py-3 px-6 font-semibold border-b">Enviados</td>
+                    <td className="py-3 px-6 font-semibold border-b">
+                      Enviados
+                      {cliente === 'nvi' && (
+                        <span className="text-xs text-gray-500 ml-2">
+                          (Semi-Finished: {wipTotals.nvi.semifinishEnv}, Finished: {wipTotals.nvi.finishedEnv})
+                        </span>
+                      )}
+                    </td>
                     <td className="py-3 px-6 border-b">{wipTotals[cliente].enviados}</td>
                   </tr>
                   <tr className="text-gray-700">
