@@ -21,7 +21,6 @@ const Desbloqueo_Procesos = () => {
         const responseMetas = await clienteAxios.get('/metas/metas-manuales');
         const metasDesbloqueo = responseMetas.data.registros.filter(registro => registro.name.includes('DEBLOCKING'));
         const sumaMetas = metasDesbloqueo.reduce((acc, curr) => acc + curr.meta, 0);
-
         const responseRegistros = await clienteAxios.get('/manual/manual/actualdia');
         const registros = responseRegistros.data.registros.filter(registro => registro.name.includes('DEBLOCKING'));
 
@@ -49,7 +48,6 @@ const Desbloqueo_Procesos = () => {
 
         const formattedLastHour = moment.tz(`${ultimoRegistro.fecha} ${ultimoRegistro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
         setUltimaHora(formattedLastHour.format('HH:mm'));
-
         const horaFinal = moment(formattedLastHour);
         horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
         const horasTranscurridas = horaFinal.diff(inicioHoy, 'hours', true);
@@ -80,7 +78,6 @@ const Desbloqueo_Procesos = () => {
         const horasMatutino = 7;
         const horasVespertino = 6;
         const horasNocturno = 7;
-        
         setMetaMatutino(horasMatutino * sumaMetas);
         setMetaVespertino(horasVespertino * sumaMetas);
         setMetaNocturno(horasNocturno * sumaMetas);
@@ -116,9 +113,15 @@ const Desbloqueo_Procesos = () => {
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{meta}</span></p>
       </div>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{hitsMatutino}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{hitsVespertino}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{hitsNocturno}</span></p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{hitsMatutino}</span> / <span>{metaMatutino}</span>
+        </p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{hitsVespertino}</span> / <span>{metaVespertino}</span>
+        </p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{hitsNocturno}</span> / <span>{metaNocturno}</span>
+        </p>
       </div>
     </div>
   );

@@ -124,9 +124,15 @@ const Surtido_procesos = () => {
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{meta}</span></p>
       </div>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{hitsMatutino}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{hitsVespertino}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{hitsNocturno}</span></p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{hitsMatutino}</span> / <span>{metaMatutino}</span>
+        </p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{hitsVespertino}</span> / <span>{metaVespertino}</span>
+        </p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{hitsNocturno}</span> / <span>{metaNocturno}</span>
+        </p>
       </div>
     </div>
   );
