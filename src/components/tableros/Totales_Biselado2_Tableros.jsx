@@ -16,7 +16,7 @@ const Totales_Biselado2_Tableros = () => {
   const [totalGeneral, setTotalGeneral] = useState(0); // Estado para el total general
 
   const ordenCelulas = [
-    "311 EDFGER 12",
+    "311 EDGER 12",
     "313 EDGER 13",
     "314 EDGER 14",
     "316 EDGER 15",

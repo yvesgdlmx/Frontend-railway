@@ -89,7 +89,7 @@ const Totales_Biselado_Maquina = () => {
     "308 EDGER 9",
     "309 EDGER 10",
     "310 EDGER 11",
-    "311 EDFGER 12",
+    "311 EDGER 12",
     "313 EDGER 13",
     "314 EDGER 14",
     "316 EDGER 15",
