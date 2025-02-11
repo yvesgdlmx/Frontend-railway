@@ -98,7 +98,7 @@ const Totales_Pulido_Maquina = () => {
       clearTimeout(timeout);
     };
   }, []);
-
+  
   // Estados locales
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
   const [totalesPorTurnoYMaquina, setTotalesPorTurnoYMaquina] = useState({});
@@ -126,6 +126,7 @@ const Totales_Pulido_Maquina = () => {
     "23:00 - 00:00",
     "22:00 - 23:00"
   ];
+  
   const [horasUnicas, setHorasUnicas] = useState(fixedHoras);
   const [metasPorMaquina, setMetasPorMaquina] = useState({});
   const [totalesAcumulados, setTotalesAcumulados] = useState({});
@@ -155,6 +156,15 @@ const Totales_Pulido_Maquina = () => {
     setSeccionesAbiertas(prev => ({ ...prev, [celula]: !prev[celula] }));
   };
 
+  // Nuevo cálculo: horas transcurridas desde el inicio de la jornada (22:00)
+  const ahoraGlobal = moment.tz("America/Mexico_City");
+  let inicioJornadaGlobal = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
+  if (ahoraGlobal.isBefore(inicioJornadaGlobal)) {
+    inicioJornadaGlobal.subtract(1, "days");
+  }
+  // Sumamos 1 para considerar la hora en curso como completa
+  const horasTranscurridas = ahoraGlobal.diff(inicioJornadaGlobal, "hours") + 1;
+
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -170,7 +180,6 @@ const Totales_Pulido_Maquina = () => {
           console.error("La respuesta de las metas no contiene un array válido:", responseMetas.data);
         }
         setMetasPorMaquina(metas);
-
         // Cargar registros de la jornada actual
         const responseRegistros = await clienteAxios("/pulido/pulido/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
@@ -220,7 +229,7 @@ const Totales_Pulido_Maquina = () => {
     cargarDatos();
   }, []);
 
-  // Calcula totales por turno (según la jornada que comienza a las 22:00)
+  // Función para calcular totales por turno (según la jornada que comienza a las 22:00)
   const calcularTotalesPorTurno = (registros, inicioHoy) => {
     const totales = {
       matutino: 0,
@@ -313,8 +322,7 @@ const Totales_Pulido_Maquina = () => {
       ? "text-green-500"
       : "text-red-500";
 
-  // useMemo para filtrar las franjas horarias: se conservan solo aquellas donde la suma total de hits sea mayor que 0,
-  // utilizando la función obtenerShiftStart para garantizar la consistencia
+  // useMemo para filtrar las franjas horarias: se conservan solo aquellas donde la suma total de hits sea mayor que 0
   const filteredHoras = useMemo(() => {
     const shiftStart = obtenerShiftStart();
     return horasUnicas.filter((hora) => {
@@ -350,7 +358,8 @@ const Totales_Pulido_Maquina = () => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
-            const metaAcumulada = meta * horasUnicas.length;
+            // Ahora se utiliza horasTranscurridas en lugar de horasUnicas.length
+            const metaAcumulada = meta * horasTranscurridas;
             const claseTotalAcumulado =
               totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
             const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
@@ -393,7 +402,6 @@ const Totales_Pulido_Maquina = () => {
                     <span className="font-bold text-gray-700">Horas:</span>
                     {filteredHoras.map((hora, idx) => {
                       const [horaInicio, horaFin] = hora.split(" - ");
-                      // Utilizamos la función obtenerShiftStart para garantizar la fecha correcta
                       const shiftStart = obtenerShiftStart();
                       const totalHits = registrosCelula
                         .filter((r) => {
@@ -447,7 +455,8 @@ const Totales_Pulido_Maquina = () => {
                 const registrosCelula = registrosAgrupados[celula] || [];
                 const totalAcumulado = totalesAcumulados[celula] || 0;
                 const meta = metasPorMaquina[celula] || 0;
-                const metaAcumulada = meta * horasUnicas.length;
+                // Se utiliza la cantidad de horas transcurridas calculada globalmente
+                const metaAcumulada = meta * horasTranscurridas;
                 const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
                 const horasMatutino = Math.min(
                   moment().diff(moment().startOf("day").add(6, "hours").add(30, "minutes"), "hours"),
@@ -511,7 +520,7 @@ const Totales_Pulido_Maquina = () => {
                 <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>Totales</td>
                 <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{sumaTotalAcumulados}</td>
                 <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas}</td>
-                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas * horasUnicas.length}</td>
+                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas * horasTranscurridas}</td>
                 {["nocturno", "matutino", "vespertino"].map((turno) => (
                   <td
                     key={turno}

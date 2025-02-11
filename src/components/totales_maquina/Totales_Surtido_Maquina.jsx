@@ -93,7 +93,6 @@ const Totales_Surtido_Maquina = () => {
     const intervalId = setInterval(() => {
       window.location.reload();
     }, 300000);
-
     const now = moment();
     let target = moment().hour(22).minute(0).second(0);
     if (now.isAfter(target)) {
@@ -103,7 +102,6 @@ const Totales_Surtido_Maquina = () => {
     const timeoutId = setTimeout(() => {
       window.location.reload();
     }, delay);
-
     return () => {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
@@ -139,6 +137,14 @@ const Totales_Surtido_Maquina = () => {
       shiftStart.subtract(1, "days");
     }
     return shiftStart;
+  };
+
+  // Función para calcular las horas transcurridas reales desde el inicio del turno.
+  const calcularHorasTranscurridas = () => {
+    const shiftStart = getShiftStart();
+    const ahora = moment();
+    const diffHoras = ahora.diff(shiftStart, "hours", true);
+    return diffHoras > 0 ? Math.floor(diffHoras) : 0;
   };
 
   // Cargar datos: metas y registros.
@@ -195,7 +201,6 @@ const Totales_Surtido_Maquina = () => {
       } else if (registro.name.includes("20 LENS LOG-FIN")) {
         registrosPorTipoTemp["20 LENS LOG-FIN"].push(registro);
       }
-
       const fechaHoraRegistro = moment.tz(
         `${registro.fecha} ${registro.hour}`,
         "YYYY-MM-DD HH:mm:ss",
@@ -258,22 +263,27 @@ const Totales_Surtido_Maquina = () => {
     setRegistros(registrosFiltrados);
     setTotalesPorTurno(totales);
     setRegistrosPorTipo(registrosPorTipoTemp);
-    // Aquí se usa el arreglo dinámico: solo se muestran las columnas que tengan al menos un registro.
+    // Se utiliza el arreglo dinámico para mostrar las columnas que tengan al menos un registro.
     setHorasUnicas(dynamicHoras);
   };
 
   // Función que evalúa la clase de color según si el total acumulado cumple o no la meta acumulada.
+  // Se utiliza ahora el parámetro "horasTranscurridas" basado en la hora real transcurrida desde el inicio del turno.
   const evaluarTotalAcumulado = (total, meta, horasTranscurridas) => {
     const metaAcumulada = meta * horasTranscurridas;
     return total >= metaAcumulada ? "text-green-500" : "text-red-500";
   };
 
-  // En este caso, horasTranscurridas es la cantidad de columnas (intervalos) que se están mostrando.
+  // Calculamos las horas transcurridas reales desde el inicio del turno.
+  const horasTranscurridas = calcularHorasTranscurridas();
   const sumaMetas = meta19 + meta20;
-  const horasTranscurridas = horasUnicas.length;
-  const claseTotal = evaluarTotalAcumulado(totalesAcumulados, sumaMetas, horasTranscurridas);
+  
+  // Se calculan las metas acumuladas para cada tipo usando las horas transcurridas reales.
   const metaAcumuladaTotal19 = horasTranscurridas * meta19;
   const metaAcumuladaTotal20 = horasTranscurridas * meta20;
+
+  // Evaluamos la clase de color para el total acumulado.
+  const claseTotal = evaluarTotalAcumulado(totalesAcumulados, sumaMetas, horasTranscurridas);
 
   return (
     <div className="max-w-screen-xl">
@@ -295,7 +305,6 @@ const Totales_Surtido_Maquina = () => {
           </div>
         </SeccionMenu>
       </div>
-
       {/* Vista para pantallas grandes */}
       <div className="hidden lg:block">
         <Navegacion />

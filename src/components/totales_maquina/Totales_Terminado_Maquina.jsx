@@ -37,7 +37,6 @@ const getTotalHitsForInterval = (registros, horaInicio, horaFin) => {
   const shiftStart = getJornadaInicio();
   const startInterval = getIntervalTimestamp(shiftStart, horaInicio);
   const endInterval = getIntervalTimestamp(shiftStart, horaFin);
-  
   return registros
     .filter((r) => {
       const registroDateTime = moment.tz(
@@ -114,6 +113,7 @@ const Totales_Terminado_Maquina = () => {
     const timeoutId = setTimeout(() => {
       window.location.reload();
     }, delay);
+
     return () => {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
@@ -135,11 +135,7 @@ const Totales_Terminado_Maquina = () => {
   });
 
   // Orden de las células
-  const ordenCelulas = [
-    "280 FINBLKR 1",
-    "281 FINBLKR 2",
-    "282 FINBLKR 3",
-  ];
+  const ordenCelulas = ["280 FINBLKR 1", "281 FINBLKR 2", "282 FINBLKR 3"];
 
   // Obtenemos el inicio de la jornada y calculamos las horas transcurridas (enteras)
   const jornadaInicio = getJornadaInicio();
@@ -164,7 +160,6 @@ const Totales_Terminado_Maquina = () => {
         const responseRegistros = await clienteAxios("/terminado/terminado/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
         const ahora = moment();
-
         let inicioHoy = moment().startOf("day").add(22, "hours");
         let finHoy = moment(inicioHoy).add(1, "days").subtract(30, "minutes");
         if (ahora.isBefore(inicioHoy)) {
@@ -242,18 +237,16 @@ const Totales_Terminado_Maquina = () => {
 
   // Función para calcular totales generales para cada turno
   const calcularTotalesPorTurno = (registros, inicioHoy) => {
-    const totales = {
-      matutino: 0,
-      vespertino: 0,
-      nocturno: 0,
-    };
+    const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
     registros.forEach((registro) => {
       const fechaHoraRegistro = moment.tz(
         `${registro.fecha} ${registro.hour}`,
         "YYYY-MM-DD HH:mm:ss",
         "America/Mexico_City"
       );
-      if (fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")) {
+      if (
+        fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")
+      ) {
         totales.nocturno += parseInt(registro.hits || 0, 10);
       } else if (
         fechaHoraRegistro.isBetween(
@@ -294,7 +287,9 @@ const Totales_Terminado_Maquina = () => {
         "YYYY-MM-DD HH:mm:ss",
         "America/Mexico_City"
       );
-      if (fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")) {
+      if (
+        fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")
+      ) {
         totales[celula].nocturno += parseInt(registro.hits || 0, 10);
       } else if (
         fechaHoraRegistro.isBetween(
@@ -319,12 +314,12 @@ const Totales_Terminado_Maquina = () => {
     return totales;
   };
 
+  // Sumas globales
   const sumaTotalAcumulados = Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0);
   const sumaTotalMetas = Object.keys(metasPorMaquina).reduce(
     (acc, celula) => acc + (metasPorMaquina[celula] || 0),
     0
   );
-
   const metaMatutinoFinal = sumaTotalMetas * 8;
   const metaVespertinoFinal = sumaTotalMetas * 7;
   const metaNocturnoFinal = sumaTotalMetas * 8;
@@ -333,11 +328,11 @@ const Totales_Terminado_Maquina = () => {
       ? "text-green-500"
       : "text-red-500";
 
-  // Filtrar las horas que tengan hits > 0 globalmente
+  // Filtrar las horas que tengan hits > 0 globalmente (usamos el arreglo de horas asignado)
   const filteredHoras = useMemo(() => {
+    const allRegistros = Object.values(registrosAgrupados).flat();
     return horasUnicas.filter((hora) => {
       const [horaInicio, horaFin] = hora.split(" - ");
-      const allRegistros = Object.values(registrosAgrupados).flat();
       const totalHits = getTotalHitsForInterval(allRegistros, horaInicio, horaFin);
       return totalHits > 0;
     });
@@ -361,15 +356,30 @@ const Totales_Terminado_Maquina = () => {
               totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
             const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
             const horasMatutino = Math.min(
-              moment().diff(moment().startOf("day").add(6, "hours").add(30, "minutes"), "hours"),
+              moment().diff(
+                moment().startOf("day").add(6, "hours").add(30, "minutes"), 
+                "hours"
+              ),
               8
             );
             const horasVespertino = Math.min(
-              Math.max(moment().diff(moment().startOf("day").add(14, "hours").add(30, "minutes"), "hours"), 0),
+              Math.max(
+                moment().diff(
+                  moment().startOf("day").add(14, "hours").add(30, "minutes"),
+                  "hours"
+                ),
+                0
+              ),
               7
             );
             const horasNocturno = Math.min(
-              Math.max(moment().diff(moment().startOf("day").add(22, "hours"), "hours"), 0),
+              Math.max(
+                moment().diff(
+                  moment().startOf("day").add(22, "hours"),
+                  "hours"
+                ),
+                0
+              ),
               8
             );
             const metaMatutino = meta * horasMatutino;
@@ -415,6 +425,7 @@ const Totales_Terminado_Maquina = () => {
             );
           })}
         </div>
+
         {/* Vista en forma de tabla para pantallas grandes */}
         <div className="hidden lg:block">
           <Navegacion />
@@ -431,7 +442,9 @@ const Totales_Terminado_Maquina = () => {
                   </th>
                 ))}
                 {filteredHoras.map((hora, index) => (
-                  <th key={index} className="py-2 px-4 border-b whitespace-nowrap">{hora}</th>
+                  <th key={index} className="py-2 px-4 border-b whitespace-nowrap">
+                    {hora}
+                  </th>
                 ))}
               </tr>
             </thead>

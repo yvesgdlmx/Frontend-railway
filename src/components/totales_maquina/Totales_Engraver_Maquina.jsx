@@ -154,13 +154,21 @@ const Totales_Engraver_Maquina = () => {
     vespertino: 0,
     nocturno: 0,
   });
-
   const ordenCelulas = [
     "270 ENGRVR 1",
     "271 ENGRVR 2",
     "272 ENGRVR 3",
     "273 ENGRVR 4",
   ];
+
+  // Cálculo global: obtener las horas transcurridas desde el inicio de la jornada (22:00)
+  const ahoraGlobal = moment.tz("America/Mexico_City");
+  let inicioJornadaGlobal = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
+  if (ahoraGlobal.isBefore(inicioJornadaGlobal)) {
+    inicioJornadaGlobal.subtract(1, "days");
+  }
+  // Sumamos 1 para considerar la hora en curso como completa
+  const horasTranscurridas = ahoraGlobal.diff(inicioJornadaGlobal, "hours") + 1;
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -176,7 +184,6 @@ const Totales_Engraver_Maquina = () => {
           console.error("La respuesta de las metas no contiene un array válido:", responseMetas.data);
         }
         setMetasPorMaquina(metas);
-
         // Cargar registros del día actual (jornada que inicia a las 22:00)
         const responseRegistros = await clienteAxios("/engraver/engraver/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
@@ -314,8 +321,7 @@ const Totales_Engraver_Maquina = () => {
     sumaTotalAcumulados >= (metaMatutinoFinal + metaVespertinoFinal + metaNocturnoFinal)
       ? "text-green-500"
       : "text-red-500";
-
-  // useMemo para filtrar las horas: se muestran solo aquellas franjas donde la suma total de hits es mayor a 0
+  // useMemo para filtrar las franjas horarias: se muestran solo aquellas donde la suma total de hits es mayor a 0
   const filteredHoras = useMemo(() => {
     const shiftStart = obtenerShiftStart();
     return horasUnicas.filter((hora) => {
@@ -351,7 +357,8 @@ const Totales_Engraver_Maquina = () => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
-            const metaAcumulada = meta * horasUnicas.length;
+            // Aquí se reemplaza la utilización de horasUnicas.length por horasTranscurridas
+            const metaAcumulada = meta * horasTranscurridas;
             const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
             const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
             const horasMatutino = Math.min(
@@ -446,7 +453,7 @@ const Totales_Engraver_Maquina = () => {
                 const registrosCelula = registrosAgrupados[celula] || [];
                 const totalAcumulado = totalesAcumulados[celula] || 0;
                 const meta = metasPorMaquina[celula] || 0;
-                const metaAcumulada = meta * horasUnicas.length;
+                const metaAcumulada = meta * horasTranscurridas;
                 const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
                 const horasMatutino = Math.min(
                   moment().diff(moment().startOf("day").add(6, "hours").add(30, "minutes"), "hours"),
@@ -509,14 +516,12 @@ const Totales_Engraver_Maquina = () => {
                 );
               })}
               <tr className="font-semibold bg-green-200 text-gray-700">
-                <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>
-                  Totales
-                </td>
+                <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>Totales</td>
                 <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>
                   {sumaTotalAcumulados}
                 </td>
                 <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas}</td>
-                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas * horasUnicas.length}</td>
+                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas * horasTranscurridas}</td>
                 {["nocturno", "matutino", "vespertino"].map((turno) => (
                   <td
                     key={turno}
@@ -548,9 +553,7 @@ const Totales_Engraver_Maquina = () => {
                     .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
                   const claseSumaHits = totalHits >= sumaTotalMetas ? "text-green-500" : "text-red-500";
                   return (
-                    <td key={index} className={`font-bold py-2 px-4 border-b ${claseSumaHits}`}>
-                      {totalHits}
-                    </td>
+                    <td key={index} className={`font-bold py-2 px-4 border-b ${claseSumaHits}`}>{totalHits}</td>
                   );
                 })}
               </tr>
@@ -562,9 +565,7 @@ const Totales_Engraver_Maquina = () => {
           <div className="lg:hidden space-y-4">
             {["nocturno", "matutino", "vespertino"].map((turno) => (
               <div key={turno} className="bg-white p-4 rounded-lg shadow-md">
-                <h3 className="text-lg font-bold text-gray-800 mb-2">
-                  {`Turno ${turno.charAt(0).toUpperCase() + turno.slice(1)}`}
-                </h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">{`Turno ${turno.charAt(0).toUpperCase() + turno.slice(1)}`}</h3>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Total:</span>
                   <span className={`text-lg ${getClassName(

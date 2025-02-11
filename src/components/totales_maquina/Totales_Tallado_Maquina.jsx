@@ -91,11 +91,20 @@ const Totales_Tallado_Maquina = () => {
     };
   }, []);
 
+  // Cálculo global para obtener las horas transcurridas de la jornada
+  const now = moment().tz("America/Mexico_City");
+  let inicioJornada = moment().tz("America/Mexico_City").startOf("day").add(22, "hours");
+  // Si la hora actual es antes de las 22:00, asumimos que la jornada inició el día anterior.
+  if (now.isBefore(inicioJornada)) {
+    inicioJornada.subtract(1, "days");
+  }
+  // Se utiliza diff en horas y se suma 1 para contar la hora actual como completa.
+  const horasTranscurridas = now.diff(inicioJornada, "hours") + 1;
+
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
   const toggleSeccion = (celula) => {
     setSeccionesAbiertas((prev) => ({ ...prev, [celula]: !prev[celula] }));
   };
-
   const [totalesPorTurnoYMaquina, setTotalesPorTurnoYMaquina] = useState({});
   const [horasUnicas, setHorasUnicas] = useState([]);
   const [metasPorMaquina, setMetasPorMaquina] = useState({});
@@ -106,7 +115,6 @@ const Totales_Tallado_Maquina = () => {
     vespertino: 0,
     nocturno: 0,
   });
-
   const ordenCelulas = [
     "220 SRFBLK 1",
     "221 SRFBLK 2",
@@ -155,7 +163,6 @@ const Totales_Tallado_Maquina = () => {
           console.error("La respuesta de las metas no contiene un array válido:", responseMetas.data);
         }
         setMetasPorMaquina(metas);
-
         // Cargar registros del día actual (jornada)
         const responseRegistros = await clienteAxios("/tallado/tallado/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
@@ -185,7 +192,6 @@ const Totales_Tallado_Maquina = () => {
           return acc;
         }, {});
         setRegistrosAgrupados(agrupados);
-
         const horasArray = [
           "20:30 - 21:30",
           "19:30 - 20:30",
@@ -212,7 +218,6 @@ const Totales_Tallado_Maquina = () => {
           "22:00 - 23:00",
         ];
         setHorasUnicas(horasArray);
-
         // Calcular acumulados por célula
         const acumulados = {};
         registrosFiltrados.forEach((registro) => {
@@ -220,7 +225,6 @@ const Totales_Tallado_Maquina = () => {
           acumulados[celula] = (acumulados[celula] || 0) + parseInt(registro.hits || 0, 10);
         });
         setTotalesAcumulados(acumulados);
-
         const totalesMaquina = calcularTotalesPorTurnoYMaquina(registrosFiltrados, inicioJornada);
         setTotalesPorTurnoYMaquina(totalesMaquina);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
@@ -353,7 +357,8 @@ const Totales_Tallado_Maquina = () => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
-            const metaAcumulada = meta * horasUnicas.length;
+            // Se usa el cálculo con las horas transcurridas en lugar del total fijo
+            const metaAcumulada = meta * horasTranscurridas;
             const claseTotalAcumulado =
               totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
             const totalesTurno = totalesPorTurnoYMaquina[celula] || {
@@ -443,7 +448,8 @@ const Totales_Tallado_Maquina = () => {
                 const registrosCelula = registrosAgrupados[celula] || [];
                 const totalAcumulado = totalesAcumulados[celula] || 0;
                 const meta = metasPorMaquina[celula] || 0;
-                const metaAcumulada = meta * horasUnicas.length;
+                // Se utiliza el mismo cálculo con las horas transcurridas
+                const metaAcumulada = meta * horasTranscurridas;
                 const totalesTurno = totalesPorTurnoYMaquina[celula] || {
                   matutino: 0,
                   vespertino: 0,
@@ -506,7 +512,8 @@ const Totales_Tallado_Maquina = () => {
                 </td>
                 <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{sumaTotalAcumulados}</td>
                 <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas}</td>
-                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas * horasUnicas.length}</td>
+                {/* Se usa las horas transcurridas para la meta acumulada total */}
+                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas * horasTranscurridas}</td>
                 {["nocturno", "matutino", "vespertino"].map((turno) => (
                   <td
                     key={turno}

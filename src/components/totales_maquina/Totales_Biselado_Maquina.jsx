@@ -7,8 +7,8 @@ import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/sol
 // Establecer la zona horaria por defecto
 moment.tz.setDefault("America/Mexico_City");
 
-// Función que determina el inicio de la jornada: si el momento actual es antes de las 22:00,
-// se asume que la jornada inició el día anterior a las 22:00.
+// Función que determina el inicio de la jornada:
+// Si el momento actual es antes de las 22:00 se asume que la jornada inició el día anterior a las 22:00.
 const getJornadaInicio = () => {
   let inicio = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicio)) {
@@ -45,6 +45,17 @@ const getTotalHitsForInterval = (registros, horaInicio, horaFin) => {
       return registroDateTime.isSameOrAfter(startInterval) && registroDateTime.isBefore(endInterval);
     })
     .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
+};
+
+// Función auxiliar que calcula la meta acumulada en base a las horas transcurridas
+const getMetaAcumulada = (meta) => {
+  const now = moment.tz("America/Mexico_City");
+  let inicioJornada = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
+  if (now.isBefore(inicioJornada)) {
+    inicioJornada.subtract(1, "days");
+  }
+  const horasTranscurridas = now.diff(inicioJornada, "hours");
+  return meta * horasTranscurridas;
 };
 
 // Componente para el título plegable de cada sección (célula)
@@ -176,7 +187,7 @@ const Totales_Biselado_Maquina = () => {
     "318 HSE 1",
     "319 HSE 2",
   ];
-  
+
   // Función para abrir/cerrar sección
   const toggleSeccion = (celula) =>
     setSeccionesAbiertas((prev) => ({ ...prev, [celula]: !prev[celula] }));
@@ -308,7 +319,8 @@ const Totales_Biselado_Maquina = () => {
     return totales;
   };
 
-  // Calcular horas transcurridas en cada turno para determinar metas parciales
+  // Calcular horas transcurridas de cada turno para determinar metas parciales.
+  // Se consideran los mismos límites que en la lógica original.
   const ahora = moment();
   let inicioNocturno;
   if (ahora.hour() < 6) {
@@ -346,10 +358,12 @@ const Totales_Biselado_Maquina = () => {
   // Funciones auxiliares para la fila final de la tabla
   const sumaTotal = (metas) =>
     Object.keys(metas).reduce((acc, celula) => acc + (metas[celula] || 0), 0);
-  const totalAcumuladoClass = (acumulados, metas, horasFiltradas) => {
+
+  // En este caso, para determinar la clase del total acumulado usamos la suma global de metaAcumulada
+  const totalAcumuladoClass = (acumulados, metas) => {
     const totalAcum = Object.values(acumulados).reduce((acc, curr) => acc + curr, 0);
-    const metaAcum = sumaTotal(metas) * horasFiltradas.length;
-    return totalAcum >= metaAcum ? "text-green-500" : "text-red-500";
+    const metaGlobalAcumulada = Object.keys(metas).reduce((acc, celula) => acc + getMetaAcumulada(metas[celula]), 0);
+    return totalAcum >= metaGlobalAcumulada ? "text-green-500" : "text-red-500";
   };
 
   return (
@@ -361,7 +375,8 @@ const Totales_Biselado_Maquina = () => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
-            const metaAcumulada = meta * filteredHoras.length;
+            // Se reemplaza meta * filteredHoras.length por el valor dinámico
+            const metaAcumulada = getMetaAcumulada(meta);
             const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
             const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
             const metaMatutino = meta * horasMatutino;
@@ -425,6 +440,7 @@ const Totales_Biselado_Maquina = () => {
             );
           })}
         </div>
+
         {/* Vista en tabla para pantallas grandes */}
         <div className="hidden lg:block">
           <Navegacion />
@@ -448,7 +464,7 @@ const Totales_Biselado_Maquina = () => {
                 const registrosCelula = registrosAgrupados[celula] || [];
                 const totalAcumulado = totalesAcumulados[celula] || 0;
                 const meta = metasPorMaquina[celula] || 0;
-                const metaAcumulada = meta * filteredHoras.length;
+                const metaAcumulada = getMetaAcumulada(meta);
                 const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
                 const bgColor = index % 2 === 0 ? "bg-gray-200" : "bg-white";
                 const metaMatutino = meta * horasMatutino;
@@ -487,11 +503,16 @@ const Totales_Biselado_Maquina = () => {
               {/* Fila de totales */}
               <tr className="font-semibold bg-green-200 text-gray-700">
                 <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>Totales</td>
-                <td className={`py-2 px-4 border-b font-bold ${totalAcumuladoClass(totalesAcumulados, metasPorMaquina, filteredHoras)}`}>
+                <td className={`py-2 px-4 border-b font-bold ${totalAcumuladoClass(totalesAcumulados, metasPorMaquina)}`}>
                   {Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0)}
                 </td>
                 <td className="py-2 px-4 border-b font-bold">{sumaTotal(metasPorMaquina)}</td>
-                <td className="py-2 px-4 border-b font-bold">{sumaTotal(metasPorMaquina) * filteredHoras.length}</td>
+                <td className="py-2 px-4 border-b font-bold">
+                  {Object.keys(metasPorMaquina).reduce(
+                    (acc, celula) => acc + getMetaAcumulada(metasPorMaquina[celula]),
+                    0
+                  )}
+                </td>
                 <td className={`py-2 px-4 border-b font-bold ${totalesPorTurno.nocturno >= metaNocturnoFinal ? "text-green-500" : "text-red-500"}`}>
                   {totalesPorTurno.nocturno}
                 </td>
@@ -518,6 +539,7 @@ const Totales_Biselado_Maquina = () => {
             </tbody>
           </table>
         </div>
+
         {/* Sección resumen de totales por turno */}
         <div className="mt-4 font-semibold mb-4">
           <div className="lg:hidden space-y-4">

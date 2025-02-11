@@ -112,7 +112,7 @@ const Totales_Desbloqueo_Maquina = () => {
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
   const [registros, setRegistros] = useState([]);
   const [meta, setMeta] = useState(0);
-  const [metaAcumulada, setMetaAcumulada] = useState(0);
+  // Ya no usaremos estado para metaAcumulada; la calcularemos de forma dinámica.
   const [totalesAcumulados, setTotalesAcumulados] = useState(0);
   const [totalesPorTurno, setTotalesPorTurno] = useState({
     matutino: 0,
@@ -125,8 +125,7 @@ const Totales_Desbloqueo_Maquina = () => {
     nocturno: 0,
   });
 
-  // Arreglo fijo de franjas horarias en el orden requerido.
-  // La primera (posición 0) corresponde a la franja más reciente.
+  // Arreglo fijo de franjas horarias (se usa para mostrar desglose de hits)
   const horasFijas = [
     "18:30 - 19:30",
     "17:30 - 18:30",
@@ -243,11 +242,12 @@ const Totales_Desbloqueo_Maquina = () => {
     setTotalesAcumulados(totalAcumulado);
     setRegistros(registrosFiltrados);
     setTotalesPorTurno(totales);
-    // La meta acumulada se define en función de la cantidad de franjas fijas que se mostraran.
-    setMetaAcumulada(horasFijas.length * meta);
+
+    // Se elimina el uso de horasFijas para calcular la meta acumulada;
+    // en su lugar, esta se calculará dinámicamente en función de las horas transcurridas.
   };
 
-  // Usamos useMemo para filtrar las horas: se muestran solo aquellas franjas que tienen hits > 0.
+  // useMemo para filtrar las franjas horarias: se muestran solo aquellas que tienen hits > 0.
   const filteredHoras = useMemo(() => {
     return horasFijas.filter((hora) => {
       const [horaInicio, horaFin] = hora.split(" - ");
@@ -262,15 +262,24 @@ const Totales_Desbloqueo_Maquina = () => {
     return getTotalHitsForInterval(registros, horaInicio, horaFin);
   });
 
+  // Cálculo dinámico de la meta acumulada basado en la cantidad de horas transcurridas desde las 22:00.
+  const ahora = moment.tz("America/Mexico_City");
+  let shiftStart = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
+  if (ahora.isBefore(shiftStart)) {
+    shiftStart.subtract(1, "days");
+  }
+  const horasTranscurridas = ahora.diff(shiftStart, "hours");
+  const dynamicMetaAcumulada = meta * horasTranscurridas;
+
   // Función para evaluar si el total acumulado cumple la meta acumulada (usada para CSS)
-  const evaluarTotalAcumulado = (total, meta, numHoras) => {
-    const metaAcumuladaLocal = meta * numHoras;
+  // Se usa dynamicMetaAcumulada en lugar de filtrar las horas fijas
+  const evaluarTotalAcumulado = (total, metaValor, numHoras) => {
+    const metaAcumuladaLocal = metaValor * numHoras;
     return total >= metaAcumuladaLocal ? "text-green-500" : "text-red-500";
   };
+  const claseTotal = evaluarTotalAcumulado(totalesAcumulados, meta, horasTranscurridas);
 
-  const claseTotal = evaluarTotalAcumulado(totalesAcumulados, meta, filteredHoras.length);
-  const metaAcumuladaTotal = filteredHoras.length * meta;
-
+  // En la vista se mostrará la meta acumulada calculada dinámicamente
   // Función para determinar la clase según cumplimiento de la meta por turno
   const getClassName = (hits, metaPorTurno) =>
     hits >= metaPorTurno ? "text-green-500" : "text-red-500";
@@ -295,7 +304,7 @@ const Totales_Desbloqueo_Maquina = () => {
             </div>
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta Acumulada:</span>
-              <span className="font-bold text-gray-700">{metaAcumuladaTotal}</span>
+              <span className="font-bold text-gray-700">{dynamicMetaAcumulada}</span>
             </div>
             <div className="py-4">
               <span className="font-bold text-gray-700">Horas:</span>
@@ -315,13 +324,16 @@ const Totales_Desbloqueo_Maquina = () => {
           </div>
         </SeccionMenu>
       </div>
+
       {/* Vista para pantallas grandes */}
       <div className="hidden lg:block">
         <Navegacion />
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white">
-              <th className="py-2 px-4 border-b" style={{ minWidth: "250px" }}>Nombre</th>
+              <th className="py-2 px-4 border-b" style={{ minWidth: "250px" }}>
+                Nombre
+              </th>
               <th className="py-2 px-4 border-b">Total Acumulado</th>
               <th className="py-2 px-4 border-b">Meta</th>
               <th className="py-2 px-4 border-b">Meta Acumulada</th>
@@ -341,7 +353,7 @@ const Totales_Desbloqueo_Maquina = () => {
                 {totalesAcumulados}
               </td>
               <td className="py-2 px-4 border-b font-bold">{meta || "No definida"}</td>
-              <td className="py-2 px-4 border-b font-bold">{metaAcumuladaTotal}</td>
+              <td className="py-2 px-4 border-b font-bold">{dynamicMetaAcumulada}</td>
               {filteredHoras.map((hora, idx) => {
                 const [horaInicio, horaFin] = hora.split(" - ");
                 const totalHits = getTotalHitsForInterval(registros, horaInicio, horaFin);
@@ -357,7 +369,7 @@ const Totales_Desbloqueo_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold">Totales</td>
               <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>{totalesAcumulados}</td>
               <td className="py-2 px-4 border-b font-bold">{meta}</td>
-              <td className="py-2 px-4 border-b font-bold">{metaAcumuladaTotal}</td>
+              <td className="py-2 px-4 border-b font-bold">{dynamicMetaAcumulada}</td>
               {sumaHitsPorHora.map((sumaHits, index) => {
                 const claseSumaHits = sumaHits >= meta ? "text-green-500" : "text-red-500";
                 return (
@@ -370,6 +382,7 @@ const Totales_Desbloqueo_Maquina = () => {
           </tbody>
         </table>
       </div>
+
       {/* Sección de totales por turno */}
       <div className="mt-4 font-semibold mb-4">
         {/* Versión para pantallas pequeñas */}

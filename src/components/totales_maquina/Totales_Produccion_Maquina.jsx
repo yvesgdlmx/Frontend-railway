@@ -49,6 +49,17 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
   );
 };
 
+// Función para calcular la meta acumulada en función de las horas transcurridas desde el inicio de la jornada (22:00)
+const getMetaAcumulada = (meta) => {
+  const now = moment.tz("America/Mexico_City");
+  let inicioJornada = moment.tz("America/Mexico_City").startOf("day").set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (now.isBefore(inicioJornada)) {
+    inicioJornada.subtract(1, "days");
+  }
+  const horasTranscurridas = now.diff(inicioJornada, "hours");
+  return meta * horasTranscurridas;
+};
+
 const Totales_Produccion_Maquina = () => {
   // Reiniciar automáticamente la página cada 5 minutos y al iniciar nuevo turno (22:00)
   useEffect(() => {
@@ -128,9 +139,9 @@ const Totales_Produccion_Maquina = () => {
         const sumaMetas = metasJobComplete.reduce((acc, m) => acc + m.meta, 0);
         setMeta(sumaMetas);
         // Según el nuevo horario:
-        // Matutino: 06:30 a 14:29 → 8 h
-        // Vespertino: 14:30 a 21:30 → 7 h
-        // Nocturno: 22:00 a 06:00 → 8 h
+        // Matutino: 06:30 a 14:29 -> 8 h
+        // Vespertino: 14:30 a 21:30 -> 7 h
+        // Nocturno: 22:00 a 06:00 -> 8 h
         setMetasPorTurno({
           matutino: 8 * sumaMetas,
           vespertino: 7 * sumaMetas,
@@ -149,7 +160,6 @@ const Totales_Produccion_Maquina = () => {
         const matutinoFin = produccionInicio.clone().add(16, "hours").add(30, "minutes"); // 14:30
         const vespertinoInicio = produccionInicio.clone().add(16, "hours").add(30, "minutes");
         const vespertinoFin = produccionInicio.clone().add(23, "hours").add(30, "minutes"); // 21:30
-
         // Obtener los registros
         const responseRegistros = await clienteAxios("/manual/manual/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
@@ -254,7 +264,8 @@ const Totales_Produccion_Maquina = () => {
             </div>
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta Acumulada:</span>
-              <span className="font-bold text-gray-700">{meta * horasUnicas.length}</span>
+              {/* Se reemplaza meta * horasUnicas.length por getMetaAcumulada(meta) */}
+              <span className="font-bold text-gray-700">{getMetaAcumulada(meta)}</span>
             </div>
             <div className="py-4">
               <span className="font-bold text-gray-700">Horas:</span>
@@ -305,7 +316,8 @@ const Totales_Produccion_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>Producción</td>
               <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{totalesAcumulados}</td>
               <td className="py-2 px-4 border-b font-bold">{meta || "No definida"}</td>
-              <td className="py-2 px-4 border-b font-bold">{meta * horasUnicas.length}</td>
+              {/* Se reemplaza meta * horasUnicas.length por getMetaAcumulada(meta) */}
+              <td className="py-2 px-4 border-b font-bold">{getMetaAcumulada(meta)}</td>
               {filteredHoras.map((hora, idx) => {
                 const [horaInicio, horaFin] = hora.split(" - ");
                 const totalHits = registros
@@ -332,7 +344,7 @@ const Totales_Produccion_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>Totales</td>
               <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{totalesAcumulados}</td>
               <td className="py-2 px-4 border-b font-bold">{meta}</td>
-              <td className="py-2 px-4 border-b font-bold">{meta * horasUnicas.length}</td>
+              <td className="py-2 px-4 border-b font-bold">{getMetaAcumulada(meta)}</td>
               {sumaHitsPorHora.map((sumaHits, index) => {
                 const claseSumaHits = sumaHits >= meta ? "text-green-500" : "text-red-500";
                 return (
