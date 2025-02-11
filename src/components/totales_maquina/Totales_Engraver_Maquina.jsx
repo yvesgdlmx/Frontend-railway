@@ -6,11 +6,21 @@ import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/sol
 
 moment.tz.setDefault("America/Mexico_City");
 
+// Función auxiliar para obtener el shiftStart de la jornada
+const obtenerShiftStart = () => {
+  const ahora = moment.tz("America/Mexico_City");
+  let shiftStart = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
+  if (ahora.isBefore(shiftStart)) {
+    shiftStart.subtract(1, "days");
+  }
+  return shiftStart;
+};
+
 // Función auxiliar para construir un objeto moment usando la fecha base según la hora
 const getIntervalTimestamp = (shiftStart, horaStr) => {
   const parts = horaStr.split(":");
   const hour = parseInt(parts[0], 10);
-  // Si la hora es mayor o igual a 22, la fecha base es shiftStart; si no, se le suma un día.
+  // Si la hora es mayor o igual a 22, la fecha base es shiftStart; si no, se suma un día.
   const fechaBase = hour >= 22 ? shiftStart.clone() : shiftStart.clone().add(1, "days");
   return moment.tz(
     `${fechaBase.format("YYYY-MM-DD")} ${horaStr}:00`,
@@ -21,11 +31,7 @@ const getIntervalTimestamp = (shiftStart, horaStr) => {
 
 // Función auxiliar para obtener el total de hits en un intervalo dado
 const getTotalHitsForInterval = (registros, horaInicio, horaFin) => {
-  const ahora = moment.tz("America/Mexico_City");
-  let shiftStart = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
-  if (ahora.isBefore(shiftStart)) {
-    shiftStart.subtract(1, "days");
-  }
+  const shiftStart = obtenerShiftStart();
   const startInterval = getIntervalTimestamp(shiftStart, horaInicio);
   const endInterval = getIntervalTimestamp(shiftStart, horaFin);
   return registros
@@ -87,7 +93,7 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
 };
 
 const Totales_Engraver_Maquina = () => {
-  // Recarga la página cada 5 minutos y forzamos recarga a las 22:00 (o programada para el día siguiente)
+  // Efecto para recargar la página cada 5 minutos y también a las 22:00 (o programada para el día siguiente)
   useEffect(() => {
     const intervalId = setInterval(() => {
       window.location.reload();
@@ -137,7 +143,7 @@ const Totales_Engraver_Maquina = () => {
     "01:00 - 02:00",
     "00:00 - 01:00",
     "23:00 - 00:00",
-    "22:00 - 23:00",
+    "22:00 - 23:00"
   ];
   const [horasUnicas, setHorasUnicas] = useState(fixedHoras);
   const [metasPorMaquina, setMetasPorMaquina] = useState({});
@@ -148,6 +154,7 @@ const Totales_Engraver_Maquina = () => {
     vespertino: 0,
     nocturno: 0,
   });
+
   const ordenCelulas = [
     "270 ENGRVR 1",
     "271 ENGRVR 2",
@@ -169,6 +176,7 @@ const Totales_Engraver_Maquina = () => {
           console.error("La respuesta de las metas no contiene un array válido:", responseMetas.data);
         }
         setMetasPorMaquina(metas);
+
         // Cargar registros del día actual (jornada que inicia a las 22:00)
         const responseRegistros = await clienteAxios("/engraver/engraver/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
@@ -307,13 +315,9 @@ const Totales_Engraver_Maquina = () => {
       ? "text-green-500"
       : "text-red-500";
 
-  // useMemo para filtrar las horas: se muestran solo aquellas franjas en las cuales la suma total de hits (usando fecha+hora completa) es mayor a 0
+  // useMemo para filtrar las horas: se muestran solo aquellas franjas donde la suma total de hits es mayor a 0
   const filteredHoras = useMemo(() => {
-    const ahora = moment.tz("America/Mexico_City");
-    let shiftStart = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
-    if (ahora.isBefore(shiftStart)) {
-      shiftStart.subtract(1, "days");
-    }
+    const shiftStart = obtenerShiftStart();
     return horasUnicas.filter((hora) => {
       const [horaInicio, horaFin] = hora.split(" - ");
       const totalHits = Object.values(registrosAgrupados)
@@ -389,6 +393,7 @@ const Totales_Engraver_Maquina = () => {
                     <span className="font-bold text-gray-700">Horas:</span>
                     {filteredHoras.map((hora, idx) => {
                       const [horaInicio, horaFin] = hora.split(" - ");
+                      const shiftStart = obtenerShiftStart();
                       const totalHits = registrosCelula
                         .filter((r) => {
                           const registroDateTime = moment.tz(
@@ -396,15 +401,8 @@ const Totales_Engraver_Maquina = () => {
                             "YYYY-MM-DD HH:mm:ss",
                             "America/Mexico_City"
                           );
-                          // Usamos getIntervalTimestamp para obtener la marca de tiempo de inicio y fin
-                          const startMoment = getIntervalTimestamp(
-                            moment.tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                            horaInicio
-                          );
-                          const endMoment = getIntervalTimestamp(
-                            moment.tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                            horaFin
-                          );
+                          const startMoment = getIntervalTimestamp(shiftStart, horaInicio);
+                          const endMoment = getIntervalTimestamp(shiftStart, horaFin);
                           return registroDateTime.isSameOrAfter(startMoment) && registroDateTime.isBefore(endMoment);
                         })
                         .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
@@ -489,6 +487,7 @@ const Totales_Engraver_Maquina = () => {
                     ))}
                     {filteredHoras.map((hora, idx) => {
                       const [horaInicio, horaFin] = hora.split(" - ");
+                      const shiftStart = obtenerShiftStart();
                       const totalHits = registrosCelula
                         .filter((r) => {
                           const registroDateTime = moment.tz(
@@ -496,14 +495,8 @@ const Totales_Engraver_Maquina = () => {
                             "YYYY-MM-DD HH:mm:ss",
                             "America/Mexico_City"
                           );
-                          const startMoment = getIntervalTimestamp(
-                            moment.tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                            horaInicio
-                          );
-                          const endMoment = getIntervalTimestamp(
-                            moment.tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                            horaFin
-                          );
+                          const startMoment = getIntervalTimestamp(shiftStart, horaInicio);
+                          const endMoment = getIntervalTimestamp(shiftStart, horaFin);
                           return registroDateTime.isSameOrAfter(startMoment) && registroDateTime.isBefore(endMoment);
                         })
                         .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
@@ -539,6 +532,7 @@ const Totales_Engraver_Maquina = () => {
                 ))}
                 {filteredHoras.map((hora, index) => {
                   const [horaInicio, horaFin] = hora.split(" - ");
+                  const shiftStart = obtenerShiftStart();
                   const totalHits = Object.values(registrosAgrupados)
                     .flat()
                     .filter((r) => {
@@ -547,14 +541,8 @@ const Totales_Engraver_Maquina = () => {
                         "YYYY-MM-DD HH:mm:ss",
                         "America/Mexico_City"
                       );
-                      const startMoment = getIntervalTimestamp(
-                        moment.tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                        horaInicio
-                      );
-                      const endMoment = getIntervalTimestamp(
-                        moment.tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                        horaFin
-                      );
+                      const startMoment = getIntervalTimestamp(shiftStart, horaInicio);
+                      const endMoment = getIntervalTimestamp(shiftStart, horaFin);
                       return registroDateTime.isSameOrAfter(startMoment) && registroDateTime.isBefore(endMoment);
                     })
                     .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
@@ -579,7 +567,10 @@ const Totales_Engraver_Maquina = () => {
                 </h3>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Total:</span>
-                  <span className={`text-lg ${getClassName(totalesPorTurno[turno], sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8))}`}>
+                  <span className={`text-lg ${getClassName(
+                    totalesPorTurno[turno],
+                    sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8)
+                  )}`}>
                     {totalesPorTurno[turno]}
                   </span>
                 </div>

@@ -3,7 +3,18 @@ import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/solid";
+
 moment.tz.setDefault("America/Mexico_City");
+
+// Función auxiliar para obtener el shiftStart de la jornada de 22:00
+const obtenerShiftStart = () => {
+  const ahora = moment.tz("America/Mexico_City");
+  let shiftStart = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
+  if (ahora.isBefore(shiftStart)) {
+    shiftStart.subtract(1, "days");
+  }
+  return shiftStart;
+};
 
 // Función auxiliar para construir un objeto moment usando la fecha base según la hora
 const getIntervalTimestamp = (shiftStart, horaStr) => {
@@ -16,27 +27,6 @@ const getIntervalTimestamp = (shiftStart, horaStr) => {
     "YYYY-MM-DD HH:mm:ss",
     "America/Mexico_City"
   );
-};
-
-// Función auxiliar para obtener el total de hits en un intervalo dado
-const getTotalHitsForInterval = (registros, horaInicio, horaFin) => {
-  const ahora = moment.tz("America/Mexico_City");
-  let shiftStart = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
-  if (ahora.isBefore(shiftStart)) {
-    shiftStart.subtract(1, "days");
-  }
-  const startInterval = getIntervalTimestamp(shiftStart, horaInicio);
-  const endInterval = getIntervalTimestamp(shiftStart, horaFin);
-  return registros
-    .filter((r) => {
-      const registroDateTime = moment.tz(
-        `${r.fecha} ${r.hour}`,
-        "YYYY-MM-DD HH:mm:ss",
-        "America/Mexico_City"
-      );
-      return registroDateTime.isSameOrAfter(startInterval) && registroDateTime.isBefore(endInterval);
-    })
-    .reduce((acc, curr) => acc + parseInt(curr.hits || "0", 10), 0);
 };
 
 // Componente para el título desplegable
@@ -94,7 +84,6 @@ const Totales_Pulido_Maquina = () => {
     const interval = setInterval(() => {
       window.location.reload();
     }, 300000); // 5 minutos
-
     const now = moment();
     let target = moment().hour(22).minute(0).second(0);
     if (now.isAfter(target)) {
@@ -146,7 +135,6 @@ const Totales_Pulido_Maquina = () => {
     vespertino: 0,
     nocturno: 0
   });
-
   const ordenCelulas = [
     "254 IFLEX SRVR",
     "255 POLISHR 1",
@@ -163,7 +151,6 @@ const Totales_Pulido_Maquina = () => {
     "268 MULTIFLEX 3",
     "269 MULTIFLEX 4"
   ];
-
   const toggleSeccion = (celula) => {
     setSeccionesAbiertas(prev => ({ ...prev, [celula]: !prev[celula] }));
   };
@@ -213,10 +200,8 @@ const Totales_Pulido_Maquina = () => {
           return acc;
         }, {});
         setRegistrosAgrupados(agrupados);
-
         // Se asigna el arreglo fijo de horas
         setHorasUnicas(fixedHoras);
-
         // Acumulados totales por célula
         const acumulados = {};
         registrosFiltrados.forEach((registro) => {
@@ -224,7 +209,6 @@ const Totales_Pulido_Maquina = () => {
           acumulados[celula] = (acumulados[celula] || 0) + parseInt(registro.hits || 0, 10);
         });
         setTotalesAcumulados(acumulados);
-
         // Totales por turno y por célula
         const totalesMaquina = calcularTotalesPorTurnoYMaquina(registrosFiltrados, inicioHoy);
         setTotalesPorTurnoYMaquina(totalesMaquina);
@@ -314,7 +298,7 @@ const Totales_Pulido_Maquina = () => {
     return totales;
   };
 
-  // Sumas totales (en la vista de totales de la tabla)
+  // Sumas totales (para la vista de totales en la tabla)
   const sumaTotalAcumulados = Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0);
   const sumaTotalMetas = Object.keys(metasPorMaquina).reduce(
     (acc, celula) => acc + (metasPorMaquina[celula] || 0),
@@ -329,17 +313,12 @@ const Totales_Pulido_Maquina = () => {
       ? "text-green-500"
       : "text-red-500";
 
-  // Filtrado de franjas horarias: se conservan solo aquellas donde la suma total de hits (usando fecha + hora completa) sea mayor que 0.
+  // useMemo para filtrar las franjas horarias: se conservan solo aquellas donde la suma total de hits sea mayor que 0,
+  // utilizando la función obtenerShiftStart para garantizar la consistencia
   const filteredHoras = useMemo(() => {
-    // Calculamos shiftStart siguiendo la misma lógica de la función auxiliar
-    const ahora = moment.tz("America/Mexico_City");
-    let shiftStart = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
-    if (ahora.isBefore(shiftStart)) {
-      shiftStart.subtract(1, "days");
-    }
+    const shiftStart = obtenerShiftStart();
     return horasUnicas.filter((hora) => {
       const [horaInicio, horaFin] = hora.split(" - ");
-      // Sumamos los hits de todos los registros (utilizando la marca de tiempo completa)
       const totalHits = Object.values(registrosAgrupados)
         .flat()
         .reduce((acc, r) => {
@@ -414,6 +393,8 @@ const Totales_Pulido_Maquina = () => {
                     <span className="font-bold text-gray-700">Horas:</span>
                     {filteredHoras.map((hora, idx) => {
                       const [horaInicio, horaFin] = hora.split(" - ");
+                      // Utilizamos la función obtenerShiftStart para garantizar la fecha correcta
+                      const shiftStart = obtenerShiftStart();
                       const totalHits = registrosCelula
                         .filter((r) => {
                           const registroDateTime = moment.tz(
@@ -421,14 +402,8 @@ const Totales_Pulido_Maquina = () => {
                             "YYYY-MM-DD HH:mm:ss",
                             "America/Mexico_City"
                           );
-                          const startMoment = getIntervalTimestamp(
-                            moment().tz("America/Mexico_City").startOf("day").add(22, "hours"), 
-                            horaInicio
-                          );
-                          const endMoment = getIntervalTimestamp(
-                            moment().tz("America/Mexico_City").startOf("day").add(22, "hours"), 
-                            horaFin
-                          );
+                          const startMoment = getIntervalTimestamp(shiftStart, horaInicio);
+                          const endMoment = getIntervalTimestamp(shiftStart, horaFin);
                           return registroDateTime.isSameOrAfter(startMoment) && registroDateTime.isBefore(endMoment);
                         })
                         .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
@@ -447,7 +422,6 @@ const Totales_Pulido_Maquina = () => {
             );
           })}
         </div>
-
         {/* Vista en tabla para pantallas grandes */}
         <div className="hidden lg:block">
           <Navegacion/>
@@ -512,6 +486,7 @@ const Totales_Pulido_Maquina = () => {
                     ))}
                     {filteredHoras.map((hora, idx) => {
                       const [horaInicio, horaFin] = hora.split(" - ");
+                      const shiftStart = obtenerShiftStart();
                       const totalHits = registrosCelula
                         .filter((r) => {
                           const registroDateTime = moment.tz(
@@ -519,14 +494,8 @@ const Totales_Pulido_Maquina = () => {
                             "YYYY-MM-DD HH:mm:ss",
                             "America/Mexico_City"
                           );
-                          const startMoment = getIntervalTimestamp(
-                            moment().tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                            horaInicio
-                          );
-                          const endMoment = getIntervalTimestamp(
-                            moment().tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                            horaFin
-                          );
+                          const startMoment = getIntervalTimestamp(shiftStart, horaInicio);
+                          const endMoment = getIntervalTimestamp(shiftStart, horaFin);
                           return registroDateTime.isSameOrAfter(startMoment) && registroDateTime.isBefore(endMoment);
                         })
                         .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
@@ -548,7 +517,8 @@ const Totales_Pulido_Maquina = () => {
                     key={turno}
                     className={`py-2 px-4 border-b font-bold ${
                       totalesPorTurno[turno] > 0 &&
-                      totalesPorTurno[turno] >=  (sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8))
+                      totalesPorTurno[turno] >=
+                        (sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8))
                         ? "text-green-500"
                         : "text-red-500"
                     }`}
@@ -558,6 +528,7 @@ const Totales_Pulido_Maquina = () => {
                 ))}
                 {filteredHoras.map((hora, index) => {
                   const [horaInicio, horaFin] = hora.split(" - ");
+                  const shiftStart = obtenerShiftStart();
                   const totalHits = Object.values(registrosAgrupados)
                     .flat()
                     .filter((r) => {
@@ -566,14 +537,8 @@ const Totales_Pulido_Maquina = () => {
                         "YYYY-MM-DD HH:mm:ss",
                         "America/Mexico_City"
                       );
-                      const startMoment = getIntervalTimestamp(
-                        moment().tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                        horaInicio
-                      );
-                      const endMoment = getIntervalTimestamp(
-                        moment().tz("America/Mexico_City").startOf("day").add(22, "hours"),
-                        horaFin
-                      );
+                      const startMoment = getIntervalTimestamp(shiftStart, horaInicio);
+                      const endMoment = getIntervalTimestamp(shiftStart, horaFin);
                       return registroDateTime.isSameOrAfter(startMoment) && registroDateTime.isBefore(endMoment);
                     })
                     .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
@@ -586,7 +551,6 @@ const Totales_Pulido_Maquina = () => {
             </tbody>
           </table>
         </div>
-
         {/* Totales por turno */}
         <div className="mt-4 font-semibold mb-4">
           <div className="lg:hidden space-y-4">
@@ -595,7 +559,10 @@ const Totales_Pulido_Maquina = () => {
                 <h3 className="text-lg font-bold text-gray-800 mb-2">{`Turno ${turno.charAt(0).toUpperCase() + turno.slice(1)}`}</h3>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Total:</span>
-                  <span className={`text-lg ${getClassName(totalesPorTurno[turno], sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8))}`}>
+                  <span className={`text-lg ${getClassName(
+                    totalesPorTurno[turno],
+                    sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8)
+                  )}`}>
                     {totalesPorTurno[turno]}
                   </span>
                 </div>
