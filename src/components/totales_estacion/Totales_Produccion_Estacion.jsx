@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from 'moment-timezone';
-
 moment.tz.setDefault('America/Mexico_City');
 
 const Totales_Produccion_Estacion = () => {
@@ -23,12 +22,12 @@ const Totales_Produccion_Estacion = () => {
 
     useEffect(() => {
         if (location.hash === '#produccion' && produccionRef.current) {
-          setTimeout(() => {
-            const yOffset = -5;
-            const element = produccionRef.current;
-            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({top: y, behavior: 'smooth'});
-          }, 100);
+            setTimeout(() => {
+                const yOffset = -5;
+                const element = produccionRef.current;
+                const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }, 100);
         }
     }, [location]);
 
@@ -43,8 +42,8 @@ const Totales_Produccion_Estacion = () => {
                 const responseRegistros = await clienteAxios('/manual/manual/actualdia');
                 const registrosLensLog = responseRegistros.data.registros.filter(registro => registro.name.includes('JOB COMPLETE'));
                 const ahora = moment();
-                let inicioHoy = moment().startOf('day').add(6, 'hours').add(30, 'minutes');
-                let finHoy = moment(inicioHoy).add(1, 'days');
+                let inicioHoy = moment().startOf('day').add(22, 'hours'); // 22:00 del día anterior
+                let finHoy = moment(inicioHoy).add(1, 'days').subtract(30, 'minutes'); // 21:30 del día siguiente
                 if (ahora.isBefore(inicioHoy)) {
                     inicioHoy.subtract(1, 'days');
                     finHoy.subtract(1, 'days');
@@ -71,12 +70,17 @@ const Totales_Produccion_Estacion = () => {
         };
         registros.forEach(registro => {
             const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss');
-            if (fechaHoraRegistro.isBetween(inicioHoy, moment(inicioHoy).add(8, 'hours'), null, '[)')) {
-                totales.matutino += registro.hits;
-            } else if (fechaHoraRegistro.isBetween(moment(inicioHoy).add(8, 'hours'), moment(inicioHoy).add(15, 'hours'), null, '[)')) {
-                totales.vespertino += registro.hits;
-            } else {
+            // Turno Nocturno: 22:00 a 05:59
+            if (fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, 'hours'), null, '[)')) {
                 totales.nocturno += registro.hits;
+            }
+            // Turno Matutino: 06:30 a 13:29
+            else if (fechaHoraRegistro.isBetween(inicioHoy.clone().add(8, 'hours').add(30, 'minutes'), inicioHoy.clone().add(16, 'hours'), null, '[)')) {
+                totales.matutino += registro.hits;
+            }
+            // Turno Vespertino: 14:30 a 21:30
+            else if (fechaHoraRegistro.isBetween(inicioHoy.clone().add(16, 'hours').add(30, 'minutes'), inicioHoy.clone().add(23, 'hours').add(30, 'minutes'), null, '[)')) {
+                totales.vespertino += registro.hits;
             }
         });
         setTotalesPorTurno(totales);
@@ -84,9 +88,9 @@ const Totales_Produccion_Estacion = () => {
 
     const calcularMetasPorTurno = (metaPorHora) => {
         setMetasPorTurno({
-            matutino: 7 * metaPorHora,
-            vespertino: 6 * metaPorHora,
-            nocturno: 7 * metaPorHora
+            matutino: 8 * metaPorHora, // Meta acumulada para el turno matutino
+            vespertino: 7 * metaPorHora, // Meta fija para el turno vespertino
+            nocturno: 9 * metaPorHora // Meta fija para el turno nocturno
         });
     };
 
@@ -104,19 +108,18 @@ const Totales_Produccion_Estacion = () => {
         return hitsPorHora;
     };
 
-    const hitsPorHora = agruparHitsPorHora();
-    const horasOrdenadas = Object.keys(hitsPorHora).sort((a, b) => {
-        const momentA = moment(a, 'HH:mm');
-        const momentB = moment(b, 'HH:mm');
-        if (momentA.isBefore(moment('06:30', 'HH:mm'))) momentA.add(1, 'day');
-        if (momentB.isBefore(moment('06:30', 'HH:mm'))) momentB.add(1, 'day');
-        return momentB.diff(momentA);
-    });
-    const filaGenerados = horasOrdenadas.map((hora) => hitsPorHora[hora]);
-
-    const formatearHoraSinSegundos = (hora) => {
-        return moment(hora, 'HH:mm').format('HH:mm');
+    const ordenarHorasPorTurno = (horas) => {
+        const ordenTurnos = [
+            '21:30', '20:30', '19:30', '18:30', '17:30', '16:30', '15:30', '14:30', // Vespertino
+            '13:30', '12:30', '11:30', '10:30', '09:30', '08:30', '07:30', '06:30', // Matutino
+            '05:00', '04:00', '03:00', '02:00', '01:00', '00:00', '23:00', '22:00'  // Nocturno
+        ];
+        return ordenTurnos.filter(hora => horas.includes(hora));
     };
+
+    const hitsPorHora = agruparHitsPorHora();
+    const horasOrdenadas = ordenarHorasPorTurno(Object.keys(hitsPorHora));
+    const filaGenerados = horasOrdenadas.map((hora) => hitsPorHora[hora]);
 
     const calcularRangoHoras = (horaInicio) => {
         const inicio = moment(horaInicio, 'HH:mm');
@@ -137,7 +140,7 @@ const Totales_Produccion_Estacion = () => {
                             <th className="py-2 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
                             {horasOrdenadas.map((hora) => (
                                 <th key={hora} className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
-                                    {calcularRangoHoras(formatearHoraSinSegundos(hora))}
+                                    {calcularRangoHoras(hora)}
                                 </th>
                             ))}
                         </tr>
@@ -145,8 +148,8 @@ const Totales_Produccion_Estacion = () => {
                     <tbody className="text-center bg-white">
                         <tr className="font-semibold text-gray-700">
                             <Link to={'/totales_produccion_maquina'} className="link__tabla">
-                                <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
-                                    <img src="./img/ver.png" alt="" width={25} className="relative left-6"/>
+                                <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
+                                    <img src="./img/ver.png" alt="" width={25} className="relative left-2"/>
                                     <td className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
                                         Producción <br />
                                         <span className="text-gray-500">Meta por hora: <span>{meta}</span></span>
@@ -164,29 +167,29 @@ const Totales_Produccion_Estacion = () => {
                 <div className='flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4'>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Matutino: 
-                            <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
-                                {totalesPorTurno.matutino}
+                            Total Nocturno Acumulado: 
+                            <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
+                                {totalesPorTurno.nocturno}
                             </span> 
-                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.matutino}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.nocturno}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Vespertino: 
-                            <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
-                                {totalesPorTurno.vespertino}
+                            Total Matutino Acumulado: 
+                            <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
+                                {totalesPorTurno.matutino}
                             </span> 
-                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.vespertino}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.matutino}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
-                            Total Nocturno: 
-                            <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
-                                {totalesPorTurno.nocturno}
+                            Total Vespertino Acumulado: 
+                            <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
+                                {totalesPorTurno.vespertino}
                             </span> 
-                            / Meta: <span className="text-gray-600 font-bold ml-1">{metasPorTurno.nocturno}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.vespertino}</span>
                         </p>
                     </div>
                 </div>
@@ -209,7 +212,7 @@ const Totales_Produccion_Estacion = () => {
                             const hitsClass = totalHits >= meta ? "text-green-500" : "text-red-500";
                             return (
                                 <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
-                                    <span className="font-bold text-gray-700">{calcularRangoHoras(formatearHoraSinSegundos(hora))}:</span>
+                                    <span className="font-bold text-gray-700">{calcularRangoHoras(hora)}:</span>
                                     <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
                                 </div>
                             );
@@ -224,6 +227,13 @@ const Totales_Produccion_Estacion = () => {
                         <div className="bg-green-50 p-4 rounded-lg shadow-md">
                             <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
                             <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2">
+                                    <span className="block text-gray-600">Nocturno: </span>
+                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
+                                        {totalesPorTurno.nocturno}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.nocturno}</span>
+                                </div>
                                 <div>
                                     <span className="block text-gray-600">Matutino: </span>
                                     <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}`}>
@@ -237,13 +247,6 @@ const Totales_Produccion_Estacion = () => {
                                         {totalesPorTurno.vespertino}
                                     </span>
                                     <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.vespertino}</span>
-                                </div>
-                                <div className="col-span-2">
-                                    <span className="block text-gray-600">Nocturno: </span>
-                                    <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
-                                        {totalesPorTurno.nocturno}
-                                    </span>
-                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.nocturno}</span>
                                 </div>
                             </div>
                         </div>
