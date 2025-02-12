@@ -107,7 +107,6 @@ const Totales_Surtido_Maquina = () => {
       clearTimeout(timeoutId);
     };
   }, []);
-
   // Estados locales
   const [seccionAbierta, setSeccionAbierta] = useState(false);
   const [registros, setRegistros] = useState([]);
@@ -125,11 +124,9 @@ const Totales_Surtido_Maquina = () => {
     vespertino: 0,
     nocturno: 0
   });
-
   const toggleSeccion = () => {
     setSeccionAbierta(!seccionAbierta);
   };
-
   // Determina el inicio del turno (inicia a las 22:00). Si la hora actual es anterior, se toma el turno del día anterior.
   const getShiftStart = () => {
     let shiftStart = moment().tz("America/Mexico_City").startOf("day").add(22, "hours");
@@ -138,7 +135,6 @@ const Totales_Surtido_Maquina = () => {
     }
     return shiftStart;
   };
-
   // Función para calcular las horas transcurridas reales desde el inicio del turno.
   const calcularHorasTranscurridas = () => {
     const shiftStart = getShiftStart();
@@ -146,7 +142,6 @@ const Totales_Surtido_Maquina = () => {
     const diffHoras = ahora.diff(shiftStart, "hours", true);
     return diffHoras > 0 ? Math.floor(diffHoras) : 0;
   };
-
   // Cargar datos: metas y registros.
   useEffect(() => {
     const cargarDatos = async () => {
@@ -161,7 +156,6 @@ const Totales_Surtido_Maquina = () => {
         );
         setMeta19(meta19Obj ? meta19Obj.meta : 0);
         setMeta20(meta20Obj ? meta20Obj.meta : 0);
-
         // Cargar registros.
         const responseRegistros = await clienteAxios("/manual/manual/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
@@ -184,7 +178,7 @@ const Totales_Surtido_Maquina = () => {
   }, []);
 
   // Función para procesar los registros filtrados y establecer los estados.
-  // Además, se calcula dinámicamente qué columnas (horas) mostrar según los registros.
+  // Ahora se suma en totalAcumulado únicamente si el registro corresponde a los dos tipos deseados.
   const procesarRegistros = (registrosFiltrados, shiftStart) => {
     let totalAcumulado = 0;
     const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
@@ -192,10 +186,12 @@ const Totales_Surtido_Maquina = () => {
       "19 LENS LOG-SF": [],
       "20 LENS LOG-FIN": []
     };
-
     registrosFiltrados.forEach((registro) => {
       const hits = parseInt(registro.hits || 0, 10);
-      totalAcumulado += hits;
+      // Sólo se suman los hits si el registro pertenece a alguno de los dos tipos.
+      if (registro.name.includes("19 LENS LOG-SF") || registro.name.includes("20 LENS LOG-FIN")) {
+        totalAcumulado += hits;
+      }
       if (registro.name.includes("19 LENS LOG-SF")) {
         registrosPorTipoTemp["19 LENS LOG-SF"].push(registro);
       } else if (registro.name.includes("20 LENS LOG-FIN")) {
@@ -235,8 +231,11 @@ const Totales_Surtido_Maquina = () => {
         totales.vespertino += hits;
       }
     });
-
-    // Ahora se determina dinámicamente qué columnas (intervalos de hora) tienen registros.
+    setTotalesAcumulados(totalAcumulado);
+    setRegistros(registrosFiltrados);
+    setTotalesPorTurno(totales);
+    setRegistrosPorTipo(registrosPorTipoTemp);
+    // Se determina dinámicamente qué columnas (intervalos de hora) tienen registros.
     const dynamicHoras = fixedHoras.filter((intervalo) => {
       const [horaInicio, horaFin] = intervalo.split(" - ");
       let totalIntervalo = 0;
@@ -258,12 +257,6 @@ const Totales_Surtido_Maquina = () => {
       });
       return totalIntervalo > 0;
     });
-
-    setTotalesAcumulados(totalAcumulado);
-    setRegistros(registrosFiltrados);
-    setTotalesPorTurno(totales);
-    setRegistrosPorTipo(registrosPorTipoTemp);
-    // Se utiliza el arreglo dinámico para mostrar las columnas que tengan al menos un registro.
     setHorasUnicas(dynamicHoras);
   };
 
@@ -277,11 +270,9 @@ const Totales_Surtido_Maquina = () => {
   // Calculamos las horas transcurridas reales desde el inicio del turno.
   const horasTranscurridas = calcularHorasTranscurridas();
   const sumaMetas = meta19 + meta20;
-  
   // Se calculan las metas acumuladas para cada tipo usando las horas transcurridas reales.
   const metaAcumuladaTotal19 = horasTranscurridas * meta19;
   const metaAcumuladaTotal20 = horasTranscurridas * meta20;
-
   // Evaluamos la clase de color para el total acumulado.
   const claseTotal = evaluarTotalAcumulado(totalesAcumulados, sumaMetas, horasTranscurridas);
 
