@@ -98,7 +98,7 @@ const Totales_Terminado_Estacion = () => {
         setMetasPorTurno({
             matutino: 8 * metaPorHora,
             vespertino: 7 * metaPorHora,
-            nocturno: 7 * metaPorHora
+            nocturno: 8 * metaPorHora
         });
     };
 

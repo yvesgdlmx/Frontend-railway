@@ -98,7 +98,7 @@ const Totales_Engraver_Estacion = () => {
         setMetasPorTurno({
             matutino: 8 * metaPorHora,
             vespertino: 7 * metaPorHora,
-            nocturno: 7 * metaPorHora
+            nocturno: 8 * metaPorHora
         });
     };
 

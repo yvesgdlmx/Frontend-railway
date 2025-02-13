@@ -90,7 +90,7 @@ const Totales_Produccion_Estacion = () => {
         setMetasPorTurno({
             matutino: 8 * metaPorHora, // Meta acumulada para el turno matutino
             vespertino: 7 * metaPorHora, // Meta fija para el turno vespertino
-            nocturno: 9 * metaPorHora // Meta fija para el turno nocturno
+            nocturno: 8 * metaPorHora // Meta fija para el turno nocturno
         });
     };
 

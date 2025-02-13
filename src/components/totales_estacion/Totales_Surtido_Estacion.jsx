@@ -102,7 +102,7 @@ const Totales_Surtido_Estacion = () => {
         setMetasPorTurno({
             matutino: 8 * metaTotal,
             vespertino: 7 * metaTotal,
-            nocturno: 7 * metaTotal
+            nocturno: 8 * metaTotal
         });
     };
 
