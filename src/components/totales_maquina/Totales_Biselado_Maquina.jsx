@@ -7,6 +7,11 @@ import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/sol
 // Establecer la zona horaria por defecto
 moment.tz.setDefault("America/Mexico_City");
 
+// CONSTANTES PARA LAS HORAS FIJAS DE CADA TURNO
+const HORAS_NOCTURNO = 8;
+const HORAS_MATUTINO = 8;
+const HORAS_VESPERTINO = 7;
+
 // Función que determina el inicio de la jornada:
 // Si el momento actual es antes de las 22:00 se asume que la jornada inició el día anterior a las 22:00.
 const getJornadaInicio = () => {
@@ -47,13 +52,14 @@ const getTotalHitsForInterval = (registros, horaInicio, horaFin) => {
     .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
 };
 
-// Función auxiliar que calcula la meta acumulada en base a las horas transcurridas
+// Función auxiliar que calcula la meta acumulada en base a las horas transcurridas (en la jornada completa)
 const getMetaAcumulada = (meta) => {
   const now = moment.tz("America/Mexico_City");
   let inicioJornada = moment.tz("America/Mexico_City").startOf("day").add(22, "hours");
   if (now.isBefore(inicioJornada)) {
     inicioJornada.subtract(1, "days");
   }
+  // En este caso se calcula usando el número de horas transcurridas (dinámico)
   const horasTranscurridas = now.diff(inicioJornada, "hours");
   return meta * horasTranscurridas;
 };
@@ -155,7 +161,7 @@ const Totales_Biselado_Maquina = () => {
     setHorasUnicas(listaHoras);
   }, []);
 
-  // Orden de máquinas/células
+  // Orden de las máquinas/células
   const ordenCelulas = [
     "298 DOUBLER",
     "299 BISPHERA",
@@ -260,9 +266,7 @@ const Totales_Biselado_Maquina = () => {
   }, []);
 
   /**************** Funciones de Cálculo ****************/
-  // Calcular totales globales por turno.
-  // Se utiliza una lógica basada en la hora del registro:
-  // Si la hora es >=22 o <6 se asigna al turno nocturno; de lo contrario se calcula matutino o vespertino.
+  // Calcular totales globales por turno usando la lógica definida.
   const calcularTotalesPorTurno = (registros) => {
     const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
     registros.forEach((registro) => {
@@ -319,29 +323,16 @@ const Totales_Biselado_Maquina = () => {
     return totales;
   };
 
-  // Calcular horas transcurridas de cada turno para determinar metas parciales.
-  // Se consideran los mismos límites que en la lógica original.
-  const ahora = moment();
-  let inicioNocturno;
-  if (ahora.hour() < 6) {
-    inicioNocturno = moment().startOf("day").subtract(1, "days").add(22, "hours");
-  } else {
-    inicioNocturno = moment().startOf("day").add(22, "hours");
-  }
-  const horasNocturno = Math.min(ahora.diff(inicioNocturno, "hours"), 8);
-  const horasMatutino = Math.min(ahora.diff(moment().startOf("day").add(6, "hours").add(30, "minutes"), "hours"), 8);
-  const horasVespertino = Math.min(Math.max(ahora.diff(moment().startOf("day").add(14, "hours").add(30, "minutes"), "hours"), 0), 7);
-
-  // Meta total a cumplir (suma de las metas definidas para cada máquina)
+  // Meta total (suma de las metas de cada máquina)
   const sumaTotalMetas = Object.keys(metasPorMaquina).reduce(
     (acc, celula) => acc + (metasPorMaquina[celula] || 0),
     0
   );
-  const metaNocturnoFinal = sumaTotalMetas * 8;
-  const metaMatutinoFinal = sumaTotalMetas * 8;
-  const metaVespertinoFinal = sumaTotalMetas * 7;
+  const metaNocturnoFinal = sumaTotalMetas * HORAS_NOCTURNO;
+  const metaMatutinoFinal = sumaTotalMetas * HORAS_MATUTINO;
+  const metaVespertinoFinal = sumaTotalMetas * HORAS_VESPERTINO;
 
-  // Función para determinar la clase según si se cumple la meta parcial
+  // Función para determinar la clase según se cumpla la meta parcial
   const getClassName = (hits, metaPorTurno) =>
     hits >= metaPorTurno ? "text-green-500" : "text-red-500";
 
@@ -355,11 +346,7 @@ const Totales_Biselado_Maquina = () => {
     });
   }, [listaHoras, registrosAgrupados]);
 
-  // Funciones auxiliares para la fila final de la tabla
-  const sumaTotal = (metas) =>
-    Object.keys(metas).reduce((acc, celula) => acc + (metas[celula] || 0), 0);
-
-  // En este caso, para determinar la clase del total acumulado usamos la suma global de metaAcumulada
+  // Función auxiliar para obtener la clase del total acumulado (fila final)
   const totalAcumuladoClass = (acumulados, metas) => {
     const totalAcum = Object.values(acumulados).reduce((acc, curr) => acc + curr, 0);
     const metaGlobalAcumulada = Object.keys(metas).reduce((acc, celula) => acc + getMetaAcumulada(metas[celula]), 0);
@@ -375,13 +362,14 @@ const Totales_Biselado_Maquina = () => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
-            // Se reemplaza meta * filteredHoras.length por el valor dinámico
+            // Se calcula la meta acumulada de forma dinámica (para mostrar la suma hasta el momento)
             const metaAcumulada = getMetaAcumulada(meta);
             const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
+            // Aquí se calculan las metas fijas por turno usando las constantes
+            const metaNocturno = meta * HORAS_NOCTURNO;
+            const metaMatutino = meta * HORAS_MATUTINO;
+            const metaVespertino = meta * HORAS_VESPERTINO;
             const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
-            const metaMatutino = meta * horasMatutino;
-            const metaVespertino = meta * horasVespertino;
-            const metaNocturno = meta * horasNocturno;
             return (
               <SeccionMenu
                 key={index}
@@ -440,7 +428,6 @@ const Totales_Biselado_Maquina = () => {
             );
           })}
         </div>
-
         {/* Vista en tabla para pantallas grandes */}
         <div className="hidden lg:block">
           <Navegacion />
@@ -467,9 +454,9 @@ const Totales_Biselado_Maquina = () => {
                 const metaAcumulada = getMetaAcumulada(meta);
                 const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
                 const bgColor = index % 2 === 0 ? "bg-gray-200" : "bg-white";
-                const metaMatutino = meta * horasMatutino;
-                const metaVespertino = meta * horasVespertino;
-                const metaNocturno = meta * horasNocturno;
+                const metaNocturno = meta * HORAS_NOCTURNO;
+                const metaMatutino = meta * HORAS_MATUTINO;
+                const metaVespertino = meta * HORAS_VESPERTINO;
                 return (
                   <tr key={index} className={`font-semibold text-gray-700 ${bgColor}`}>
                     <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>{celula}</td>
@@ -506,12 +493,9 @@ const Totales_Biselado_Maquina = () => {
                 <td className={`py-2 px-4 border-b font-bold ${totalAcumuladoClass(totalesAcumulados, metasPorMaquina)}`}>
                   {Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0)}
                 </td>
-                <td className="py-2 px-4 border-b font-bold">{sumaTotal(metasPorMaquina)}</td>
+                <td className="py-2 px-4 border-b font-bold">{Object.keys(metasPorMaquina).reduce((acc, celula) => acc + (metasPorMaquina[celula] || 0), 0)}</td>
                 <td className="py-2 px-4 border-b font-bold">
-                  {Object.keys(metasPorMaquina).reduce(
-                    (acc, celula) => acc + getMetaAcumulada(metasPorMaquina[celula]),
-                    0
-                  )}
+                  {Object.keys(metasPorMaquina).reduce((acc, celula) => acc + getMetaAcumulada(metasPorMaquina[celula]), 0)}
                 </td>
                 <td className={`py-2 px-4 border-b font-bold ${totalesPorTurno.nocturno >= metaNocturnoFinal ? "text-green-500" : "text-red-500"}`}>
                   {totalesPorTurno.nocturno}
@@ -528,7 +512,9 @@ const Totales_Biselado_Maquina = () => {
                     .flat()
                     .filter((r) => getTotalHitsForInterval([r], horaInicio, horaFin) > 0)
                     .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
-                  const claseSumaHits = sumaHits >= sumaTotal(metasPorMaquina) ? "text-green-500" : "text-red-500";
+                  const claseSumaHits = sumaHits >= Object.keys(metasPorMaquina).reduce((acc, celula) => acc + (metasPorMaquina[celula] || 0), 0)
+                    ? "text-green-500"
+                    : "text-red-500";
                   return (
                     <td key={index} className={`font-bold py-2 px-4 border-b ${claseSumaHits}`}>
                       {sumaHits}
@@ -539,7 +525,6 @@ const Totales_Biselado_Maquina = () => {
             </tbody>
           </table>
         </div>
-
         {/* Sección resumen de totales por turno */}
         <div className="mt-4 font-semibold mb-4">
           <div className="lg:hidden space-y-4">

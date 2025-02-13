@@ -6,8 +6,7 @@ import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/sol
 
 moment.tz.setDefault("America/Mexico_City");
 
-// Función que determina el inicio de jornada: si el momento actual es antes de las 22:00,
-// se asume que la jornada inició el día anterior a las 22:00.
+// Función que determina el inicio de jornada: si el momento actual es antes de las 22:00, se asume que la jornada inició el día anterior a las 22:00.
 const getJornadaInicio = () => {
   let inicio = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicio)) {
@@ -21,8 +20,7 @@ const getIntervalTimestamp = (shiftStart, horaStr) => {
   // Se separa la hora (por ejemplo, "22:00" o "20:30")
   const parts = horaStr.split(":");
   const hour = parseInt(parts[0], 10);
-  // Si la hora es mayor o igual a 22 se asume que la fecha base es shiftStart;
-  // de lo contrario se le suma un día.
+  // Si la hora es mayor o igual a 22 se asume que la fecha base es shiftStart; de lo contrario se le suma un día.
   const fechaBase = hour >= 22 ? shiftStart.clone() : shiftStart.clone().add(1, "days");
   return moment.tz(
     `${fechaBase.format("YYYY-MM-DD")} ${horaStr}:00`,
@@ -31,8 +29,7 @@ const getIntervalTimestamp = (shiftStart, horaStr) => {
   );
 };
 
-// Función auxiliar que calcula el total de hits en un intervalo de horas,
-// utilizando shiftStart para determinar la fecha base de cada franja.
+// Función auxiliar que calcula el total de hits en un intervalo de horas, utilizando shiftStart para determinar la fecha base de cada franja.
 const getTotalHitsForInterval = (registros, horaInicio, horaFin) => {
   const shiftStart = getJornadaInicio();
   const startInterval = getIntervalTimestamp(shiftStart, horaInicio);
@@ -48,6 +45,13 @@ const getTotalHitsForInterval = (registros, horaInicio, horaFin) => {
     })
     .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
 };
+
+// Función para calcular la meta fija por turno a partir de la meta base (multiplicadores fijos: matutino = 8, vespertino = 7, nocturno = 8)
+const calcularMetasFinales = (metaBase) => ({
+  metaMatutino: metaBase * 8,
+  metaVespertino: metaBase * 7,
+  metaNocturno: metaBase * 8,
+});
 
 // Componente para el título desplegable
 const TituloSeccion = ({ titulo, isOpen, toggle }) => (
@@ -96,12 +100,11 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
 };
 
 const Totales_Terminado_Maquina = () => {
-  // Auto-refrescado: cada 5 minutos y también se reinicia la jornada a la hora indicada
+  // Auto-refrescado: cada 5 minutos y se reinicia la jornada a la hora indicada
   useEffect(() => {
     const intervalId = setInterval(() => {
       window.location.reload();
     }, 300000); // cada 5 minutos
-
     const now = moment();
     let inicioHoy = moment().startOf("day").add(22, "hours");
     let finHoy = moment(inicioHoy).add(1, "days").subtract(30, "minutes");
@@ -113,7 +116,6 @@ const Totales_Terminado_Maquina = () => {
     const timeoutId = setTimeout(() => {
       window.location.reload();
     }, delay);
-
     return () => {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
@@ -123,6 +125,7 @@ const Totales_Terminado_Maquina = () => {
   // Estados y variables
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
   const toggleSeccion = (celula) => setSeccionesAbiertas((prev) => ({ ...prev, [celula]: !prev[celula] }));
+
   const [totalesPorTurnoYMaquina, setTotalesPorTurnoYMaquina] = useState({});
   const [horasUnicas, setHorasUnicas] = useState([]);
   const [metasPorMaquina, setMetasPorMaquina] = useState({});
@@ -133,18 +136,19 @@ const Totales_Terminado_Maquina = () => {
     vespertino: 0,
     nocturno: 0,
   });
-
   // Orden de las células
   const ordenCelulas = ["280 FINBLKR 1", "281 FINBLKR 2", "282 FINBLKR 3"];
 
-  // Obtenemos el inicio de la jornada y calculamos las horas transcurridas (enteras)
+  // Se obtiene el inicio de la jornada
   const jornadaInicio = getJornadaInicio();
+  // Se calcula el número de horas transcurridas (para el acumulado parcial)
+  // En casos previos se sumaba 1 para considerar la hora en curso; aquí lo dejamos tal cual o lo adaptamos si se desea.
   const horasTranscurridas = moment().diff(jornadaInicio, "hours");
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // Obtención de metas
+        // Obtención de las metas
         const responseMetas = await clienteAxios("/metas/metas-terminados");
         const metas = {};
         if (Array.isArray(responseMetas.data.registros)) {
@@ -156,7 +160,7 @@ const Totales_Terminado_Maquina = () => {
         }
         setMetasPorMaquina(metas);
 
-        // Obtención de registros
+        // Obtención de los registros de la jornada actual
         const responseRegistros = await clienteAxios("/terminado/terminado/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
         const ahora = moment();
@@ -174,8 +178,7 @@ const Totales_Terminado_Maquina = () => {
           );
           return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, "[)");
         });
-
-        // Agrupar registros por célula
+        // Agrupar registros por célula (tomando la parte antes del guión)
         const agrupados = registrosFiltrados.reduce((acc, registro) => {
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, " ");
           if (!acc[celula]) {
@@ -185,8 +188,7 @@ const Totales_Terminado_Maquina = () => {
           return acc;
         }, {});
         setRegistrosAgrupados(agrupados);
-
-        // Definir arreglo de horas
+        // Arreglo de horas (puede ser fijo)
         const horasArray = [
           "20:30 - 21:30",
           "19:30 - 20:30",
@@ -213,20 +215,16 @@ const Totales_Terminado_Maquina = () => {
           "22:00 - 23:00",
         ];
         setHorasUnicas(horasArray);
-
-        // Acumulación global por célula
+        // Calcular acumulados por célula
         const acumulados = {};
         registrosFiltrados.forEach((registro) => {
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, " ");
           acumulados[celula] = (acumulados[celula] || 0) + parseInt(registro.hits || 0, 10);
         });
         setTotalesAcumulados(acumulados);
-
-        // Calcular totales por turno para cada máquina
+        // Calcular totales por turno por máquina
         const totalesMaquina = calcularTotalesPorTurnoYMaquina(registrosFiltrados, inicioHoy);
         setTotalesPorTurnoYMaquina(totalesMaquina);
-
-        // Calcular totales generales por turno
         calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
       } catch (error) {
         console.error("Error al cargar los datos:", error);
@@ -235,7 +233,7 @@ const Totales_Terminado_Maquina = () => {
     cargarDatos();
   }, []);
 
-  // Función para calcular totales generales para cada turno
+  // Función para calcular totales generales por turno
   const calcularTotalesPorTurno = (registros, inicioHoy) => {
     const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
     registros.forEach((registro) => {
@@ -244,27 +242,21 @@ const Totales_Terminado_Maquina = () => {
         "YYYY-MM-DD HH:mm:ss",
         "America/Mexico_City"
       );
-      if (
-        fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")
-      ) {
+      if (fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")) {
         totales.nocturno += parseInt(registro.hits || 0, 10);
-      } else if (
-        fechaHoraRegistro.isBetween(
+      } else if (fechaHoraRegistro.isBetween(
           inicioHoy.clone().add(8, "hours").add(30, "minutes"),
           inicioHoy.clone().add(16, "hours"),
           null,
           "[)"
-        )
-      ) {
+      )) {
         totales.matutino += parseInt(registro.hits || 0, 10);
-      } else if (
-        fechaHoraRegistro.isBetween(
+      } else if (fechaHoraRegistro.isBetween(
           inicioHoy.clone().add(16, "hours").add(30, "minutes"),
           inicioHoy.clone().add(23, "hours").add(30, "minutes"),
           null,
           "[)"
-        )
-      ) {
+      )) {
         totales.vespertino += parseInt(registro.hits || 0, 10);
       }
     });
@@ -287,27 +279,21 @@ const Totales_Terminado_Maquina = () => {
         "YYYY-MM-DD HH:mm:ss",
         "America/Mexico_City"
       );
-      if (
-        fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")
-      ) {
+      if (fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")) {
         totales[celula].nocturno += parseInt(registro.hits || 0, 10);
-      } else if (
-        fechaHoraRegistro.isBetween(
+      } else if (fechaHoraRegistro.isBetween(
           inicioHoy.clone().add(8, "hours").add(30, "minutes"),
           inicioHoy.clone().add(16, "hours"),
           null,
           "[)"
-        )
-      ) {
+      )) {
         totales[celula].matutino += parseInt(registro.hits || 0, 10);
-      } else if (
-        fechaHoraRegistro.isBetween(
+      } else if (fechaHoraRegistro.isBetween(
           inicioHoy.clone().add(16, "hours").add(30, "minutes"),
           inicioHoy.clone().add(23, "hours").add(30, "minutes"),
           null,
           "[)"
-        )
-      ) {
+      )) {
         totales[celula].vespertino += parseInt(registro.hits || 0, 10);
       }
     });
@@ -320,15 +306,17 @@ const Totales_Terminado_Maquina = () => {
     (acc, celula) => acc + (metasPorMaquina[celula] || 0),
     0
   );
+
+  // Se calculan las metas globales fijas para cada turno usando multiplicadores
   const metaMatutinoFinal = sumaTotalMetas * 8;
   const metaVespertinoFinal = sumaTotalMetas * 7;
   const metaNocturnoFinal = sumaTotalMetas * 8;
   const claseSumaTotalAcumulados =
-    sumaTotalAcumulados >= metaMatutinoFinal + metaVespertinoFinal + metaNocturnoFinal
+    sumaTotalAcumulados >= (metaMatutinoFinal + metaVespertinoFinal + metaNocturnoFinal)
       ? "text-green-500"
       : "text-red-500";
 
-  // Filtrar las horas que tengan hits > 0 globalmente (usamos el arreglo de horas asignado)
+  // useMemo para filtrar las franjas horarias en las que la suma total de hits es mayor a 0
   const filteredHoras = useMemo(() => {
     const allRegistros = Object.values(registrosAgrupados).flat();
     return horasUnicas.filter((hora) => {
@@ -350,41 +338,13 @@ const Totales_Terminado_Maquina = () => {
             const registrosCelula = registrosAgrupados[celula] || [];
             const totalAcumulado = totalesAcumulados[celula] || 0;
             const meta = metasPorMaquina[celula] || 0;
-            // Usar las horas transcurridas desde el inicio de la jornada para la meta acumulada
+            // Se utiliza el número de horas transcurridas para calcular la meta acumulada parcial
             const metaAcumulada = meta * horasTranscurridas;
-            const claseTotalAcumulado =
-              totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
+            const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
             const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
-            const horasMatutino = Math.min(
-              moment().diff(
-                moment().startOf("day").add(6, "hours").add(30, "minutes"), 
-                "hours"
-              ),
-              8
-            );
-            const horasVespertino = Math.min(
-              Math.max(
-                moment().diff(
-                  moment().startOf("day").add(14, "hours").add(30, "minutes"),
-                  "hours"
-                ),
-                0
-              ),
-              7
-            );
-            const horasNocturno = Math.min(
-              Math.max(
-                moment().diff(
-                  moment().startOf("day").add(22, "hours"),
-                  "hours"
-                ),
-                0
-              ),
-              8
-            );
-            const metaMatutino = meta * horasMatutino;
-            const metaVespertino = meta * horasVespertino;
-            const metaNocturno = meta * horasNocturno;
+            // Se obtienen las metas fijas para cada turno a partir de la meta base
+            const { metaMatutino, metaVespertino, metaNocturno } = calcularMetasFinales(meta);
+            // (Adicionalmente se calculan los progresos parciales si se desea)
             return (
               <SeccionMenu
                 key={index}
@@ -425,7 +385,6 @@ const Totales_Terminado_Maquina = () => {
             );
           })}
         </div>
-
         {/* Vista en forma de tabla para pantallas grandes */}
         <div className="hidden lg:block">
           <Navegacion />
@@ -442,9 +401,7 @@ const Totales_Terminado_Maquina = () => {
                   </th>
                 ))}
                 {filteredHoras.map((hora, index) => (
-                  <th key={index} className="py-2 px-4 border-b whitespace-nowrap">
-                    {hora}
-                  </th>
+                  <th key={index} className="py-2 px-4 border-b whitespace-nowrap">{hora}</th>
                 ))}
               </tr>
             </thead>
@@ -455,21 +412,9 @@ const Totales_Terminado_Maquina = () => {
                 const meta = metasPorMaquina[celula] || 0;
                 const metaAcumulada = meta * horasTranscurridas;
                 const totalesTurno = totalesPorTurnoYMaquina[celula] || { matutino: 0, vespertino: 0, nocturno: 0 };
-                const horasMatutino = Math.min(
-                  moment().diff(moment().startOf("day").add(6, "hours").add(30, "minutes"), "hours"),
-                  8
-                );
-                const horasVespertino = Math.min(
-                  Math.max(moment().diff(moment().startOf("day").add(14, "hours").add(30, "minutes"), "hours"), 0),
-                  7
-                );
-                const horasNocturno = Math.min(
-                  Math.max(moment().diff(moment().startOf("day").add(22, "hours"), "hours"), 0),
-                  8
-                );
-                const metaMatutino = meta * horasMatutino;
-                const metaVespertino = meta * horasVespertino;
-                const metaNocturno = meta * horasNocturno;
+                // Se usan las metas fijas por cada turno obtenidas con calcularMetasFinales
+                const { metaMatutino, metaVespertino, metaNocturno } = calcularMetasFinales(meta);
+                // Se asigna un color de fondo alternado
                 const bgColor = index % 2 === 0 ? "bg-gray-200" : "bg-white";
                 return (
                   <tr key={index} className={`font-semibold text-gray-700 ${bgColor}`}>
@@ -534,7 +479,7 @@ const Totales_Terminado_Maquina = () => {
             </tbody>
           </table>
         </div>
-        {/* Totales por turno */}
+        {/* Totales por turno (vista tipo card) */}
         <div className="mt-4 font-semibold mb-4">
           <div className="lg:hidden space-y-4">
             {["nocturno", "matutino", "vespertino"].map((turno) => (
@@ -544,7 +489,10 @@ const Totales_Terminado_Maquina = () => {
                 </h3>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Total:</span>
-                  <span className={`text-lg ${getClassName(totalesPorTurno[turno], sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8))}`}>
+                  <span className={`text-lg ${getClassName(
+                    totalesPorTurno[turno],
+                    sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8)
+                  )}`}>
                     {totalesPorTurno[turno]}
                   </span>
                 </div>
@@ -562,7 +510,10 @@ const Totales_Terminado_Maquina = () => {
               <div key={turno} className="bg-white p-2 px-10 rounded-lg">
                 <p className="text-gray-600 text-base">
                   {`Total ${turno.charAt(0).toUpperCase()}${turno.slice(1)}:`}
-                  <span className={getClassName(totalesPorTurno[turno], sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8))}>
+                  <span className={getClassName(
+                    totalesPorTurno[turno],
+                    sumaTotalMetas * (turno === "matutino" ? 8 : turno === "vespertino" ? 7 : 8)
+                  )}>
                     {totalesPorTurno[turno]}
                   </span>
                   / Meta:{" "}
