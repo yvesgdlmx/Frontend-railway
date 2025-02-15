@@ -25,13 +25,18 @@ const RazonesCancelacion = ({ razones, cliente }) => {
 };
 
 const ReporteWipDiario = () => {
-  const today = new Date();
+  const today = new Date(); // Fecha actual
   const currentYear = today.getFullYear();
   const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
-  const currentDay = String(today.getDate()).padStart(2, '0');
+  
+  // Obtenemos el día de ayer
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const diaAyer = String(yesterday.getDate()).padStart(2, '0');
+  
   const [anio, setAnio] = useState(currentYear.toString());
   const [mes, setMes] = useState(currentMonth);
-  const [dia, setDia] = useState(currentDay);
+  const [dia, setDia] = useState(diaAyer);
   const [data, setData] = useState([]);
   const [cancelados, setCancelados] = useState([]);
 
