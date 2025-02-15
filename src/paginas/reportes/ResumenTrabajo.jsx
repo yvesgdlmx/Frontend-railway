@@ -162,18 +162,16 @@ const ResumenTrabajo = () => {
                       expandidos[bloque.hora] ? 'opacity-100 max-h-screen' : 'max-h-0 opacity-0'
                     }`}>
                       <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
+                      <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
-                            <tr className='text-center'>
+                            <tr className="text-center">
                               <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                 Fecha
                               </th>
                               <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                 NVI En Proceso
                               </th>
-                              <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                NVI F/S
-                              </th>
+                              {/* Se eliminó la columna "NVI F/S" */}
                               <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                 NVI Total Term
                               </th>
@@ -218,9 +216,7 @@ const ResumenTrabajo = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
                                   {formatNumber(fila.nvi_en_proceso)}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
-                                  {formatNumber(fila.nvi_fs)}
-                                </td>
+                                {/* Se eliminó la celda de "NVI F/S" */}
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
                                   {formatNumber(fila.nvi_total_term)}
                                 </td>
@@ -258,14 +254,12 @@ const ResumenTrabajo = () => {
                             ))}
                           </tbody>
                           <tfoot className="bg-gray-50">
-                            <tr className='text-center font-semibold'>
+                            <tr className="text-center font-semibold">
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Total</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                 {formatNumber(bloque.datos.reduce((acc, curr) => acc + curr.nvi_en_proceso, 0))}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                {formatNumber(bloque.datos.reduce((acc, curr) => acc + curr.nvi_fs, 0))}
-                              </td>
+                              {/* Se eliminó la celda del total "NVI F/S" */}
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                 {formatNumber(bloque.datos.reduce((acc, curr) => acc + curr.nvi_total_term, 0))}
                               </td>
