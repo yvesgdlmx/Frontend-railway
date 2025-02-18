@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
 import Heading from '../../components/others/Heading';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const ReportesTrabajosEnviados = () => {
   const [registros, setRegistros] = useState([]);
@@ -81,9 +82,9 @@ const ReportesTrabajosEnviados = () => {
                     <div className="text-sm text-gray-400">{registro.hora}</div>
                   </td>
                   <td className="py-3 px-5 border font-semibold text-gray-500">{registro.cliente}</td>
-                  <td className="py-3 px-5 border font-semibold text-gray-500">{registro.shipped_jobs}</td>
-                  <td className="py-3 px-5 border font-semibold text-gray-500">{registro.finished_jobs}</td>
-                  <td className="py-3 px-5 border font-semibold text-gray-500">{registro.semi_finished_jobs}</td>
+                  <td className="py-3 px-5 border font-semibold text-gray-500">{formatNumber(registro.shipped_jobs)}</td>
+                  <td className="py-3 px-5 border font-semibold text-gray-500">{formatNumber(registro.finished_jobs)}</td>
+                  <td className="py-3 px-5 border font-semibold text-gray-500">{formatNumber(registro.semi_finished_jobs)}</td>
                 </tr>
               ))}
             </tbody>
@@ -103,15 +104,15 @@ const ReportesTrabajosEnviados = () => {
                   </div>
                   <div className="border-b border-gray-200 pb-2 flex justify-between">
                     <span className="text-gray-600">Shipped Jobs:</span>
-                    <span className="font-bold text-gray-500">{registro.shipped_jobs}</span>
+                    <span className="font-bold text-gray-500">{formatNumber(registro.shipped_jobs)}</span>
                   </div>
                   <div className="border-b border-gray-200 pb-2 flex justify-between">
                     <span className="text-gray-600">Finished Jobs:</span>
-                    <span className="font-bold text-gray-500">{registro.finished_jobs}</span>
+                    <span className="font-bold text-gray-500">{formatNumber(registro.finished_jobs)}</span>
                   </div>
                   <div className="border-b border-gray-200 pb-2 flex justify-between">
                     <span className="text-gray-600">Semi Finished Jobs:</span>
-                    <span className="font-bold text-gray-500">{registro.semi_finished_jobs}</span>
+                    <span className="font-bold text-gray-500">{formatNumber(registro.semi_finished_jobs)}</span>
                   </div>
                 </div>
               </div>
