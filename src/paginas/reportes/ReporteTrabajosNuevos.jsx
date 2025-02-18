@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
 import Heading from '../../components/others/Heading';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const ReporteTrabajosNuevos = () => {
   const [registros, setRegistros] = useState([]);
@@ -119,16 +120,16 @@ const ReporteTrabajosNuevos = () => {
                   <div>{registro.fecha}</div>
                   <div className="text-sm text-gray-400">{registro.hora}</div>
                 </td>
-                <td className="py-3 px-5 border font-semibold text-gray-500">{registro.total_new_jobs}</td>
+                <td className="py-3 px-5 border font-semibold text-gray-500">{formatNumber(registro.total_new_jobs)}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.ink_jobs}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.ink_no_ar}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.ink_ar}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.hoya_jobs}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.hoya_no_ar}</td>
                 <td className="py-3 px-5 border font-semibold text-gray-500">{registro.hoya_ar}</td>
-                <td className="py-3 px-5 border font-semibold text-gray-500">{registro.nvi_jobs}</td>
-                <td className="py-3 px-5 border font-semibold text-gray-500">{registro.nvi_no_ar}</td>
-                <td className="py-3 px-5 border font-semibold text-gray-500">{registro.nvi_ar}</td>
+                <td className="py-3 px-5 border font-semibold text-gray-500">{formatNumber(registro.nvi_jobs)}</td>
+                <td className="py-3 px-5 border font-semibold text-gray-500">{formatNumber(registro.nvi_no_ar)}</td>
+                <td className="py-3 px-5 border font-semibold text-gray-500">{formatNumber(registro.nvi_ar)}</td>
               </tr>
             ))}
           </tbody>
@@ -153,7 +154,7 @@ const ReporteTrabajosNuevos = () => {
               <div className="p-4 grid grid-cols-2 gap-4">
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Total New Jobs:</span>
-                  <span className="font-bold text-gray-500">{registro.total_new_jobs}</span>
+                  <span className="font-bold text-gray-500">{formatNumber(registro.total_new_jobs)}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">Ink Jobs:</span>
@@ -181,15 +182,15 @@ const ReporteTrabajosNuevos = () => {
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">NVI Jobs:</span>
-                  <span className="font-bold text-gray-500">{registro.nvi_jobs}</span>
+                  <span className="font-bold text-gray-500">{formatNumber(registro.nvi_jobs)}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">NVI No AR:</span>
-                  <span className="font-bold text-gray-500">{registro.nvi_no_ar}</span>
+                  <span className="font-bold text-gray-500">{formatNumber(registro.nvi_no_ar)}</span>
                 </div>
                 <div className="border-b border-gray-200 pb-2 flex justify-between">
                   <span className="text-gray-600">NVI AR:</span>
-                  <span className="font-bold text-gray-500">{registro.nvi_ar}</span>
+                  <span className="font-bold text-gray-500">{formatNumber(registro.nvi_ar)}</span>
                 </div>
               </div>
             </div>
