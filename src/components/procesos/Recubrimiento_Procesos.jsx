@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const Recubrimiento_Procesos = () => {
   const [totalHits, setTotalHits] = useState(0);
@@ -149,18 +150,18 @@ const Recubrimiento_Procesos = () => {
           Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Trabajos: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{totalHits}</span>
+          Trabajos: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{formatNumber(totalHits)}</span>
         </p>
       </div>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Nocturno: <span className='font-semibold text-green-700 xs:text-sm md:text-md'>{hitsNocturno}</span>
+          Nocturno: <span className='font-semibold text-green-700 xs:text-sm md:text-md'>{formatNumber(hitsNocturno)}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Matutino: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{hitsMatutino}</span>
+          Matutino: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{formatNumber(hitsMatutino)}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Vespertino: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{hitsVespertino}</span>
+          Vespertino: <span className='font-semibold text-red-700 xs:text-sm md:text-md'>{formatNumber(hitsVespertino)}</span>
         </p>
       </div>
     </div>

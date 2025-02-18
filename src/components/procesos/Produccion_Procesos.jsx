@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const Produccion_Procesos = () => {
   // Estados para los hits y tiempos
@@ -173,23 +174,23 @@ const Produccion_Procesos = () => {
           Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Trabajos: <span className={totalHits >= meta ? "text-green-700" : "text-red-700"}>{totalHits}</span>
+          Trabajos: <span className={totalHits >= meta ? "text-green-700" : "text-red-700"}>{formatNumber(totalHits)}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{meta}</span>
+          Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{formatNumber(meta)}</span>
         </p>
       </div>
       
       {/* FILA INFERIOR: Hits y metas por turno */}
       <div className='flex items-center justify-between py-4 px-2 border-2'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{hitsNocturno}</span> / <span>{metaNocturno}</span>
+          Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{hitsMatutino}</span> / <span>{metaMatutino}</span>
+          Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{hitsVespertino}</span> / <span>{metaVespertino}</span>
+          Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
         </p>
       </div>
     </div>

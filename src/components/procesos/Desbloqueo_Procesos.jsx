@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const Desbloqueo_Procesos = () => {
   const [totalHits, setTotalHits] = useState(0);
@@ -174,13 +175,13 @@ const Desbloqueo_Procesos = () => {
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Trabajos:{' '}
           <span className={meta > totalHits ? "text-red-700" : "text-green-700"}>
-            {totalHits}
+            {formatNumber(totalHits)}
           </span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Meta en vivo:{' '}
           <span className='font-semibold xs:text-sm md:text-md'>
-            {meta}
+            {formatNumber(meta)}
           </span>
         </p>
       </div>
@@ -188,23 +189,23 @@ const Desbloqueo_Procesos = () => {
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Nocturno:{' '}
           <span className={getClassName(hitsNocturno, metaNocturno)}>
-            {hitsNocturno}
+            {formatNumber(hitsNocturno)}
           </span>{' '}
-          / <span>{metaNocturno}</span>
+          / <span>{formatNumber(metaNocturno)}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Matutino:{' '}
           <span className={getClassName(hitsMatutino, metaMatutino)}>
-            {hitsMatutino}
+            {formatNumber(hitsMatutino)}
           </span>{' '}
-          / <span>{metaMatutino}</span>
+          / <span>{formatNumber(metaMatutino)}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Vespertino:{' '}
           <span className={getClassName(hitsVespertino, metaVespertino)}>
-            {hitsVespertino}
+            {formatNumber(hitsVespertino)}
           </span>{' '}
-          / <span>{metaVespertino}</span>
+          / <span>{formatNumber(metaVespertino)}</span>
         </p>
       </div>
     </div>
