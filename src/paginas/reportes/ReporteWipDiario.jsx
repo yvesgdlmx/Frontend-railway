@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
 import Heading from '../../components/others/Heading';
 import { FaTimesCircle } from 'react-icons/fa';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const RazonesCancelacion = ({ razones, cliente }) => {
   const totalCancelaciones = Object.values(razones).reduce((acc, count) => acc + count, 0);
@@ -16,7 +17,7 @@ const RazonesCancelacion = ({ razones, cliente }) => {
         {Object.entries(razones).map(([issue, count]) => (
           <li key={issue} className="flex justify-between items-center border-b py-2">
             <span>{issue}</span>
-            <span className="font-medium text-blue-600">{count}</span>
+            <span className="font-medium text-blue-600">{formatNumber(count)}</span>
           </li>
         ))}
       </ul>
@@ -188,37 +189,37 @@ const ReporteWipDiario = () => {
                 <tbody>
                   <tr className="text-gray-700 bg-gray-100">
                     <td className="py-3 px-6 font-semibold border-b">WIP Inicial</td>
-                    <td className="py-3 px-6 border-b">{wipTotals[cliente].inicial}</td>
+                    <td className="py-3 px-6 border-b">{formatNumber(wipTotals[cliente].inicial)}</td>
                   </tr>
                   <tr className="text-gray-700">
                     <td className="py-3 px-6 font-semibold border-b">
                       Recibidos
                       {cliente === 'nvi' && (
                         <span className="text-xs text-gray-500 ml-2">
-                          (Semi-Finished: {wipTotals.nvi.semifinishRec}, Finished: {wipTotals.nvi.finishedRec})
+                          (Semi-Finished: {formatNumber(wipTotals.nvi.semifinishRec)}, Finished: {formatNumber(wipTotals.nvi.finishedRec)})
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-6 border-b">{wipTotals[cliente].recibidos}</td>
+                    <td className="py-3 px-6 border-b">{formatNumber(wipTotals[cliente].recibidos)}</td>
                   </tr>
                   <tr className="text-gray-700 bg-gray-100">
                     <td className="py-3 px-6 font-semibold border-b">
                       Enviados
                       {cliente === 'nvi' && (
                         <span className="text-xs text-gray-500 ml-2">
-                          (Semi-Finished: {wipTotals.nvi.semifinishEnv}, Finished: {wipTotals.nvi.finishedEnv})
+                          (Semi-Finished: {formatNumber(wipTotals.nvi.semifinishEnv)}, Finished: {formatNumber(wipTotals.nvi.finishedEnv)})
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-6 border-b">{wipTotals[cliente].enviados}</td>
+                    <td className="py-3 px-6 border-b">{formatNumber(wipTotals[cliente].enviados)}</td>
                   </tr>
                   <tr className="text-gray-700">
                     <td className="py-3 px-6 font-semibold border-b">Cancelados</td>
-                    <td className="py-3 px-6 border-b">{wipTotals[cliente].cancelados}</td>
+                    <td className="py-3 px-6 border-b">{formatNumber(wipTotals[cliente].cancelados)}</td>
                   </tr>
                   <tr className="text-gray-700 bg-gray-100">
                     <td className="py-3 px-6 font-semibold border-b">WIP Final</td>
-                    <td className="py-3 px-6 border-b">{wipTotals[cliente].final}</td>
+                    <td className="py-3 px-6 border-b">{formatNumber(wipTotals[cliente].final)}</td>
                   </tr>
                 </tbody>
               </table>
