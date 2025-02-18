@@ -12,6 +12,7 @@ import {
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Heading from '../../components/others/Heading';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const ReporteAntiguedad = () => {
   const [registros, setRegistros] = useState([]);
@@ -149,7 +150,7 @@ const ReporteAntiguedad = () => {
                   {format(semana.inicio, 'dd/MM', { locale: es })} - {format(semana.fin, 'dd/MM', { locale: es })}
                 </p>
                 <p className="text-gray-700">
-                  Total (≥ 4 días): <span className="font-semibold">{totalSemana}</span>
+                  Total (≥ 4 días): <span className="font-semibold">{formatNumber(totalSemana)}</span>
                 </p>
               </div>
             );
@@ -163,7 +164,7 @@ const ReporteAntiguedad = () => {
   
   return (
     <>
-     <div className='mt-6 md:mt-0'>
+    <div className='mt-6 md:mt-0'>
       <Heading title="Reporte Antigüedad de trabajos" />
     </div>
     <div className="mx-auto p-4 bg-gray-50 min-h-screen">
@@ -243,13 +244,13 @@ const ReporteAntiguedad = () => {
                                 {format(parseISO(registro.today), 'dd/MM/yyyy')}
                               </td>
                               <td className="px-3 py-2 whitespace-nowrap text-gray-600">
-                                {registro.ink_ip}
+                                {formatNumber(registro.ink_ip)}
                               </td>
                               <td className="px-3 py-2 whitespace-nowrap text-gray-600">
-                                {registro.hoya_ip}
+                                {formatNumber(registro.hoya_ip)}
                               </td>
                               <td className="px-3 py-2 whitespace-nowrap text-gray-600">
-                                {registro.nvi_ip}
+                                {formatNumber(registro.nvi_ip)}
                               </td>
                             </tr>
                           );
@@ -261,7 +262,7 @@ const ReporteAntiguedad = () => {
                     <p className="text-sm font-medium text-gray-700">
                       Total: (≥ 4 días): {' '}
                       <span className="text-blue-500 font-semibold">
-                        {registrosDia.reduce((total, registro) => {
+                        {formatNumber(registrosDia.reduce((total, registro) => {
                           const dias = differenceInDays(
                             parseISO(registro.today), 
                             parseISO(registro.enter_date)
@@ -270,7 +271,7 @@ const ReporteAntiguedad = () => {
                             return total + registro.ink_ip + registro.hoya_ip + registro.nvi_ip;
                           }
                           return total;
-                        }, 0)}
+                        }, 0))}
                       </span>
                     </p>
                   </div>
