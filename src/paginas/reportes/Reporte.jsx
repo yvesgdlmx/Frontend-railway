@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
 import Heading from '../../components/others/Heading';
+import { formatNumber } from '../../helpers/formatNumber';
 
 const agruparDatos = (registros) => {
   const grupos = {
@@ -138,10 +139,10 @@ const ModuloReporte = ({ titulo, datos, esCompacto = false }) => {
               {datos.map((item, index) => (
                 <div key={index} className="bg-gray-100 p-2 rounded-lg">
                   <h3 className="font-medium text-gray-700 text-xs mb-1">{item.nombre}</h3>
-                  <span className="text-lg font-semibold text-blue-500">{item.total}</span>
+                  <span className="text-lg font-semibold text-blue-500">{formatNumber(item.total)}</span>
                   <span className="text-gray-600 text-xs ml-1">trabajos</span>
                   <div className="text-xs text-gray-500 mt-1">
-                    T: {item.F} | S: {item.S}
+                    T: {formatNumber(item.F)} | S: {formatNumber(item.S)}
                   </div>
                 </div>
               ))}
@@ -151,15 +152,15 @@ const ModuloReporte = ({ titulo, datos, esCompacto = false }) => {
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-gray-100 p-2 rounded-lg text-center">
                   <p className="text-xs text-gray-600">Total Trabajos</p>
-                  <p className="text-lg font-semibold text-blue-500">{totalTrabajos}</p>
+                  <p className="text-lg font-semibold text-blue-500">{formatNumber(totalTrabajos)}</p>
                 </div>
                 <div className="bg-gray-100 p-2 rounded-lg text-center">
                   <p className="text-xs text-gray-600">Terminado</p>
-                  <p className="text-lg font-semibold text-blue-500">{totalFinished}</p>
+                  <p className="text-lg font-semibold text-blue-500">{formatNumber(totalFinished)}</p>
                 </div>
                 <div className="bg-gray-100 p-2 rounded-lg text-center">
                   <p className="text-xs text-gray-600">Semiterminado</p>
-                  <p className="text-lg font-semibold text-blue-500">{totalSemifinished}</p>
+                  <p className="text-lg font-semibold text-blue-500">{formatNumber(totalSemifinished)}</p>
                 </div>
               </div>
             </div>
@@ -247,19 +248,19 @@ const Reporte = () => {
               {Object.entries(totalesPorCliente).map(([cliente, datos]) => (
                 <div key={cliente} className="bg-gray-100 p-3 rounded-lg text-center">
                   <p className="text-sm font-medium text-gray-600">{cliente}</p>
-                  <p className="text-2xl font-bold text-blue-600">{datos.total}</p>
+                  <p className="text-2xl font-bold text-blue-600">{formatNumber(datos.total)}</p>
                   <p className="text-xs text-gray-500 mb-2">trabajos</p>
                   <div className="border-t border-gray-200 pt-2 mt-1">
                     <div className="grid grid-cols-2 gap-1 text-xs">
                       <div>
                         <p className='text-gray-500 lg:hidden'>T</p>
                         <p className="text-gray-500 hidden lg:block">Terminado</p>
-                        <p className="text-green-600 font-semibold">{Math.round(datos.finished)}</p>
+                        <p className="text-green-600 font-semibold">{formatNumber(Math.round(datos.finished))}</p>
                       </div>
                       <div>
                         <p className='text-gray-500 lg:hidden'>S</p>
                         <p className="text-gray-500 hidden lg:block">Semiterminado</p>
-                        <p className="text-yellow-600 font-semibold">{Math.round(datos.semifinished)}</p>
+                        <p className="text-yellow-600 font-semibold">{formatNumber(Math.round(datos.semifinished))}</p>
                       </div>
                     </div>
                   </div>
@@ -269,7 +270,7 @@ const Reporte = () => {
             <div className="mt-4 bg-blue-100 p-3 rounded-lg text-center">
               <p className="text-sm font-medium text-gray-600">Total General</p>
               <p className="text-2xl font-bold text-blue-600">
-                {Object.values(totalesPorCliente).reduce((a, b) => a + b.total, 0)}
+                {formatNumber(Object.values(totalesPorCliente).reduce((a, b) => a + b.total, 0))}
               </p>
               <p className="text-xs text-gray-500">trabajos totales</p>
             </div>
@@ -279,19 +280,19 @@ const Reporte = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-100 p-3 rounded-lg text-center min-h-32">
                 <p className="text-sm font-medium text-gray-600 mt-4">Terminado</p>
-                <p className="text-2xl font-bold text-green-600">{totalesFinishedSemifinished.finished}</p>
+                <p className="text-2xl font-bold text-green-600">{formatNumber(totalesFinishedSemifinished.finished)}</p>
                 <p className="text-xs text-gray-500">trabajos</p>
               </div>
               <div className="bg-gray-100 p-3 rounded-lg text-center">
                 <p className="text-sm font-medium text-gray-600 mt-4">Semiterminado</p>
-                <p className="text-2xl font-bold text-yellow-600">{totalesFinishedSemifinished.semifinished}</p>
+                <p className="text-2xl font-bold text-yellow-600">{formatNumber(totalesFinishedSemifinished.semifinished)}</p>
                 <p className="text-xs text-gray-500">trabajos</p>
               </div>
             </div>
             <div className="mt-4 bg-blue-100 p-3 rounded-lg text-center lg:relative top-3">
               <p className="text-sm font-medium text-gray-600">Total General</p>
               <p className="text-2xl font-bold text-blue-600">
-                {totalesFinishedSemifinished.finished + totalesFinishedSemifinished.semifinished}
+                {formatNumber(totalesFinishedSemifinished.finished + totalesFinishedSemifinished.semifinished)}
               </p>
               <p className="text-xs text-gray-500">trabajos totales</p>
             </div>
