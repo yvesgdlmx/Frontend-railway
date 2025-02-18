@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from 'moment-timezone';
 moment.tz.setDefault('America/Mexico_City');
+import { formatNumber } from '../../helpers/formatNumber';
 
 const Totales_Recubrimiento_Estacion = () => {
     const location = useLocation();
@@ -140,19 +141,19 @@ const Totales_Recubrimiento_Estacion = () => {
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Nocturno Acumulado: 
-                            <span className="ml-1 font-bold text-gray-700">{totalesPorTurno.nocturno}</span>
+                            <span className="ml-1 font-bold text-gray-700">{formatNumber(totalesPorTurno.nocturno)}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Matutino Acumulado: 
-                            <span className="ml-1 font-bold text-gray-700">{totalesPorTurno.matutino}</span>
+                            <span className="ml-1 font-bold text-gray-700">{formatNumber(totalesPorTurno.matutino)}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Vespertino Acumulado: 
-                            <span className="ml-1 font-bold text-gray-700">{totalesPorTurno.vespertino}</span>
+                            <span className="ml-1 font-bold text-gray-700">{formatNumber(totalesPorTurno.vespertino)}</span>
                         </p>
                     </div>
                 </div>
@@ -189,15 +190,15 @@ const Totales_Recubrimiento_Estacion = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2">
                                     <span className="block text-gray-600">Nocturno: </span>
-                                    <span className="font-semibold text-md text-gray-700">{totalesPorTurno.nocturno}</span>
+                                    <span className="font-semibold text-md text-gray-700">{formatNumber(totalesPorTurno.nocturno)}</span>
                                 </div>
                                 <div>
                                     <span className="block text-gray-600">Matutino: </span>
-                                    <span className="font-semibold text-md text-gray-700">{totalesPorTurno.matutino}</span>
+                                    <span className="font-semibold text-md text-gray-700">{formatNumber(totalesPorTurno.matutino)}</span>
                                 </div>
                                 <div>
                                     <span className="block text-gray-600">Vespertino: </span>
-                                    <span className="text-md font-semibold text-gray-700">{totalesPorTurno.vespertino}</span>
+                                    <span className="text-md font-semibold text-gray-700">{formatNumber(totalesPorTurno.vespertino)}</span>
                                 </div>
                             </div>
                         </div>

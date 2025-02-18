@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from 'moment-timezone';
 import formatearHora from "../../../helpers/formatearHora";
+import { formatNumber } from '../../helpers/formatNumber';
 
 moment.tz.setDefault('America/Mexico_City');
 
@@ -178,27 +179,27 @@ const Totales_Terminado_Estacion = () => {
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Nocturno Acumulado:
                             <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
-                                {totalesPorTurno.nocturno}
+                                {formatNumber(totalesPorTurno.nocturno)}
                             </span>
-                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {metasPorTurno.nocturno}</span>
+                            <span className="text-gray-600 font-semibold block">Meta Acumulada: {formatNumber(metasPorTurno.nocturno)}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Matutino Acumulado:
                             <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
-                                {totalesPorTurno.matutino}
+                                {formatNumber(totalesPorTurno.matutino)}
                             </span>
-                            <span className="text-gray-600 font-semibold block"> Meta Acumulada: {metasPorTurno.matutino}</span>
+                            <span className="text-gray-600 font-semibold block"> Meta Acumulada: {formatNumber(metasPorTurno.matutino)}</span>
                         </p>
                     </div>
                     <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
                         <p className="text-gray-600 text-sm md:text-base">
                             Total Vespertino Acumulado:
                             <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
-                                {totalesPorTurno.vespertino}
+                                {formatNumber(totalesPorTurno.vespertino)}
                             </span>
-                            <span className="text-gray-600 font-semibold block">Meta acumulada: {metasPorTurno.vespertino}</span>
+                            <span className="text-gray-600 font-semibold block">Meta acumulada: {formatNumber(metasPorTurno.vespertino)}</span>
                         </p>
                     </div>
                 </div>
@@ -241,23 +242,23 @@ const Totales_Terminado_Estacion = () => {
                                 <div className="col-span-2">
                                     <span className="block text-gray-600">Nocturno: </span>
                                     <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
-                                        {totalesPorTurno.nocturno}
+                                        {formatNumber(totalesPorTurno.nocturno)}
                                     </span>
-                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.nocturno}</span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {formatNumber(metasPorTurno.nocturno)}</span>
                                 </div>
                                 <div>
                                     <span className="block text-gray-600">Matutino: </span>
                                     <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}`}>
-                                        {totalesPorTurno.matutino}
+                                        {formatNumber(totalesPorTurno.matutino)}
                                     </span>
-                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.matutino}</span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {formatNumber(metasPorTurno.matutino)}</span>
                                 </div>
                                 <div>
                                     <span className="block text-gray-600">Vespertino: </span>
                                     <span className={`text-md font-semibold ${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}`}>
-                                        {totalesPorTurno.vespertino}
+                                        {formatNumber(totalesPorTurno.vespertino)}
                                     </span>
-                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {metasPorTurno.vespertino}</span>
+                                    <span className="text-xs text-gray-500 ml-1">/ Meta: {formatNumber(metasPorTurno.vespertino)}</span>
                                 </div>
                             </div>
                         </div>
