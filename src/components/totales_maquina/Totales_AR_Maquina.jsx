@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/solid";
+import { formatNumber } from '../../helpers/formatNumber';
 
 // Configurar la zona horaria
 moment.tz.setDefault("America/Mexico_City");
@@ -281,7 +282,7 @@ const Totales_AR_Maquina = () => {
             <div className="bg-white shadow-md rounded-lg p-6">
               <div className="flex justify-between border-b pb-2">
                 <span className="font-bold text-gray-700">Total Acumulado:</span>
-                <span className="font-bold">{totalesAcumulados[maquina]}</span>
+                <span className="font-bold">{formatNumber(totalesAcumulados[maquina])}</span>
               </div>
               <div className="py-4">
                 <span className="font-bold text-gray-700">Horas:</span>
@@ -299,7 +300,7 @@ const Totales_AR_Maquina = () => {
                       className={`flex justify-between py-2 px-4 ${bgColor}`}
                     >
                       <span className="font-bold text-gray-700">{hora}:</span>
-                      <span className="font-bold">{totalHits}</span>
+                      <span className="font-bold">{formatNumber(totalHits)}</span>
                     </div>
                   );
                 })}
@@ -339,7 +340,7 @@ const Totales_AR_Maquina = () => {
                   {maquina}
                 </td>
                 <td className="py-2 px-4 border-b font-bold">
-                  {totalesAcumulados[maquina]}
+                  {formatNumber(totalesAcumulados[maquina])}
                 </td>
                 {filteredHoras.map((hora, idx) => {
                   const [horaInicio, horaFin] = hora.split(" - ");
@@ -350,7 +351,7 @@ const Totales_AR_Maquina = () => {
                   );
                   return (
                     <td key={idx} className="font-bold py-2 px-4 border-b">
-                      {totalHits}
+                      {formatNumber(totalHits)}
                     </td>
                   );
                 })}
@@ -364,11 +365,11 @@ const Totales_AR_Maquina = () => {
                 Totales
               </td>
               <td className="py-2 px-4 border-b font-bold">
-                {Object.values(totalesAcumulados).reduce((a, b) => a + b, 0)}
+                {formatNumber(Object.values(totalesAcumulados).reduce((a, b) => a + b, 0))}
               </td>
               {sumaHitsPorHora.map((sumaHits, index) => (
                 <td key={index} className="font-bold py-2 px-4 border-b">
-                  {sumaHits}
+                  {formatNumber(sumaHits)}
                 </td>
               ))}
             </tr>
@@ -386,7 +387,7 @@ const Totales_AR_Maquina = () => {
             </h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className="text-lg">{totalesPorTurno.nocturno}</span>
+              <span className="text-lg">{formatNumber(totalesPorTurno.nocturno)}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -395,7 +396,7 @@ const Totales_AR_Maquina = () => {
             </h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className="text-lg">{totalesPorTurno.matutino}</span>
+              <span className="text-lg">{formatNumber(totalesPorTurno.matutino)}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -404,7 +405,7 @@ const Totales_AR_Maquina = () => {
             </h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className="text-lg">{totalesPorTurno.vespertino}</span>
+              <span className="text-lg">{formatNumber(totalesPorTurno.vespertino)}</span>
             </div>
           </div>
         </div>
@@ -412,17 +413,17 @@ const Totales_AR_Maquina = () => {
         <div className="hidden lg:flex lg:flex-row justify-around">
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
-              Total Nocturno: {totalesPorTurno.nocturno}
+              Total Nocturno: {formatNumber(totalesPorTurno.nocturno)}
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
-              Total Matutino: {totalesPorTurno.matutino}
+              Total Matutino: {formatNumber(totalesPorTurno.matutino)}
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
-              Total Vespertino: {totalesPorTurno.vespertino}
+              Total Vespertino: {formatNumber(totalesPorTurno.vespertino)}
             </p>
           </div>
         </div>

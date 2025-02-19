@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/solid";
+import { formatNumber } from '../../helpers/formatNumber';
 
 moment.tz.setDefault("America/Mexico_City");
 
@@ -256,16 +257,16 @@ const Totales_Produccion_Maquina = () => {
           <div className="bg-white shadow-md rounded-lg p-6">
             <div className="flex justify-between border-b pb-2">
               <span className="font-bold text-gray-700">Total Acumulado:</span>
-              <span className={`font-bold ${claseSumaTotalAcumulados}`}>{totalesAcumulados}</span>
+              <span className={`font-bold ${claseSumaTotalAcumulados}`}>{formatNumber(totalesAcumulados)}</span>
             </div>
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta:</span>
-              <span className="font-bold text-gray-700">{meta || "No definida"}</span>
+              <span className="font-bold text-gray-700">{formatNumber(meta) || "No definida"}</span>
             </div>
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta Acumulada:</span>
               {/* Se reemplaza meta * horasUnicas.length por getMetaAcumulada(meta) */}
-              <span className="font-bold text-gray-700">{getMetaAcumulada(meta)}</span>
+              <span className="font-bold text-gray-700">{formatNumber(getMetaAcumulada(meta))}</span>
             </div>
             <div className="py-4">
               <span className="font-bold text-gray-700">Horas:</span>
@@ -288,7 +289,7 @@ const Totales_Produccion_Maquina = () => {
                 return (
                   <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
                     <span className="font-bold text-gray-700">{hora}:</span>
-                    <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
+                    <span className={`font-bold ${hitsClass}`}>{formatNumber(totalHits)}</span>
                   </div>
                 );
               })}
@@ -314,10 +315,10 @@ const Totales_Produccion_Maquina = () => {
           <tbody className="text-center">
             <tr className="font-semibold text-gray-700">
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>Producción</td>
-              <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{totalesAcumulados}</td>
-              <td className="py-2 px-4 border-b font-bold">{meta || "No definida"}</td>
+              <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{formatNumber(totalesAcumulados)}</td>
+              <td className="py-2 px-4 border-b font-bold">{formatNumber(meta) || "No definida"}</td>
               {/* Se reemplaza meta * horasUnicas.length por getMetaAcumulada(meta) */}
-              <td className="py-2 px-4 border-b font-bold">{getMetaAcumulada(meta)}</td>
+              <td className="py-2 px-4 border-b font-bold">{formatNumber(getMetaAcumulada(meta))}</td>
               {filteredHoras.map((hora, idx) => {
                 const [horaInicio, horaFin] = hora.split(" - ");
                 const totalHits = registros
@@ -335,16 +336,16 @@ const Totales_Produccion_Maquina = () => {
                 const claseHitsIndividual = totalHits >= meta ? "text-green-500" : "text-red-500";
                 return (
                   <td key={idx} className={`font-bold py-2 px-4 border-b ${claseHitsIndividual}`}>
-                    {totalHits}
+                    {formatNumber(totalHits)}
                   </td>
                 );
               })}
             </tr>
             <tr className="font-semibold bg-green-200 text-gray-700">
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>Totales</td>
-              <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{totalesAcumulados}</td>
-              <td className="py-2 px-4 border-b font-bold">{meta}</td>
-              <td className="py-2 px-4 border-b font-bold">{getMetaAcumulada(meta)}</td>
+              <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{formatNumber(totalesAcumulados)}</td>
+              <td className="py-2 px-4 border-b font-bold">{formatNumber(meta)}</td>
+              <td className="py-2 px-4 border-b font-bold">{formatNumber(getMetaAcumulada(meta))}</td>
               {sumaHitsPorHora.map((sumaHits, index) => {
                 const claseSumaHits = sumaHits >= meta ? "text-green-500" : "text-red-500";
                 return (
@@ -369,12 +370,12 @@ const Totales_Produccion_Maquina = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Total:</span>
                 <span className={`text-lg ${getClassName(totalesPorTurno[turno], metasPorTurno[turno])}`}>
-                  {totalesPorTurno[turno]}
+                  {formatNumber(totalesPorTurno[turno])}
                 </span>
               </div>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-gray-600">Meta:</span>
-                <span className="text-lg font-bold text-gray-800">{metasPorTurno[turno]}</span>
+                <span className="text-lg font-bold text-gray-800">{formatNumber(metasPorTurno[turno])}</span>
               </div>
             </div>
           ))}
@@ -386,10 +387,10 @@ const Totales_Produccion_Maquina = () => {
               <p className="text-gray-600 text-base">
                 Total {turno.charAt(0).toUpperCase() + turno.slice(1)}:{" "}
                 <span className={getClassName(totalesPorTurno[turno], metasPorTurno[turno])}>
-                  {totalesPorTurno[turno]}
+                  {formatNumber(totalesPorTurno[turno])}
                 </span>{" "}
                 / Meta:{" "}
-                <span className="text-gray-600 font-bold">{metasPorTurno[turno]}</span>
+                <span className="text-gray-600 font-bold">{formatNumber(metasPorTurno[turno])}</span>
               </p>
             </div>
           ))}

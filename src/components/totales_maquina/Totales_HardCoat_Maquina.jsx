@@ -3,8 +3,8 @@ import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/solid";
-
 moment.tz.setDefault("America/Mexico_City");
+import { formatNumber } from '../../helpers/formatNumber';
 
 // Función auxiliar para construir un objeto moment usando la fecha base según la hora
 const getIntervalTimestamp = (shiftStart, horaStr) => {
@@ -83,14 +83,15 @@ const SeccionMenu = ({ titulo, isOpen, toggle, children }) => {
 };
 
 const Totales_HardCoat_Maquina = () => {
-  const maquinas = [
+  // Aseguramos que el array "maquinas" se mantenga estable entre renderizados.
+  const maquinas = useMemo(() => [
     "46 MR3.4",
     "48 MR3.1",
     "49 MR3.2",
     "50 MR3.3",
     "91 VELOCITY 1",
     "92 VELOCITY 2"
-  ];
+  ], []);
 
   // Reinicio automático: cada 5 minutos y al iniciar el nuevo turno (22:00)
   useEffect(() => {
@@ -139,7 +140,6 @@ const Totales_HardCoat_Maquina = () => {
     "22:00 - 23:00"
   ];
   const [horasUnicas, setHorasUnicas] = useState([]);
-
   const [registros, setRegistros] = useState({});
   const [totalesAcumulados, setTotalesAcumulados] = useState({});
   const [totalesPorTurno, setTotalesPorTurno] = useState({
@@ -154,6 +154,7 @@ const Totales_HardCoat_Maquina = () => {
         const responseRegistros = await clienteAxios("/manual/manual/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
         const ahora = moment().tz("America/Mexico_City");
+
         // Jornada: de 22:00 a 21:30 del día siguiente
         let inicioJornada = moment().tz("America/Mexico_City").startOf("day").add(22, "hours");
         let finJornada = moment(inicioJornada).add(1, "days").subtract(30, "minutes");
@@ -188,7 +189,7 @@ const Totales_HardCoat_Maquina = () => {
         let totalesPorTurnoGlobal = { nocturno: 0, matutino: 0, vespertino: 0 };
         maquinas.forEach((maquina) => {
           let totalAcumulado = 0;
-          registrosPorMaquina[maquina].forEach((registro) => {
+          (registrosPorMaquina[maquina] || []).forEach((registro) => {
             const hits = parseInt(registro.hits || 0);
             totalAcumulado += hits;
             const fechaHoraRegistro = moment.tz(
@@ -232,7 +233,6 @@ const Totales_HardCoat_Maquina = () => {
         console.error("Error al cargar los datos:", error);
       }
     };
-
     cargarDatos();
   }, [maquinas]);
 
@@ -253,7 +253,6 @@ const Totales_HardCoat_Maquina = () => {
     (acc, curr) => acc + curr,
     0
   );
-
   // Suma de hits por intervalo según la lista filtrada
   const sumaHitsPorHora = filteredHoras.map((hora) => {
     const [horaInicio, horaFin] = hora.split(" - ");
@@ -276,7 +275,7 @@ const Totales_HardCoat_Maquina = () => {
             <div className="bg-white shadow-md rounded-lg p-6">
               <div className="flex justify-between border-b pb-2">
                 <span className="font-bold text-gray-700">Total Acumulado:</span>
-                <span className="font-bold">{totalesAcumulados[maquina]}</span>
+                <span className="font-bold">{formatNumber(totalesAcumulados[maquina])}</span>
               </div>
               <div className="py-4">
                 <span className="font-bold text-gray-700">Horas:</span>
@@ -287,7 +286,7 @@ const Totales_HardCoat_Maquina = () => {
                   return (
                     <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
                       <span className="font-bold text-gray-700">{hora}:</span>
-                      <span className="font-bold">{totalHits}</span>
+                      <span className="font-bold">{formatNumber(totalHits)}</span>
                     </div>
                   );
                 })}
@@ -320,14 +319,14 @@ const Totales_HardCoat_Maquina = () => {
                   {maquina}
                 </td>
                 <td className="py-2 px-4 border-b font-bold">
-                  {totalesAcumulados[maquina]}
+                  {formatNumber(totalesAcumulados[maquina])}
                 </td>
                 {filteredHoras.map((hora, idx) => {
                   const [horaInicio, horaFin] = hora.split(" - ");
                   const totalHits = getTotalHitsForInterval(registros[maquina] || [], horaInicio, horaFin);
                   return (
                     <td key={idx} className="font-bold py-2 px-4 border-b">
-                      {totalHits}
+                      {formatNumber(totalHits)}
                     </td>
                   );
                 })}
@@ -337,10 +336,10 @@ const Totales_HardCoat_Maquina = () => {
               <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>
                 Totales
               </td>
-              <td className="py-2 px-4 border-b font-bold">{sumaTotalAcumulados}</td>
+              <td className="py-2 px-4 border-b font-bold">{formatNumber(sumaTotalAcumulados)}</td>
               {sumaHitsPorHora.map((sumaHits, index) => (
                 <td key={index} className="font-bold py-2 px-4 border-b">
-                  {sumaHits}
+                  {formatNumber(sumaHits)}
                 </td>
               ))}
             </tr>
@@ -355,21 +354,21 @@ const Totales_HardCoat_Maquina = () => {
             <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Nocturno</h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className="text-lg">{totalesPorTurno.nocturno}</span>
+              <span className="text-lg">{formatNumber(totalesPorTurno.nocturno)}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Matutino</h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className="text-lg">{totalesPorTurno.matutino}</span>
+              <span className="text-lg">{formatNumber(totalesPorTurno.matutino)}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Turno Vespertino</h3>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
-              <span className="text-lg">{totalesPorTurno.vespertino}</span>
+              <span className="text-lg">{formatNumber(totalesPorTurno.vespertino)}</span>
             </div>
           </div>
         </div>
@@ -377,17 +376,17 @@ const Totales_HardCoat_Maquina = () => {
         <div className="hidden lg:flex lg:flex-row justify-around">
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
-              Turno Nocturno: <span className="font-bold">{totalesPorTurno.nocturno}</span>
+              Turno Nocturno: <span className="font-bold">{formatNumber(totalesPorTurno.nocturno)}</span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
-              Turno Matutino: <span className="font-bold">{totalesPorTurno.matutino}</span>
+              Turno Matutino: <span className="font-bold">{formatNumber(totalesPorTurno.matutino)}</span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
-              Turno Vespertino: <span className="font-bold">{totalesPorTurno.vespertino}</span>
+              Turno Vespertino: <span className="font-bold">{formatNumber(totalesPorTurno.vespertino)}</span>
             </p>
           </div>
         </div>

@@ -4,6 +4,7 @@ import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/solid";
 moment.tz.setDefault("America/Mexico_City");
+import { formatNumber } from '../../helpers/formatNumber';
 
 // Arreglo de horas fijas en el orden requerido.
 const fixedHoras = [
@@ -321,13 +322,13 @@ const Totales_Surtido_Maquina = () => {
                   {tipo}
                 </td>
                 <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>
-                  {registrosPorTipo[tipo].reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0)}
+                  {formatNumber(registrosPorTipo[tipo].reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0))}
                 </td>
                 <td className="py-2 px-4 border-b font-bold">
-                  {tipo === "19 LENS LOG-SF" ? meta19 : (meta20 || "No definida")}
+                  {tipo === "19 LENS LOG-SF" ? formatNumber(meta19) : (formatNumber(meta20) || "No definida")}
                 </td>
                 <td className="py-2 px-4 border-b font-bold">
-                  {tipo === "19 LENS LOG-SF" ? metaAcumuladaTotal19 : metaAcumuladaTotal20}
+                  {tipo === "19 LENS LOG-SF" ? formatNumber(metaAcumuladaTotal19) : formatNumber(metaAcumuladaTotal20)}
                 </td>
                 {horasUnicas.length > 0 &&
                   horasUnicas.map((hora, idx) => {
@@ -359,11 +360,11 @@ const Totales_Surtido_Maquina = () => {
             <tr className="font-semibold bg-green-200 text-gray-700">
               <td className="py-2 px-4 border-b font-bold">Totales</td>
               <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>
-                {totalesAcumulados}
+                {formatNumber(totalesAcumulados)}
               </td>
               <td className="py-2 px-4 border-b font-bold">{sumaMetas}</td>
               <td className="py-2 px-4 border-b font-bold">
-                {metaAcumuladaTotal19 + metaAcumuladaTotal20}
+                {formatNumber(metaAcumuladaTotal19 + metaAcumuladaTotal20)}
               </td>
               {horasUnicas.length > 0 &&
                 horasUnicas.map((hora, idx) => {
@@ -387,7 +388,7 @@ const Totales_Surtido_Maquina = () => {
                   }, 0);
                   return (
                     <td key={idx} className={`font-bold py-2 px-4 border-b ${totalHora >= sumaMetas ? "text-green-500" : "text-red-500"}`}>
-                      {totalHora}
+                      {formatNumber(totalHora)}
                     </td>
                   );
                 })}

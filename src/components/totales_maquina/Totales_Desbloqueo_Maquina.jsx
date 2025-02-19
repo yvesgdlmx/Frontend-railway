@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/solid";
+import { formatNumber } from '../../helpers/formatNumber';
 
 // Configurar la zona horaria
 moment.tz.setDefault("America/Mexico_City");
@@ -296,7 +297,7 @@ const Totales_Desbloqueo_Maquina = () => {
           <div className="bg-white shadow-md rounded-lg p-6">
             <div className="flex justify-between border-b pb-2">
               <span className="font-bold text-gray-700">Total Acumulado:</span>
-              <span className={`font-bold ${claseTotal}`}>{totalesAcumulados}</span>
+              <span className={`font-bold ${claseTotal}`}>{formatNumber(totalesAcumulados)}</span>
             </div>
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta:</span>
@@ -304,7 +305,7 @@ const Totales_Desbloqueo_Maquina = () => {
             </div>
             <div className="flex justify-between border-b py-4">
               <span className="font-bold text-gray-700">Meta Acumulada:</span>
-              <span className="font-bold text-gray-700">{dynamicMetaAcumulada}</span>
+              <span className="font-bold text-gray-700">{formatNumber(dynamicMetaAcumulada)}</span>
             </div>
             <div className="py-4">
               <span className="font-bold text-gray-700">Horas:</span>
@@ -316,7 +317,7 @@ const Totales_Desbloqueo_Maquina = () => {
                 return (
                   <div key={idx} className={`flex justify-between py-2 px-4 ${bgColor}`}>
                     <span className="font-bold text-gray-700">{hora}:</span>
-                    <span className={`font-bold ${hitsClass}`}>{totalHits}</span>
+                    <span className={`font-bold ${hitsClass}`}>{formatNumber(totalHits)}</span>
                   </div>
                 );
               })}
@@ -350,31 +351,31 @@ const Totales_Desbloqueo_Maquina = () => {
                 Desbloqueo
               </td>
               <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>
-                {totalesAcumulados}
+                {formatNumber(totalesAcumulados)}
               </td>
               <td className="py-2 px-4 border-b font-bold">{meta || "No definida"}</td>
-              <td className="py-2 px-4 border-b font-bold">{dynamicMetaAcumulada}</td>
+              <td className="py-2 px-4 border-b font-bold">{formatNumber(dynamicMetaAcumulada)}</td>
               {filteredHoras.map((hora, idx) => {
                 const [horaInicio, horaFin] = hora.split(" - ");
                 const totalHits = getTotalHitsForInterval(registros, horaInicio, horaFin);
                 const claseHitsIndividual = totalHits >= meta ? "text-green-500" : "text-red-500";
                 return (
                   <td key={idx} className={`font-bold py-2 px-4 border-b ${claseHitsIndividual}`}>
-                    {totalHits}
+                    {formatNumber(totalHits)}
                   </td>
                 );
               })}
             </tr>
             <tr className="font-semibold bg-green-200 text-gray-700">
               <td className="py-2 px-4 border-b font-bold">Totales</td>
-              <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>{totalesAcumulados}</td>
+              <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>{formatNumber(totalesAcumulados)}</td>
               <td className="py-2 px-4 border-b font-bold">{meta}</td>
               <td className="py-2 px-4 border-b font-bold">{dynamicMetaAcumulada}</td>
               {sumaHitsPorHora.map((sumaHits, index) => {
                 const claseSumaHits = sumaHits >= meta ? "text-green-500" : "text-red-500";
                 return (
                   <td key={index} className={`font-bold py-2 px-4 border-b ${claseSumaHits}`}>
-                    {sumaHits}
+                    {formatNumber(sumaHits)}
                   </td>
                 );
               })}
@@ -392,12 +393,12 @@ const Totales_Desbloqueo_Maquina = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
               <span className={`text-lg ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
-                {totalesPorTurno.nocturno}
+                {formatNumber(totalesPorTurno.nocturno)}
               </span>
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-gray-600">Meta:</span>
-              <span className="text-lg font-bold text-gray-800">{metasPorTurno.nocturno}</span>
+              <span className="text-lg font-bold text-gray-800">{formatNumber(metasPorTurno.nocturno)}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -405,12 +406,12 @@ const Totales_Desbloqueo_Maquina = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
               <span className={`text-lg ${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}`}>
-                {totalesPorTurno.matutino}
+                {formatNumber(totalesPorTurno.matutino)}
               </span>
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-gray-600">Meta:</span>
-              <span className="text-lg font-bold text-gray-800">{metasPorTurno.matutino}</span>
+              <span className="text-lg font-bold text-gray-800">{formatNumber(metasPorTurno.matutino)}</span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -418,12 +419,12 @@ const Totales_Desbloqueo_Maquina = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total:</span>
               <span className={`text-lg ${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}`}>
-                {totalesPorTurno.vespertino}
+                {formatNumber(totalesPorTurno.vespertino)}
               </span>
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-gray-600">Meta:</span>
-              <span className="text-lg font-bold text-gray-800">{metasPorTurno.vespertino}</span>
+              <span className="text-lg font-bold text-gray-800">{formatNumber(metasPorTurno.vespertino)}</span>
             </div>
           </div>
         </div>
@@ -433,27 +434,27 @@ const Totales_Desbloqueo_Maquina = () => {
             <p className="text-gray-600 text-base">
               Total Nocturno:{" "}
               <span className={getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}>
-                {totalesPorTurno.nocturno}
+                {formatNumber(totalesPorTurno.nocturno)}
               </span>{" "}
-              / Meta: <span className="text-gray-600 font-bold">{metasPorTurno.nocturno}</span>
+              / Meta: <span className="text-gray-600 font-bold">{formatNumber(metasPorTurno.nocturno)}</span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
               Total Matutino:{" "}
               <span className={getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}>
-                {totalesPorTurno.matutino}
+                {formatNumber(totalesPorTurno.matutino)}
               </span>{" "}
-              / Meta: <span className="text-gray-600 font-bold">{metasPorTurno.matutino}</span>
+              / Meta: <span className="text-gray-600 font-bold">{formatNumber(metasPorTurno.matutino)}</span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg">
             <p className="text-gray-600 text-base">
               Total Vespertino:{" "}
               <span className={getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}>
-                {totalesPorTurno.vespertino}
+                {formatNumber(totalesPorTurno.vespertino)}
               </span>{" "}
-              / Meta: <span className="text-gray-600 font-bold">{metasPorTurno.vespertino}</span>
+              / Meta: <span className="text-gray-600 font-bold">{formatNumber(metasPorTurno.vespertino)}</span>
             </p>
           </div>
         </div>

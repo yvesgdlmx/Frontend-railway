@@ -3,6 +3,8 @@ import clienteAxios from "../../../config/clienteAxios";
 import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
 import { ChevronDownIcon, ChevronUpIcon, CogIcon } from "@heroicons/react/24/solid";
+import { formatNumber } from '../../helpers/formatNumber';
+
 
 moment.tz.setDefault("America/Mexico_City");
 
@@ -377,7 +379,7 @@ const Totales_Tallado_Maquina = () => {
                 <div className="bg-white shadow-md rounded-lg p-6">
                   <div className="flex justify-between border-b pb-2">
                     <span className="font-bold text-gray-700">Total Acumulado:</span>
-                    <span className={`font-bold ${claseTotalAcumulado}`}>{totalAcumulado}</span>
+                    <span className={`font-bold ${claseTotalAcumulado}`}>{formatNumber(totalAcumulado)}</span>
                   </div>
                   <div className="flex justify-between border-b py-4">
                     <span className="font-bold text-gray-700">Meta:</span>
@@ -385,7 +387,7 @@ const Totales_Tallado_Maquina = () => {
                   </div>
                   <div className="flex justify-between border-b py-4">
                     <span className="font-bold text-gray-700">Meta Acumulada:</span>
-                    <span className="font-bold text-gray-700">{metaAcumulada}</span>
+                    <span className="font-bold text-gray-700">{formatNumber(metaAcumulada)}</span>
                   </div>
                   <div className="py-4">
                     <span className="font-bold text-gray-700">Horas:</span>
@@ -396,7 +398,7 @@ const Totales_Tallado_Maquina = () => {
                         <div key={idx} className="flex justify-between py-2 px-4 bg-slate-200">
                           <span className="font-bold text-gray-700">{hora}:</span>
                           <span className={`font-bold ${totalHits >= metaBase ? "text-green-500" : "text-red-500"}`}>
-                            {totalHits}
+                            {formatNumber(totalHits)}
                           </span>
                         </div>
                       );
@@ -447,10 +449,10 @@ const Totales_Tallado_Maquina = () => {
                       {celula}
                     </td>
                     <td className={`py-2 px-4 border-b font-bold ${totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500"}`}>
-                      {totalAcumulado}
+                      {formatNumber(totalAcumulado)}
                     </td>
                     <td className="py-2 px-4 border-b font-bold">{metaBase || "No definida"}</td>
-                    <td className="py-2 px-4 border-b font-bold">{metaAcumulada}</td>
+                    <td className="py-2 px-4 border-b font-bold">{formatNumber(metaAcumulada)}</td>
                     
                     {/* Turno Nocturno */}
                     <td
@@ -458,7 +460,7 @@ const Totales_Tallado_Maquina = () => {
                         totalesTurno.nocturno >= metaNocturno ? "text-green-500" : "text-red-500"
                       }`}
                     >
-                      {totalesTurno.nocturno || 0}
+                      {formatNumber(totalesTurno.nocturno) || 0}
                     </td>
                     
                     {/* Turno Matutino */}
@@ -467,7 +469,7 @@ const Totales_Tallado_Maquina = () => {
                         totalesTurno.matutino >= metaMatutino ? "text-green-500" : "text-red-500"
                       }`}
                     >
-                      {totalesTurno.matutino || 0}
+                      {formatNumber(totalesTurno.matutino) || 0}
                     </td>
                     
                     {/* Turno Vespertino */}
@@ -476,7 +478,7 @@ const Totales_Tallado_Maquina = () => {
                         totalesTurno.vespertino >= metaVespertino ? "text-green-500" : "text-red-500"
                       }`}
                     >
-                      {totalesTurno.vespertino || 0}
+                      {formatNumber(totalesTurno.vespertino) || 0}
                     </td>
 
                     {filteredHoras.map((hora, idx) => {
@@ -484,7 +486,7 @@ const Totales_Tallado_Maquina = () => {
                       const totalHits = getTotalHitsForInterval(registrosCelula, horaInicio, horaFin);
                       return (
                         <td key={idx} className={`font-bold py-2 px-4 border-b ${totalHits >= metaBase ? "text-green-500" : "text-red-500"}`}>
-                          {totalHits}
+                          {formatNumber(totalHits)}
                         </td>
                       );
                     })}
@@ -495,9 +497,9 @@ const Totales_Tallado_Maquina = () => {
                 <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "250px" }}>
                   Totales
                 </td>
-                <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{sumaTotalAcumulados}</td>
-                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas}</td>
-                <td className="py-2 px-4 border-b font-bold">{sumaTotalMetas * horasTranscurridas}</td>
+                <td className={`py-2 px-4 border-b font-bold ${claseSumaTotalAcumulados}`}>{formatNumber(sumaTotalAcumulados)}</td>
+                <td className="py-2 px-4 border-b font-bold">{formatNumber(sumaTotalMetas)}</td>
+                <td className="py-2 px-4 border-b font-bold">{formatNumber(sumaTotalMetas * horasTranscurridas)}</td>
                 {["nocturno", "matutino", "vespertino"].map((turno) => (
                   <td
                     key={turno}
@@ -508,7 +510,7 @@ const Totales_Tallado_Maquina = () => {
                         : "text-red-500"
                     }`}
                   >
-                    {totalesPorTurno[turno]}
+                    {formatNumber(totalesPorTurno[turno])}
                   </td>
                 ))}
                 {filteredHoras.map((hora, index) => {
@@ -516,7 +518,7 @@ const Totales_Tallado_Maquina = () => {
                   const totalHits = getTotalHitsForInterval(Object.values(registrosAgrupados).flat(), horaInicio, horaFin);
                   return (
                     <td key={index} className={`font-bold py-2 px-4 border-b ${totalHits >= sumaTotalMetas ? "text-green-500" : "text-red-500"}`}>
-                      {totalHits}
+                      {formatNumber(totalHits)}
                     </td>
                   );
                 })}
@@ -539,13 +541,13 @@ const Totales_Tallado_Maquina = () => {
                     totalesPorTurno[turno],
                     sumaTotalMetas * (turno === "matutino" ? HORAS_MATUTINO : turno === "vespertino" ? HORAS_VESPERTINO : HORAS_NOCTURNO)
                   )}`}>
-                    {totalesPorTurno[turno]}
+                    {formatNumber(totalesPorTurno[turno])}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="text-gray-600">Meta:</span>
                   <span className="text-lg font-bold text-gray-800">
-                    {sumaTotalMetas * (turno === "matutino" ? HORAS_MATUTINO : turno === "vespertino" ? HORAS_VESPERTINO : HORAS_NOCTURNO)}
+                    {formatNumber(sumaTotalMetas * (turno === "matutino" ? HORAS_MATUTINO : turno === "vespertino" ? HORAS_VESPERTINO : HORAS_NOCTURNO))}
                   </span>
                 </div>
               </div>
@@ -563,11 +565,11 @@ const Totales_Tallado_Maquina = () => {
                       sumaTotalMetas * (turno === "matutino" ? HORAS_MATUTINO : turno === "vespertino" ? HORAS_VESPERTINO : HORAS_NOCTURNO)
                     )}
                   >
-                    {totalesPorTurno[turno]}
+                    {formatNumber(totalesPorTurno[turno])}
                   </span>
                   / Meta:{" "}
                   <span className="text-gray-600 font-bold">
-                    {sumaTotalMetas * (turno === "matutino" ? HORAS_MATUTINO : turno === "vespertino" ? HORAS_VESPERTINO : HORAS_NOCTURNO)}
+                    {formatNumber(sumaTotalMetas * (turno === "matutino" ? HORAS_MATUTINO : turno === "vespertino" ? HORAS_VESPERTINO : HORAS_NOCTURNO))}
                   </span>
                 </p>
               </div>
