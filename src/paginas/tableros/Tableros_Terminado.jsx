@@ -122,7 +122,7 @@ const Tableros_Terminado = () => {
         {componenteActivo === 'TotalesTerminado' && <Totales_Terminado_Tableros/>}
         {componenteActivo === 'TotalesBiselado' && <Totales_Biselado_Tableros />}
         {componenteActivo === 'TotalesBiselado2' && <Totales_Biselado2_Tableros />}
-        {componenteActivo === 'TotalesProduccion' && <Totales_Produccion_Tableros />}
+       
       </div>
     </div>
   );

@@ -125,7 +125,7 @@ const Tableros_Tallado = () => {
         {componenteActivo === 'TotalesGenerado' && <Totales_Generado_Tableros />}
         {componenteActivo === 'TotalesPulido' && <Totales_Pulido_Tableros />}
         {componenteActivo === 'TotalesEngraver' && <Totales_Engraver_Tableros />}
-        {componenteActivo === 'TotalesProduccion' && <Totales_Produccion_Tableros />}
+        
       </div>
     </div>
   );
