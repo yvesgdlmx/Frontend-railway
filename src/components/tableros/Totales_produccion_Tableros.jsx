@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import moment from "moment-timezone";
 
-// Configuramos Moment.js con la zona horaria de México
+// Configuramos Moment.js en la zona horaria de México
 moment.tz.setDefault("America/Mexico_City");
 
 const Totales_Produccion_Tableros = () => {
@@ -18,46 +18,57 @@ const Totales_Produccion_Tableros = () => {
         const response = await clienteAxios.get("/manual/manual/actualdia");
         const registros = response.data.registros || [];
 
-        // Obtenemos el momento actual
         const ahora = moment().tz("America/Mexico_City");
 
-        // Definimos límites de cada turno según la hora actual:
-        // Si la hora actual es mayor o igual a las 22:00, se considera que la nueva jornada inicia
-        // hoy a las 22:00 y termina mañana a las 06:00.
+        // Definimos límites de turno basados en la fecha en curso
+        // Queremos que:
+        // • El turno nocturno sea del día anterior a las 22:00 hasta el día actual a las 06:00.
+        // • El matutino y vespertino correspondan al día actual.
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
-        if (ahora.hour() >= 22) {
-          // Nueva jornada: nocturno de hoy 22:00 a mañana 06:00  
-          inicioNocturno = ahora.clone().startOf("day").add(22, "hours");
-          finNocturno = ahora.clone().add(1, "day").startOf("day").add(6, "hours");
-          // Los turnos siguientes corresponden al día siguiente
-          inicioMatutino = ahora.clone().add(1, "day").startOf("day").add(6, "hours").add(30, "minutes");
-          finMatutino = ahora.clone().add(1, "day").startOf("day").add(14, "hours").add(29, "minutes");
-          inicioVespertino = ahora.clone().add(1, "day").startOf("day").add(14, "hours").add(30, "minutes");
-          finVespertino = ahora.clone().add(1, "day").startOf("day").add(21, "hours").add(30, "minutes");
-        } else {
-          // Jornada actual: nocturno de ayer 22:00 a hoy 06:00  
+        // Si estamos antes de las 22:00 (por ejemplo, hoy 02:48), se toma:
+        // inicioNocturno: ayer a las 22:00 y finNocturno: hoy a las 06:00.
+        if (ahora.hour() < 22) {
           inicioNocturno = ahora.clone().subtract(1, "day").startOf("day").add(22, "hours");
           finNocturno = ahora.clone().startOf("day").add(6, "hours");
-          // Turnos del día actual
+          // Turnos del día actual:
           inicioMatutino = ahora.clone().startOf("day").add(6, "hours").add(30, "minutes");
           finMatutino = ahora.clone().startOf("day").add(14, "hours").add(29, "minutes");
           inicioVespertino = ahora.clone().startOf("day").add(14, "hours").add(30, "minutes");
           finVespertino = ahora.clone().startOf("day").add(21, "hours").add(30, "minutes");
+        } else {
+          // Si estamos a partir de las 22:00
+          // El turno nocturno empieza hoy 22:00 y termina mañana 06:00.
+          inicioNocturno = ahora.clone().startOf("day").add(22, "hours");
+          finNocturno = ahora.clone().add(1, "day").startOf("day").add(6, "hours");
+          // Turnos del día siguiente:
+          inicioMatutino = ahora.clone().add(1, "day").startOf("day").add(6, "hours").add(30, "minutes");
+          finMatutino = ahora.clone().add(1, "day").startOf("day").add(14, "hours").add(29, "minutes");
+          inicioVespertino = ahora.clone().add(1, "day").startOf("day").add(14, "hours").add(30, "minutes");
+          finVespertino = ahora.clone().add(1, "day").startOf("day").add(21, "hours").add(30, "minutes");
         }
 
-        // Inicializamos contadores para cada turno
+        // (Opcional) Muestra en consola los límites calculados para depuración
+        console.log("Inicio nocturno:", inicioNocturno.format("YYYY-MM-DD HH:mm:ss"));
+        console.log("Fin nocturno:", finNocturno.format("YYYY-MM-DD HH:mm:ss"));
+        console.log("Inicio matutino:", inicioMatutino.format("YYYY-MM-DD HH:mm:ss"));
+        console.log("Fin matutino:", finMatutino.format("YYYY-MM-DD HH:mm:ss"));
+        console.log("Inicio vespertino:", inicioVespertino.format("YYYY-MM-DD HH:mm:ss"));
+        console.log("Fin vespertino:", finVespertino.format("YYYY-MM-DD HH:mm:ss"));
+
+        // Inicializamos acumuladores
         let totalNocturno = 0;
         let totalMatutino = 0;
         let totalVespertino = 0;
 
-        // Recorremos cada registro y sumamos los hits según su franja horaria.
         registros.forEach((registro) => {
+          // Convertimos la fecha y hora del registro al formato Moment, asumiendo formato "YYYY-MM-DD HH:mm:ss"
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
             "YYYY-MM-DD HH:mm:ss",
             "America/Mexico_City"
           );
-          // Se evalúa a cuál turno pertenece el registro:
+
+          // Se evalúa a qué turno pertenece el registro
           if (fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, "[)")) {
             totalNocturno += parseInt(registro.hits || 0, 10);
           } else if (fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, "[)")) {
@@ -67,7 +78,6 @@ const Totales_Produccion_Tableros = () => {
           }
         });
 
-        // Actualizamos el estado con los totales de cada turno
         setTotalesPorTurno({
           nocturno: totalNocturno,
           matutino: totalMatutino,
@@ -82,9 +92,7 @@ const Totales_Produccion_Tableros = () => {
   }, []);
 
   const sumaTotalAcumulados =
-    totalesPorTurno.nocturno +
-    totalesPorTurno.matutino +
-    totalesPorTurno.vespertino;
+    totalesPorTurno.nocturno + totalesPorTurno.matutino + totalesPorTurno.vespertino;
 
   return (
     <div className="w-full min-h-screen bg-black flex items-center justify-center">
