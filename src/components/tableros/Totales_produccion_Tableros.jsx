@@ -16,42 +16,94 @@ const Totales_Produccion_Tableros = () => {
         const dataRegistros = responseRegistros.data.registros || [];
         const ahora = moment().tz("America/Mexico_City");
 
-        // Determinar la “fecha de producción”.
-        // Si la hora actual es menor a las 06:30, restamos un día.
+        // Si la hora actual es >= 22, la jornada se considera del día siguiente
         let fechaProduccion = ahora.clone();
-        if (ahora.isBefore(moment().tz("America/Mexico_City").set({ hour: 6, minute: 30, second: 0, millisecond: 0 }))) {
-          fechaProduccion.subtract(1, "days");
+        if (ahora.hour() >= 22) {
+          fechaProduccion.add(1, "day");
         }
+        console.log("Fecha de producción considerada:", fechaProduccion.format("YYYY-MM-DD"));
 
-        // Definir los rangos basados en la fecha de producción:
-        // El turno nocturno corresponde al día anterior a las 22:00 y al día de producción hasta las 06:00.
-        const nocturnoInicio = fechaProduccion.clone().subtract(1, "days").set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
-        const nocturnoFin = fechaProduccion.clone().set({ hour: 6, minute: 29, second: 0, millisecond: 0 });
+        // Rango nocturno: del día anterior a las 22:00 hasta el día de producción a las 06:00.
+        const nocturnoInicio = fechaProduccion.clone().subtract(1, "day").set({
+          hour: 22,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+        });
+        const nocturnoFin = fechaProduccion.clone().set({
+          hour: 6,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+        });
+        console.log("Nocturno Inicio:", nocturnoInicio.format("YYYY-MM-DD HH:mm:ss"));
+        console.log("Nocturno Fin:", nocturnoFin.format("YYYY-MM-DD HH:mm:ss"));
 
-        // Turno matutino: de las 06:30 a 14:29:59.999
-        const matutinoInicio = fechaProduccion.clone().set({ hour: 6, minute: 30, second: 0, millisecond: 0 });
-        const matutinoFin = fechaProduccion.clone().set({ hour: 14, minute: 29, second: 59, millisecond: 999 });
+        // Rango matutino: de las 06:30 a las 14:29:59.999.
+        const matutinoInicio = fechaProduccion.clone().set({
+          hour: 6,
+          minute: 30,
+          second: 0,
+          millisecond: 0,
+        });
+        const matutinoFin = fechaProduccion.clone().set({
+          hour: 14,
+          minute: 29,
+          second: 59,
+          millisecond: 999,
+        });
 
-        // Turno vespertino: de las 14:30 a 21:30
-        const vespertinoInicio = fechaProduccion.clone().set({ hour: 14, minute: 30, second: 0, millisecond: 0 });
-        const vespertinoFin = fechaProduccion.clone().set({ hour: 21, minute: 30, second: 0, millisecond: 0 });
+        // Rango vespertino: de las 14:30 a las 21:30.
+        const vespertinoInicio = fechaProduccion.clone().set({
+          hour: 14,
+          minute: 30,
+          second: 0,
+          millisecond: 0,
+        });
+        const vespertinoFin = fechaProduccion.clone().set({
+          hour: 21,
+          minute: 30,
+          second: 0,
+          millisecond: 0,
+        });
 
-        // Se filtran sólo los registros del “celula” deseado
-        const registrosFiltradosCelula = dataRegistros.filter(registro => {
-          const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, " ");
+        // Filtramos registro de la célula deseada.
+        const registrosFiltradosCelula = dataRegistros.filter((registro) => {
+          const celula = registro.name
+            .split("-")[0]
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, " ");
           return celula === "32 JOB COMPLETE";
         });
 
-        // Debido a que el rango abarca parte del día anterior y parte del día de producción,
-        // filtramos los registros entre nocturnoInicio y vespertinoFin
-        const registrosFiltrados = registrosFiltradosCelula.filter(registro => {
+        console.log("Registros para la célula:", registrosFiltradosCelula.length);
+
+        // Filtramos los registros que se encuentren en el rango extendido (nocturno + matutino + vespertino).
+        const registrosFiltrados = registrosFiltradosCelula.filter((registro) => {
+          // IMPORTANTE: Verifica el formato de registro.fecha y registro.hour.  
+          // Si registro.hour viene como "23:00" y no "23:00:00", ajusta el formato.
+          const formatoEsperado = "YYYY-MM-DD HH:mm:ss";
+          const horaRegistro = registro.hour.length === 5 ? `${registro.hour}:00` : registro.hour;
           const fechaHoraRegistro = moment.tz(
-            `${registro.fecha} ${registro.hour}`,
-            "YYYY-MM-DD HH:mm:ss",
+            `${registro.fecha} ${horaRegistro}`,
+            formatoEsperado,
             "America/Mexico_City"
           );
-          return fechaHoraRegistro.isBetween(nocturnoInicio, vespertinoFin, null, "[]");
+
+          // Log para ver cada registro
+          console.log(
+            "Registro:",
+            `${registro.fecha} ${horaRegistro}`,
+            "->",
+            fechaHoraRegistro.format("YYYY-MM-DD HH:mm:ss")
+          );
+
+          // Filtramos entre nocturnoInicio y vespertinoFin (intervalo amplio)
+          return fechaHoraRegistro.isSameOrAfter(nocturnoInicio) && fechaHoraRegistro.isSameOrBefore(vespertinoFin);
         });
+
+        console.log("Registros filtrados totales:", registrosFiltrados.length);
 
         calcularTotalesPorTurno(registrosFiltrados, {
           nocturnoInicio,
@@ -70,33 +122,53 @@ const Totales_Produccion_Tableros = () => {
   }, []);
 
   const calcularTotalesPorTurno = (registros, rangos) => {
-    const totales = {
-      nocturno: 0,
-      matutino: 0,
-      vespertino: 0,
-    };
+    const totales = { nocturno: 0, matutino: 0, vespertino: 0 };
 
-    registros.forEach(registro => {
+    registros.forEach((registro) => {
+      const formatoEsperado = "YYYY-MM-DD HH:mm:ss";
+      const horaRegistro = registro.hour.length === 5 ? `${registro.hour}:00` : registro.hour;
       const fechaHoraRegistro = moment.tz(
-        `${registro.fecha} ${registro.hour}`,
-        "YYYY-MM-DD HH:mm:ss",
+        `${registro.fecha} ${horaRegistro}`,
+        formatoEsperado,
         "America/Mexico_City"
       );
-      
-      if (fechaHoraRegistro.isBetween(rangos.nocturnoInicio, rangos.nocturnoFin, null, "[)")) {
-        totales.nocturno += parseInt(registro.hits || 0);
-      } else if (fechaHoraRegistro.isBetween(rangos.matutinoInicio, rangos.matutinoFin, null, "[)")) {
-        totales.matutino += parseInt(registro.hits || 0);
-      } else if (fechaHoraRegistro.isBetween(rangos.vespertinoInicio, rangos.vespertinoFin, null, "[)")) {
-        totales.vespertino += parseInt(registro.hits || 0);
+      console.log(
+        "Evaluando registro:",
+        fechaHoraRegistro.format("YYYY-MM-DD HH:mm:ss"),
+        "Hits:",
+        registro.hits
+      );
+
+      // Usamos isSameOrAfter / isBefore para controlar los límites
+      if (
+        fechaHoraRegistro.isSameOrAfter(rangos.nocturnoInicio) &&
+        fechaHoraRegistro.isBefore(rangos.nocturnoFin)
+      ) {
+        totales.nocturno += parseInt(registro.hits || 0, 10);
+        console.log("Se suma a nocturno");
+      } else if (
+        fechaHoraRegistro.isSameOrAfter(rangos.matutinoInicio) &&
+        fechaHoraRegistro.isBefore(rangos.matutinoFin)
+      ) {
+        totales.matutino += parseInt(registro.hits || 0, 10);
+        console.log("Se suma a matutino");
+      } else if (
+        fechaHoraRegistro.isSameOrAfter(rangos.vespertinoInicio) &&
+        fechaHoraRegistro.isBefore(rangos.vespertinoFin)
+      ) {
+        totales.vespertino += parseInt(registro.hits || 0, 10);
+        console.log("Se suma a vespertino");
+      } else {
+        console.log("Registro fuera de rangos");
       }
     });
-
     setTotalesPorTurno(totales);
   };
 
-  // Suma total de ambos turnos
-  const sumaTotalAcumulados = totalesPorTurno.nocturno + totalesPorTurno.matutino + totalesPorTurno.vespertino;
+  const sumaTotalAcumulados =
+    totalesPorTurno.nocturno +
+    totalesPorTurno.matutino +
+    totalesPorTurno.vespertino;
 
   return (
     <div className="w-full min-h-screen bg-black flex items-center justify-center">
@@ -124,6 +196,5 @@ const Totales_Produccion_Tableros = () => {
     </div>
   );
 };
-
 
 export default Totales_Produccion_Tableros;
