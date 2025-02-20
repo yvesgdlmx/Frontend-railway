@@ -7,18 +7,28 @@ const ReportesTrabajosEnviados = () => {
   const [registros, setRegistros] = useState([]);
   const [ultimaActualizacion, setUltimaActualizacion] = useState('');
 
+  // Función para determinar el minuto de actualización según la hora actual
+  const obtenerMinutoActualizacion = (horaActual) => {
+    // Si la hora actual es 22 (10 PM) o mayor o es menor que 6 (hasta las 05:59 AM)
+    return (horaActual >= 22 || horaActual < 6) ? 5 : 35;
+  };
+
   useEffect(() => {
     const actualizarHora = () => {
       const ahora = new Date();
-      ahora.setMinutes(35, 0, 0); // Establece la hora al minuto 35
+      const horaActual = ahora.getHours();
+      const minutoActualizacion = obtenerMinutoActualizacion(horaActual);
+      ahora.setMinutes(minutoActualizacion, 0, 0); // Establece los minutos a 5 o 35 según corresponda
       const horaFormateada = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setUltimaActualizacion(horaFormateada);
     };
 
     const verificarYActualizar = () => {
       const ahora = new Date();
+      const horaActual = ahora.getHours();
+      const minutoActualizacion = obtenerMinutoActualizacion(horaActual);
       const minutos = ahora.getMinutes();
-      if (minutos === 35) { // Verifica si es el minuto 35
+      if (minutos === minutoActualizacion) { // Verifica si es el minuto indicado para actualizar
         actualizarHora();
         window.location.reload();
       }
@@ -33,7 +43,7 @@ const ReportesTrabajosEnviados = () => {
     const obtenerDatos = async () => {
       try {
         const respuesta = await clienteAxios.get('/reportes/reportes/enviados');
-        setRegistros(respuesta.data.registros); // Accede a la propiedad 'registros'
+        setRegistros(respuesta.data.registros);
       } catch (error) {
         console.error('Error al obtener los datos:', error);
       }
@@ -43,9 +53,9 @@ const ReportesTrabajosEnviados = () => {
 
   // Ordenar registros por hora (más reciente primero)
   const registrosOrdenados = [...registros].sort((a, b) => {
-    const horaA = a.hora; // Por ejemplo, "16:30:00"
+    const horaA = a.hora;
     const horaB = b.hora;
-    return horaB.localeCompare(horaA); // Orden descendente (más reciente primero)
+    return horaB.localeCompare(horaA);
   });
 
   return (
@@ -57,7 +67,9 @@ const ReportesTrabajosEnviados = () => {
         <div className='bg-gray-200 p-4 mb-4 rounded flex justify-between xs:hidden md:flex'>
           <div className='flex gap-1'>
             <img src="/img/clock.png" alt="reloj" width={25} />
-            <p className='text-gray-700 font-bold uppercase'>Última actualización: {ultimaActualizacion}</p>
+            <p className='text-gray-700 font-bold uppercase'>
+              Última actualización: {ultimaActualizacion}
+            </p>
           </div>
           <div>
             <p className='font-medium text-gray-800 uppercase'>Actualización cada hora.</p>
