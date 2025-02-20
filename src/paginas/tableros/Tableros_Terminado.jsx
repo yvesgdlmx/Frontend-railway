@@ -3,7 +3,7 @@ import Totales_Terminado_Tableros from '../../components/tableros/Totales_Termin
 import Totales_Biselado_Tableros from '../../components/tableros/Totales_Biselado_Tableros';
 import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
 import Totales_Biselado2_Tableros from '../../components/tableros/Totales_Biselado2_Tableros';
-import Totales_Produccion_Tableros from '../../components/tableros/Totales_Produccion_Tableros';
+import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
 
 const Tableros_Terminado = () => {
   const componentes = ['TotalesTerminado', 'TotalesBiselado', 'TotalesBiselado2', 'TotalesProduccion'];
