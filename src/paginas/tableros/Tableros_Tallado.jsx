@@ -4,10 +4,10 @@ import Totales_Pulido_Tableros from '../../components/tableros/Totales_Pulido_Ta
 import Totales_Tallado_Tableros from '../../components/tableros/Totales_Tallado_Tableros';
 import Totales_Engraver_Tableros from '../../components/tableros/Totales_Engraver_Tableros';
 import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
-import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
+import Totales_Produccion_Tableros from '../../components/tableros/Totales_Produccion_Tableros';
 
 const Tableros_Tallado = () => {
-  const componentes = ['TotalesSurtido', 'TotalesTallado', 'TotalesGenerado', 'TotalesPulido', 'TotalesEngraver'];
+  const componentes = ['TotalesSurtido', 'TotalesTallado', 'TotalesGenerado', 'TotalesPulido', 'TotalesEngraver', 'TotalesProduccion'];
   const [componenteActivo, setComponenteActivo] = useState(componentes[0]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [contador, setContador] = useState(10);
@@ -125,7 +125,7 @@ const Tableros_Tallado = () => {
         {componenteActivo === 'TotalesGenerado' && <Totales_Generado_Tableros />}
         {componenteActivo === 'TotalesPulido' && <Totales_Pulido_Tableros />}
         {componenteActivo === 'TotalesEngraver' && <Totales_Engraver_Tableros />}
-        
+        {componenteActivo === 'TotalesProduccion' && <Totales_Produccion_Tableros />}
       </div>
     </div>
   );
