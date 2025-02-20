@@ -108,10 +108,11 @@ const Totales_Surtido_Maquina = () => {
       clearTimeout(timeoutId);
     };
   }, []);
+
   // Estados locales
   const [seccionAbierta, setSeccionAbierta] = useState(false);
   const [registros, setRegistros] = useState([]);
-  // Este estado se usará para mostrar dinámicamente solo las columnas (horas) que tengan registros.
+  // Se usa para mostrar dinámicamente solo las columnas (horas) con registros.
   const [horasUnicas, setHorasUnicas] = useState([]);
   const [meta19, setMeta19] = useState(0);
   const [meta20, setMeta20] = useState(0);
@@ -125,10 +126,12 @@ const Totales_Surtido_Maquina = () => {
     vespertino: 0,
     nocturno: 0
   });
+
   const toggleSeccion = () => {
     setSeccionAbierta(!seccionAbierta);
   };
-  // Determina el inicio del turno (inicia a las 22:00). Si la hora actual es anterior, se toma el turno del día anterior.
+
+  // Determina el inicio del turno (inicia a las 22:00).
   const getShiftStart = () => {
     let shiftStart = moment().tz("America/Mexico_City").startOf("day").add(22, "hours");
     if (moment().isBefore(shiftStart)) {
@@ -136,13 +139,15 @@ const Totales_Surtido_Maquina = () => {
     }
     return shiftStart;
   };
-  // Función para calcular las horas transcurridas reales desde el inicio del turno.
+
+  // Calcula las horas transcurridas reales desde el inicio del turno.
   const calcularHorasTranscurridas = () => {
     const shiftStart = getShiftStart();
     const ahora = moment();
     const diffHoras = ahora.diff(shiftStart, "hours", true);
     return diffHoras > 0 ? Math.floor(diffHoras) : 0;
   };
+
   // Cargar datos: metas y registros.
   useEffect(() => {
     const cargarDatos = async () => {
@@ -157,6 +162,7 @@ const Totales_Surtido_Maquina = () => {
         );
         setMeta19(meta19Obj ? meta19Obj.meta : 0);
         setMeta20(meta20Obj ? meta20Obj.meta : 0);
+
         // Cargar registros.
         const responseRegistros = await clienteAxios("/manual/manual/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
@@ -178,8 +184,7 @@ const Totales_Surtido_Maquina = () => {
     cargarDatos();
   }, []);
 
-  // Función para procesar los registros filtrados y establecer los estados.
-  // Ahora se suma en totalAcumulado únicamente si el registro corresponde a los dos tipos deseados.
+  // Procesa los registros filtrados y establece los estados.
   const procesarRegistros = (registrosFiltrados, shiftStart) => {
     let totalAcumulado = 0;
     const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
@@ -189,7 +194,7 @@ const Totales_Surtido_Maquina = () => {
     };
     registrosFiltrados.forEach((registro) => {
       const hits = parseInt(registro.hits || 0, 10);
-      // Sólo se suman los hits si el registro pertenece a alguno de los dos tipos.
+      // Sólo acumula si el registro es de los dos tipos deseados.
       if (registro.name.includes("19 LENS LOG-SF") || registro.name.includes("20 LENS LOG-FIN")) {
         totalAcumulado += hits;
       }
@@ -236,7 +241,7 @@ const Totales_Surtido_Maquina = () => {
     setRegistros(registrosFiltrados);
     setTotalesPorTurno(totales);
     setRegistrosPorTipo(registrosPorTipoTemp);
-    // Se determina dinámicamente qué columnas (intervalos de hora) tienen registros.
+    // Determina dinámicamente qué columnas (intervalos de hora) tienen registros.
     const dynamicHoras = fixedHoras.filter((intervalo) => {
       const [horaInicio, horaFin] = intervalo.split(" - ");
       let totalIntervalo = 0;
@@ -261,21 +266,12 @@ const Totales_Surtido_Maquina = () => {
     setHorasUnicas(dynamicHoras);
   };
 
-  // Función que evalúa la clase de color según si el total acumulado cumple o no la meta acumulada.
-  // Se utiliza ahora el parámetro "horasTranscurridas" basado en la hora real transcurrida desde el inicio del turno.
-  const evaluarTotalAcumulado = (total, meta, horasTranscurridas) => {
-    const metaAcumulada = meta * horasTranscurridas;
-    return total >= metaAcumulada ? "text-green-500" : "text-red-500";
-  };
-
   // Calculamos las horas transcurridas reales desde el inicio del turno.
   const horasTranscurridas = calcularHorasTranscurridas();
+  // Metas totales y metas acumuladas para cada tipo.
   const sumaMetas = meta19 + meta20;
-  // Se calculan las metas acumuladas para cada tipo usando las horas transcurridas reales.
   const metaAcumuladaTotal19 = horasTranscurridas * meta19;
   const metaAcumuladaTotal20 = horasTranscurridas * meta20;
-  // Evaluamos la clase de color para el total acumulado.
-  const claseTotal = evaluarTotalAcumulado(totalesAcumulados, sumaMetas, horasTranscurridas);
 
   return (
     <div className="max-w-screen-xl">
@@ -283,17 +279,25 @@ const Totales_Surtido_Maquina = () => {
       <div className="lg:hidden mt-4">
         <SeccionMenu titulo="Surtido" isOpen={seccionAbierta} toggle={toggleSeccion}>
           <div className="bg-white shadow-md rounded-lg p-6">
-            {["19 LENS LOG-SF", "20 LENS LOG-FIN"].map((tipo, index) => (
-              <div key={index} className="mb-4">
-                <h3 className="font-bold text-gray-700 mb-2">{tipo}</h3>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="font-bold text-gray-700">Total:</span>
-                  <span className={`font-bold ${claseTotal}`}>
-                    {registrosPorTipo[tipo].reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0)}
-                  </span>
+            {["19 LENS LOG-SF", "20 LENS LOG-FIN"].map((tipo, index) => {
+              const totalTipo = registrosPorTipo[tipo].reduce(
+                (acc, curr) => acc + parseInt(curr.hits || 0, 10),
+                0
+              );
+              const metaTipoAcumulada = tipo === "19 LENS LOG-SF" ? metaAcumuladaTotal19 : metaAcumuladaTotal20;
+              const claseTipo = totalTipo >= metaTipoAcumulada ? "text-green-500" : "text-red-500";
+              return (
+                <div key={index} className="mb-4">
+                  <h3 className="font-bold text-gray-700 mb-2">{tipo}</h3>
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-bold text-gray-700">Total:</span>
+                    <span className={`font-bold ${claseTipo}`}>
+                      {totalTipo}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </SeccionMenu>
       </div>
@@ -316,53 +320,65 @@ const Totales_Surtido_Maquina = () => {
             </tr>
           </thead>
           <tbody className="text-center">
-            {["19 LENS LOG-SF", "20 LENS LOG-FIN"].map((tipo, index) => (
-              <tr key={index} className="font-semibold text-gray-700">
-                <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "150px" }}>
-                  {tipo}
-                </td>
-                <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>
-                  {formatNumber(registrosPorTipo[tipo].reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0))}
-                </td>
-                <td className="py-2 px-4 border-b font-bold">
-                  {tipo === "19 LENS LOG-SF" ? formatNumber(meta19) : (formatNumber(meta20) || "No definida")}
-                </td>
-                <td className="py-2 px-4 border-b font-bold">
-                  {tipo === "19 LENS LOG-SF" ? formatNumber(metaAcumuladaTotal19) : formatNumber(metaAcumuladaTotal20)}
-                </td>
-                {horasUnicas.length > 0 &&
-                  horasUnicas.map((hora, idx) => {
-                    const [horaInicio, horaFin] = hora.split(" - ");
-                    const totalHits = registrosPorTipo[tipo]
-                      .filter((r) => {
-                        const hourMoment = moment(r.hour, "HH:mm:ss");
-                        const startMoment = moment(horaInicio, "HH:mm");
-                        const endMoment = moment(horaFin, "HH:mm");
-                        if (startMoment.isAfter(endMoment)) {
-                          return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
-                        } else {
-                          return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
-                        }
-                      })
-                      .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
-                    const claseHitsIndividual =
-                      totalHits >= (tipo === "19 LENS LOG-SF" ? meta19 : meta20)
-                        ? "text-green-500"
-                        : "text-red-500";
-                    return (
-                      <td key={idx} className={`font-bold py-2 px-4 border-b ${claseHitsIndividual}`}>
-                        {totalHits}
-                      </td>
-                    );
-                  })}
-              </tr>
-            ))}
+            {["19 LENS LOG-SF", "20 LENS LOG-FIN"].map((tipo, index) => {
+              const totalTipo = registrosPorTipo[tipo].reduce(
+                (acc, curr) => acc + parseInt(curr.hits || 0, 10),
+                0
+              );
+              const metaTipoAcumulada = tipo === "19 LENS LOG-SF" ? metaAcumuladaTotal19 : metaAcumuladaTotal20;
+              const claseTipo = totalTipo >= metaTipoAcumulada ? "text-green-500" : "text-red-500";
+              return (
+                <tr key={index} className="font-semibold text-gray-700">
+                  <td className="py-2 px-4 border-b font-bold" style={{ minWidth: "150px" }}>
+                    {tipo}
+                  </td>
+                  <td className={`py-2 px-4 border-b font-bold ${claseTipo}`}>
+                    {formatNumber(totalTipo)}
+                  </td>
+                  <td className="py-2 px-4 border-b font-bold">
+                    {tipo === "19 LENS LOG-SF" ? formatNumber(meta19) : (formatNumber(meta20) || "No definida")}
+                  </td>
+                  <td className="py-2 px-4 border-b font-bold">
+                    {tipo === "19 LENS LOG-SF" ? formatNumber(metaAcumuladaTotal19) : formatNumber(metaAcumuladaTotal20)}
+                  </td>
+                  {horasUnicas.length > 0 &&
+                    horasUnicas.map((hora, idx) => {
+                      const [horaInicio, horaFin] = hora.split(" - ");
+                      const totalHits = registrosPorTipo[tipo]
+                        .filter((r) => {
+                          const hourMoment = moment(r.hour, "HH:mm:ss");
+                          const startMoment = moment(horaInicio, "HH:mm");
+                          const endMoment = moment(horaFin, "HH:mm");
+                          if (startMoment.isAfter(endMoment)) {
+                            return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
+                          } else {
+                            return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
+                          }
+                        })
+                        .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
+                      const claseHitsIndividual =
+                        totalHits >= (tipo === "19 LENS LOG-SF" ? meta19 : meta20)
+                          ? "text-green-500"
+                          : "text-red-500";
+                      return (
+                        <td key={idx} className={`font-bold py-2 px-4 border-b ${claseHitsIndividual}`}>
+                          {formatNumber(totalHits)}
+                        </td>
+                      );
+                    })}
+                </tr>
+              );
+            })}
             <tr className="font-semibold bg-green-200 text-gray-700">
               <td className="py-2 px-4 border-b font-bold">Totales</td>
-              <td className={`py-2 px-4 border-b font-bold ${claseTotal}`}>
+              <td className={`py-2 px-4 border-b font-bold ${
+                totalesAcumulados >= (metaAcumuladaTotal19 + metaAcumuladaTotal20)
+                  ? "text-green-500"
+                  : "text-red-500"
+              }`}>
                 {formatNumber(totalesAcumulados)}
               </td>
-              <td className="py-2 px-4 border-b font-bold">{sumaMetas}</td>
+              <td className="py-2 px-4 border-b font-bold">{formatNumber(sumaMetas)}</td>
               <td className="py-2 px-4 border-b font-bold">
                 {formatNumber(metaAcumuladaTotal19 + metaAcumuladaTotal20)}
               </td>
@@ -387,7 +403,9 @@ const Totales_Surtido_Maquina = () => {
                     );
                   }, 0);
                   return (
-                    <td key={idx} className={`font-bold py-2 px-4 border-b ${totalHora >= sumaMetas ? "text-green-500" : "text-red-500"}`}>
+                    <td key={idx} className={`font-bold py-2 px-4 border-b ${
+                      totalHora >= sumaMetas ? "text-green-500" : "text-red-500"
+                    }`}>
                       {formatNumber(totalHora)}
                     </td>
                   );
