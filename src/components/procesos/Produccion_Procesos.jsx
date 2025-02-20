@@ -52,7 +52,7 @@ const Produccion_Procesos = () => {
           // Nueva jornada: turno nocturno de hoy 22:00 a mañana 06:00 
           // y turnos matutino y vespertino corresponden al día siguiente.
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
-          finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours');
+          finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(29, 'minutes');
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
           finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
@@ -61,7 +61,7 @@ const Produccion_Procesos = () => {
           // Jornada actual: turno nocturno de ayer 22:00 a hoy 06:00,
           // y turnos matutino y vespertino corresponden al día actual.
           inicioNocturno = ahora.clone().subtract(1, 'day').startOf('day').add(22, 'hours');
-          finNocturno = ahora.clone().startOf('day').add(6, 'hours');
+          finNocturno = ahora.clone().startOf('day').add(6, 'hours').add(29, 'minutes');
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
           finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(29, 'minutes');
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
