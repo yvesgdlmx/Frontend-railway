@@ -61,7 +61,7 @@ const ResumenTrabajo = () => {
     }));
   };
 
-  const fechaFormateada = format(new Date(), "EEEE d 'de' MMMM 'del' yyyy", { locale: es });
+  const fechaFormateada = format(new Date(anio, mes - 1, dia), "EEEE d 'de' MMMM 'del' yyyy", { locale: es });
   const fechaCapitalizada = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
 
   return (
