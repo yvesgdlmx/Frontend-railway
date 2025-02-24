@@ -86,7 +86,7 @@ const Historial_Por_Dia = () => {
         }, {});
         const metasPorMaquinaLensLog = responseMetasLensLog.data.registros.reduce((acc, curr) => {
           if (curr.name.includes('LENS LOG') || curr.name.includes('JOB COMPLETE') || curr.name.includes('DEBLOCKING')) {
-            if (curr.name === '19 LENS LOG' || curr.name === '20 LENS LOG FIN') {
+            if (curr.name === 'LENS LOG' || curr.name === '20 LENS LOG FIN') {
               acc['LENS LOG TOTAL'] = (acc['LENS LOG TOTAL'] || 0) + curr.meta;
             } else {
               acc[curr.name] = curr.meta;
