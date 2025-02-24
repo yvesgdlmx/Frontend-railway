@@ -410,7 +410,7 @@ const Totales_Generado_Maquina = () => {
               <tr className="bg-blue-500 text-white">
                 <th className="py-2 px-4 border-b" style={{ minWidth: "250px" }}>Nombre</th>
                 <th className="py-2 px-4 border-b">Total Acumulado</th>
-                <th className="py-2 px-4 border-b">Meta</th>
+                <th className="py-2 px-4 border-b whitespace-nowrap">Meta x hora</th>
                 <th className="py-2 px-4 border-b">Meta Acumulada</th>
                 {["nocturno", "matutino", "vespertino"].map((turno) => (
                   <th key={turno} className="py-2 px-4 border-b">

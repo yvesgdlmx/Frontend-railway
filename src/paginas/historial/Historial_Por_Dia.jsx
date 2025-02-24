@@ -228,12 +228,12 @@ const Historial_Por_Dia = () => {
           </p>
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full bg-white border border-gray-300 shadow-lg rounded-lg table-fixed">
-              <thead className="bg-blue-500 text-white">
+              <thead className="bg-blue-500 text-white uppercase">
                 <tr>
                   <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Nombre</th>
                   <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Rango de Fecha</th>
                   <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Hits</th>
-                  <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Meta</th>
+                  <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Meta por Jornada</th>
                 </tr>
               </thead>
               <tbody>

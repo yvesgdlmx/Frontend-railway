@@ -437,7 +437,7 @@ const Totales_Biselado_Maquina = () => {
               <tr className="bg-blue-500 text-white">
                 <th className="py-2 px-4 border-b" style={{ minWidth: "250px" }}>Nombre</th>
                 <th className="py-2 px-4 border-b">Total Acumulado</th>
-                <th className="py-2 px-4 border-b">Meta</th>
+                <th className="py-2 px-4 border-b whitespace-nowrap">Meta x hora</th>
                 <th className="py-2 px-4 border-b">Meta Acumulada</th>
                 <th className="py-2 px-4 border-b">T. Nocturno</th>
                 <th className="py-2 px-4 border-b">T. Matutino</th>
