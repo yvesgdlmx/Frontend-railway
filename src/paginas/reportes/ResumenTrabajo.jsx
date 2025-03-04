@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Heading from '../../components/others/Heading';
 import formatearHora from '../../../helpers/formatearHora';
+import Actualizacion from '../../components/others/Actualizacion';
 
 const ResumenTrabajo = () => {
   const [datosAPI, setDatosAPI] = useState([]);
@@ -76,6 +77,7 @@ const ResumenTrabajo = () => {
       <div className='mt-4 md:mt-0'>
         <Heading title="Reporte Resumen de trabajos" />
       </div>
+      <Actualizacion/>
       <div className="min-h-screen bg-gray-50">
         <div className='py-6 px-4 sm:px-6 lg:px-8'>
           <div className="flex justify-center space-x-4 mt-4">

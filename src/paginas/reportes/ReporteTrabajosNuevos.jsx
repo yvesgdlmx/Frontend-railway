@@ -2,32 +2,10 @@ import React, { useEffect, useState } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
 import Heading from '../../components/others/Heading';
 import { formatNumber } from '../../helpers/formatNumber';
+import Actualizacion from '../../components/others/Actualizacion';
 
 const ReporteTrabajosNuevos = () => {
   const [registros, setRegistros] = useState([]);
-  const [ultimaActualizacion, setUltimaActualizacion] = useState('');
-
-  useEffect(() => {
-    const actualizarHora = () => {
-      const ahora = new Date();
-      ahora.setMinutes(35, 0, 0); // Establece la hora al minuto 35
-      const horaFormateada = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setUltimaActualizacion(horaFormateada);
-    };
-
-    const verificarYActualizar = () => {
-      const ahora = new Date();
-      const minutos = ahora.getMinutes();
-      if (minutos === 35) { // Verifica si es el minuto 35
-        actualizarHora();
-        window.location.reload();
-      }
-    };
-
-    actualizarHora(); // Actualiza inmediatamente al cargar
-    const intervalo = setInterval(verificarYActualizar, 60000); // Verifica cada minuto
-    return () => clearInterval(intervalo);
-  }, []);
 
   useEffect(() => {
     const obtenerDatos = async () => {
@@ -87,15 +65,7 @@ const ReporteTrabajosNuevos = () => {
       <Heading title="Reporte trabajos nuevos" />
     </div>
     <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen">
-      <div className='bg-gray-200 p-4 mb-4 rounded flex justify-between xs:hidden md:flex'>
-        <div className='flex gap-1'>
-          <img src="/img/clock.png" alt="reloj" width={25} />
-          <p className='text-gray-700 font-bold uppercase'>Última actualización: {ultimaActualizacion}</p>
-        </div>
-        <div>
-          <p className='font-medium text-gray-800 uppercase'>Actualización cada hora.</p>
-        </div>
-      </div>
+      <Actualizacion/>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg hidden md:table">
           <thead>
