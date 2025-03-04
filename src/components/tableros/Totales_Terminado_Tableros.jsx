@@ -16,7 +16,8 @@ const Totales_Terminado_Tableros = () => {
   const ordenCelulas = [
     "280 FINBLKR 1",
     "281 FINBLKR 2",
-    "282 FINBLKR 3"
+    "282 FINBLKR 3",
+    "285 C6 WECO"
   ];
 
   // Definición de los intervalos fijos con el orden que solicitas

@@ -138,7 +138,7 @@ const Totales_Terminado_Maquina = () => {
     nocturno: 0,
   });
   // Orden de las células
-  const ordenCelulas = ["280 FINBLKR 1", "281 FINBLKR 2", "282 FINBLKR 3"];
+  const ordenCelulas = ["280 FINBLKR 1", "281 FINBLKR 2", "282 FINBLKR 3", "285 C6 WECO"];
 
   // Se obtiene el inicio de la jornada
   const jornadaInicio = getJornadaInicio();
