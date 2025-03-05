@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import moment from "moment-timezone";
+import { formatNumber } from "../../helpers/formatNumber";
 
 const Totales_Produccion_Tableros = () => {
   const [totalesPorTurno, setTotalesPorTurno] = useState({
@@ -176,20 +177,20 @@ const Totales_Produccion_Tableros = () => {
         <h2 className="text-4xl font-bold mb-8 text-center text-yellow-400">Totales de Producción</h2>
         <div className="mb-8">
           <p className="text-3xl font-semibold">Total General:</p>
-          <p className="text-5xl font-bold text-yellow-400">{sumaTotalAcumulados}</p>
+          <p className="text-5xl font-bold text-yellow-400">{formatNumber(sumaTotalAcumulados)}</p>
         </div>
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <span className="text-2xl">Nocturno:</span>
-            <span className="text-3xl font-semibold">{totalesPorTurno.nocturno}</span>
+            <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.nocturno)}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-2xl">Matutino:</span>
-            <span className="text-3xl font-semibold">{totalesPorTurno.matutino}</span>
+            <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.matutino)}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-2xl">Vespertino:</span>
-            <span className="text-3xl font-semibold">{totalesPorTurno.vespertino}</span>
+            <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.vespertino)}</span>
           </div>
         </div>
       </div>
