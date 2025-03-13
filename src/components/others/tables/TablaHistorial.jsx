@@ -1,7 +1,6 @@
 import React from "react";
 import moment from "moment";
 import { formatNumber } from "../../../helpers/formatNumber";
-
 const TablaHistorial = ({ seccion, nombres, items, metas }) => {
   // Función para obtener la meta por hora usando el nombre exacto
   const getMetaPorHora = (machineName) => {
@@ -11,11 +10,9 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
   // en “nombres” (con hits 0 y su respectiva meta)
   const groupByName = (arr) => {
     const groups = {};
-    // Inicializamos cada máquina con 0 hits y su meta por hora
     nombres.forEach((machine) => {
       groups[machine] = { name: machine, hits: 0, metaPorHora: getMetaPorHora(machine) };
     });
-    // Se acumulan los hits de los registros encontrados
     arr.forEach((item) => {
       if (groups[item.name] !== undefined) {
         groups[item.name].hits += Number(item.hits);
@@ -27,36 +24,42 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
   };
   // Función para calcular totales de hits por turno
   const calcularTotalesPorTurno = (items) => {
-    let totalNocturno = 0, totalMatutino = 0, totalVespertino = 0;
+    let totalNocturno = 0,
+      totalMatutino = 0,
+      totalVespertino = 0;
     items.forEach((item) => {
-      let m = item.hour
-        ? moment(item.hour, "HH:mm")
-        : moment(item.fecha, "YYYY-MM-DD HH:mm:ss");
-      const t = m.hour() * 60 + m.minute();
-      const hitValue = Number(item.hits);
-      if (t >= 1320 || t <= 360) {
-        totalNocturno += hitValue;
-      } else if (t >= 390 && t <= 869) {
-        totalMatutino += hitValue;
-      } else if (t >= 870 && t <= 1319) {
-        totalVespertino += hitValue;
+      if (!item.hour) return;
+      const [hrStr, minStr] = item.hour.split(":");
+      const hr = parseInt(hrStr, 10);
+      const min = parseInt(minStr, 10);
+      const total = hr * 60 + min;
+      // Turno nocturno: desde las 22:00 (1320) hasta 23:59 y de 00:00 hasta antes de 06:00 (360)
+      if (total >= 1320 || total < 360) {
+        totalNocturno += Number(item.hits);
+      }
+      // Turno matutino: de 06:30 (390) a 14:29 (869)
+      else if (total >= 390 && total <= 869) {
+        totalMatutino += Number(item.hits);
+      }
+      // Turno vespertino: de 14:30 (870) a 21:59 (1319)
+      else if (total >= 870 && total < 1320) {
+        totalVespertino += Number(item.hits);
       }
     });
     return { totalNocturno, totalMatutino, totalVespertino };
   };
+  const agrupados = groupByName(items);
+  const { totalNocturno, totalMatutino, totalVespertino } = calcularTotalesPorTurno(items);
+  // Cálculo de metas generales
+  const metaMatutinoGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 8), 0);
+  const metaNocturnoGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 8), 0);
+  const metaVespertinoGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 7), 0);
+  const metaGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 24), 0);
   // Función para asignar clases CSS según la comparación de hits con la meta
   const getClassName = (total, meta) => {
     if (typeof meta !== "number") return "text-gray-500";
     return total >= meta ? "text-green-600" : "text-red-600";
   };
-  const agrupados = groupByName(items);
-  const { totalNocturno, totalMatutino, totalVespertino } = calcularTotalesPorTurno(items);
-  // Cálculo de la meta por máquina y parciales por turno
-  const metaMatutinoGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 8), 0);
-  const metaNocturnoGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 8), 0);
-  const metaVespertinoGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 7), 0);
-  const metaGeneral = nombres.reduce((sum, maquina) => sum + (getMetaPorHora(maquina) * 24), 0);
-  // Se asignan clases para el contenedor de la tabla según la sección
   const cardClasses =
     seccion === "Producción"
       ? "bg-white shadow-md rounded overflow-hidden flex flex-col h-auto self-start"
@@ -96,9 +99,7 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
                   <td className={`px-6 py-4 whitespace-nowrap text-sm ${getClassName(item.hits, metaJornada)}`}>
                     {formatNumber(item.hits)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {metaHora}
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{metaHora}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatNumber(metaJornada)}
                   </td>
@@ -144,7 +145,12 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
           <div className="text-center p-2 border border-gray-400 rounded">
             <p className="text-xs text-gray-600">Total General / Meta general</p>
             <p className="text-lg font-bold">
-              <span className={`${getClassName(totalNocturno + totalMatutino + totalVespertino, metaGeneral)}`}>
+              <span
+                className={`${getClassName(
+                  totalNocturno + totalMatutino + totalVespertino,
+                  metaGeneral
+                )}`}
+              >
                 {formatNumber(totalNocturno + totalMatutino + totalVespertino)}
               </span>{" "}
               <span className="text-gray-500">/ {formatNumber(metaGeneral)}</span>

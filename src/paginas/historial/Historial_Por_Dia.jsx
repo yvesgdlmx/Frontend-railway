@@ -7,7 +7,6 @@ import CardHistorial from "../../components/others/cards/CardHistorial";
 import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 import Alerta from "../../components/others/alertas/Alerta";
 import Heading from "../../components/others/Heading";
-
 const Historial_Por_Dia = () => {
   // Calcular la fecha de ayer para usarla como fecha por defecto
   const ayer = moment().subtract(1, "day");
@@ -35,29 +34,28 @@ const Historial_Por_Dia = () => {
       setLoading(true);
       setError(null);
       try {
-        // Se obtiene el historial para el día seleccionado
+        // Se obtiene el historial para el día seleccionado (registros con fecha del día actual)
         const responseCurrent = await clienteAxios(
           `/historial/historial-2/${selectedYear}/${selectedMonth}/${selectedDay}`
         );
-        // La API devuelve registros agrupados, se aplanan
         const currentRecords = Array.isArray(responseCurrent.data.registros)
           ? responseCurrent.data.registros
           : Object.values(responseCurrent.data.registros).flat();
-        // Construir la fecha seleccionada en formato "YYYY-MM-DD"
+        // Construir la fecha seleccionada en formato moment
         const selectedDate = moment(`${selectedYear}-${selectedMonth}-${selectedDay}`, "YYYY-M-D");
-        // Filtrar los registros del día actual:
-        // Se combinan record.fecha (que ya viene en "YYYY-MM-DD") y record.hour para obtener la marca temporal.
+        // Filtrar registros del día actual:
+        // Se incluye cualquier registro, incluso "00:00:00", con excepción de aquellos a partir de las 22:00
         const currentFiltered = currentRecords.filter((record) => {
           if (!record.fecha || !record.hour) return false;
-          const recordMoment = moment(record.fecha + " " + record.hour, "YYYY-MM-DD HH:mm:ss");
-          const esMismoDia = recordMoment.isSame(selectedDate, "day");
-          // Omitir registros de hora "00:00"
-          if (record.hour === "00:00" || record.hour === "00:00:00") return false;
-          // Solo incluir los registros del día que ocurren antes de las 22:00
-          if (esMismoDia && recordMoment.hour() >= 22) return false;
-          return esMismoDia;
+          const [hrStr, minStr] = record.hour.split(":");
+          const hr = parseInt(hrStr, 10);
+          const min = parseInt(minStr, 10);
+          const totalMinutes = hr * 60 + min;
+          // Se incluyen también los registros con 00:00:00 (no se descartan)
+          if (totalMinutes >= 1320) return false; // a partir de 22:00 se omiten para el día actual
+          return true;
         });
-        // Se obtienen registros del día anterior para cubrir el turno nocturno.
+        // Se obtiene el historial para el día anterior para incorporar el turno nocturno
         const fechaAnterior = selectedDate.clone().subtract(1, "days");
         const prevYear = fechaAnterior.format("YYYY");
         const prevMonth = fechaAnterior.format("MM");
@@ -67,16 +65,14 @@ const Historial_Por_Dia = () => {
         const prevRecords = Array.isArray(responsePrev.data.registros)
           ? responsePrev.data.registros
           : Object.values(responsePrev.data.registros).flat();
-        // Filtrar el turno nocturno: registros del día anterior posteriores a las 22:00.
+        // Filtrar registros del turno nocturno del día anterior (a partir de las 22:00)
         const prevRecordsFiltered = prevRecords.filter((record) => {
           if (!record.fecha || !record.hour) return false;
-          const recordMoment = moment(record.fecha + " " + record.hour, "YYYY-MM-DD HH:mm:ss");
-          const esMismoDiaPrev = recordMoment.isSame(fechaAnterior, "day");
-          let adjustedHour = moment(record.hour, "HH:mm:ss");
-          if (adjustedHour.hour() < 6) {
-            adjustedHour.add(24, "hours");
-          }
-          return esMismoDiaPrev && adjustedHour.hour() >= 22;
+          const [hrStr, minStr] = record.hour.split(":");
+          const hr = parseInt(hrStr, 10);
+          const min = parseInt(minStr, 10);
+          const totalMinutes = hr * 60 + min;
+          return totalMinutes >= 1320; // incluye desde las 22:00 en adelante
         });
         const todosRegistros = [...prevRecordsFiltered, ...currentFiltered];
         setData({ registros: todosRegistros });
@@ -149,7 +145,7 @@ const Historial_Por_Dia = () => {
         return { seccion, nombres, items };
       })
     : [];
-  // Para mostrar en pantalla el rango de jornada:
+  // Mostrar en pantalla el rango de jornada:
   // - Inicio: día anterior al seleccionado a las 22:00.
   // - Fin: día seleccionado a las 21:59.
   const selectedDate = moment(`${selectedYear}-${selectedMonth}-${selectedDay}`, "YYYY-M-D");
@@ -158,7 +154,7 @@ const Historial_Por_Dia = () => {
   const displayRange = `Rango de fecha: ${inicioJornada.format("YYYY-MM-DD HH:mm")} - ${finJornada.format("YYYY-MM-DD HH:mm")}`;
   return (
     <div className="p-8 py-0 bg-gray-100 min-h-screen">
-        <Heading title={'Historial produccion por dia'}/>
+      <Heading title={'Historial produccion por dia'} />
       {/* Selectores */}
       <div className="mb-6 flex flex-wrap gap-4 justify-center">
         <div className="w-80">
