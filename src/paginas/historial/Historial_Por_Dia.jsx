@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import moment from "moment-timezone";
+import moment from "moment";
 import clienteAxios from "../../../config/clienteAxios";
 import SelectWipDiario from "../../components/others/html_personalizado/SelectWipDiario";
 import TablaHistorial from "../../components/others/tables/TablaHistorial";
@@ -7,9 +7,10 @@ import CardHistorial from "../../components/others/cards/CardHistorial";
 import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 import Alerta from "../../components/others/alertas/Alerta";
 import Heading from "../../components/others/Heading";
+
 const Historial_Por_Dia = () => {
-  // Calcular la fecha de ayer en la zona de México para usarla como fecha por defecto
-  const ayer = moment.tz("America/Mexico_City").subtract(1, "day");
+  // Calcular la fecha de ayer para usarla como fecha por defecto
+  const ayer = moment().subtract(1, "day");
   const defaultYear = ayer.year();
   const defaultMonth = ayer.month() + 1; // moment usa meses de 0 a 11
   const defaultDay = ayer.date();
@@ -38,55 +39,40 @@ const Historial_Por_Dia = () => {
         const responseCurrent = await clienteAxios(
           `/historial/historial-2/${selectedYear}/${selectedMonth}/${selectedDay}`
         );
-        // La API devuelve registros agrupados; se aplanan en un array
+        // La API devuelve registros agrupados, se aplanan
         const currentRecords = Array.isArray(responseCurrent.data.registros)
           ? responseCurrent.data.registros
           : Object.values(responseCurrent.data.registros).flat();
-        // Construir la fecha seleccionada en la zona "America/Mexico_City"
-        const selectedDate = moment.tz(
-          `${selectedYear}-${selectedMonth}-${selectedDay}`,
-          "YYYY-M-D",
-          "America/Mexico_City"
-        );
-        
-        // Filtrar los registros del día actual
+        // Construir la fecha seleccionada en formato "YYYY-MM-DD"
+        const selectedDate = moment(`${selectedYear}-${selectedMonth}-${selectedDay}`, "YYYY-M-D");
+        // Filtrar los registros del día actual:
+        // Se combinan record.fecha (que ya viene en "YYYY-MM-DD") y record.hour para obtener la marca temporal.
         const currentFiltered = currentRecords.filter((record) => {
           if (!record.fecha || !record.hour) return false;
-          const recordMoment = moment.tz(
-            record.fecha + " " + record.hour,
-            "YYYY-MM-DD HH:mm:ss",
-            "America/Mexico_City"
-          );
+          const recordMoment = moment(record.fecha + " " + record.hour, "YYYY-MM-DD HH:mm:ss");
           const esMismoDia = recordMoment.isSame(selectedDate, "day");
           // Omitir registros de hora "00:00"
           if (record.hour === "00:00" || record.hour === "00:00:00") return false;
-          // Excluir registros del día actual con hora igual o posterior a las 22:00 
-          // ya que corresponden al turno nocturno
+          // Solo incluir los registros del día que ocurren antes de las 22:00
           if (esMismoDia && recordMoment.hour() >= 22) return false;
           return esMismoDia;
         });
-        // Se obtienen registros del día anterior para cubrir el turno nocturno
-        const fechaAnterior = selectedDate.clone().subtract(1, "day");
-        const prevYear = fechaAnterior.year();
-        const prevMonth = fechaAnterior.month() + 1;
-        const prevDay = fechaAnterior.date();
+        // Se obtienen registros del día anterior para cubrir el turno nocturno.
+        const fechaAnterior = selectedDate.clone().subtract(1, "days");
+        const prevYear = fechaAnterior.format("YYYY");
+        const prevMonth = fechaAnterior.format("MM");
+        const prevDay = fechaAnterior.format("DD");
         const prevEndpoint = `/historial/historial-2/${prevYear}/${prevMonth}/${prevDay}`;
         const responsePrev = await clienteAxios(prevEndpoint);
         const prevRecords = Array.isArray(responsePrev.data.registros)
           ? responsePrev.data.registros
           : Object.values(responsePrev.data.registros).flat();
-        // Filtrar el turno nocturno: registros del día anterior con hora a partir de las 22:00
+        // Filtrar el turno nocturno: registros del día anterior posteriores a las 22:00.
         const prevRecordsFiltered = prevRecords.filter((record) => {
           if (!record.fecha || !record.hour) return false;
-          const recordMoment = moment.tz(
-            record.fecha + " " + record.hour,
-            "YYYY-MM-DD HH:mm:ss",
-            "America/Mexico_City"
-          );
+          const recordMoment = moment(record.fecha + " " + record.hour, "YYYY-MM-DD HH:mm:ss");
           const esMismoDiaPrev = recordMoment.isSame(fechaAnterior, "day");
-          // Para evitar problemas en registros con horas tempranas (por ejemplo, después de medianoche),
-          // se ajusta la hora si es menor que 6
-          let adjustedHour = moment.tz(record.hour, "HH:mm:ss", "America/Mexico_City");
+          let adjustedHour = moment(record.hour, "HH:mm:ss");
           if (adjustedHour.hour() < 6) {
             adjustedHour.add(24, "hours");
           }
@@ -102,7 +88,7 @@ const Historial_Por_Dia = () => {
     };
     fetchData();
   }, [selectedYear, selectedMonth, selectedDay]);
-  // Efecto para obtener las metas (se mantiene la lógica original)
+  // Efecto para obtener las metas (sin cambios)
   useEffect(() => {
     const obtenerMetas = async () => {
       try {
@@ -166,17 +152,13 @@ const Historial_Por_Dia = () => {
   // Para mostrar en pantalla el rango de jornada:
   // - Inicio: día anterior al seleccionado a las 22:00.
   // - Fin: día seleccionado a las 21:59.
-  const selectedDate = moment.tz(
-    `${selectedYear}-${selectedMonth}-${selectedDay}`,
-    "YYYY-M-D",
-    "America/Mexico_City"
-  );
+  const selectedDate = moment(`${selectedYear}-${selectedMonth}-${selectedDay}`, "YYYY-M-D");
   const inicioJornada = selectedDate.clone().subtract(1, "day").set({ hour: 22, minute: 0, second: 0 });
   const finJornada = selectedDate.clone().set({ hour: 21, minute: 59, second: 59 });
   const displayRange = `Rango de fecha: ${inicioJornada.format("YYYY-MM-DD HH:mm")} - ${finJornada.format("YYYY-MM-DD HH:mm")}`;
   return (
     <div className="p-8 py-0 bg-gray-100 min-h-screen">
-      <Heading title={"Historial produccion por dia"} />
+        <Heading title={'Historial produccion por dia'}/>
       {/* Selectores */}
       <div className="mb-6 flex flex-wrap gap-4 justify-center">
         <div className="w-80">
