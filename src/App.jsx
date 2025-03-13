@@ -4,9 +4,9 @@ import Layout from './layouts/Layout';
 import ScrollToTop from './components/others/ScrollToTop';
 import { AuthProvider } from '../context/AuthProvider';
 import AuthLayout from './layouts/AuthLayout';
-import Login from './components/others/Login';
 
 // Usar React.lazy para cargar componentes de forma asíncrona
+const Login = lazy(() => import('./components/others/Login'));
 const Procesos = lazy(() => import('./paginas/Procesos'));
 const Totales_Estacion = lazy(() => import('./paginas/totales/Totales_Estacion'));
 const Totales_Surtido_Maquina = lazy(() => import('./components/totales_maquina/Totales_Surtido_Maquina'));

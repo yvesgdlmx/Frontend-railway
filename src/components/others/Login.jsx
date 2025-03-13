@@ -8,6 +8,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [alerta, sertAlerta] = useState({});
+  const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
   const { setAuth } = useAuth();
   const navigate = useNavigate();
 
@@ -66,7 +67,7 @@ const Login = () => {
                   onChange={e => setEmail(e.target.value)}
                 />
               </div>
-              <div className="mt-4">
+              <div className="mt-4 relative">
                 <label className="sr-only" htmlFor="password">
                   Password
                 </label>
@@ -75,12 +76,18 @@ const Login = () => {
                   className="appearance-none relative block w-full px-3 py-3 border border-gray-700 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                   required=""
                   autoComplete="current-password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'} // Cambia el tipo de input según el estado
                   name="password"
                   id="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                 />
+                <span
+                  onClick={() => setShowPassword(!showPassword)} // Cambia el estado al hacer clic
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                >
+                  {showPassword ? '🙈' : '👁️'} {/* Icono de ojo */}
+                </span>
               </div>
             </div>
             <div className="flex items-center justify-between mt-4">
@@ -97,7 +104,7 @@ const Login = () => {
               </div>
               <div className="text-sm">
                 <a className="font-medium text-indigo-500 hover:text-indigo-400" href="#">
-                  ¿Olviaste tu password?
+                  ¿Olvidaste tu password?
                 </a>
               </div>
             </div>
@@ -112,7 +119,7 @@ const Login = () => {
           </form>
         </div>
         <div className="px-8 py-4 bg-gray-700 text-center">
-          <span className="text-gray-400">¿Aún no tienes una cuenta? </span>
+          <span className="text-white">¿Aún no tienes una cuenta? </span>
           <Link className="font-medium text-indigo-500 hover:text-indigo-400" to="#">
             Crear una
           </Link>

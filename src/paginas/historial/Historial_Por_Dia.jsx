@@ -1,371 +1,228 @@
-import { useState, useEffect } from "react";
-import clienteAxios from "../../../config/clienteAxios";
+import React, { useState, useEffect } from "react";
 import moment from "moment";
-
-const estaciones = {
-  "Surtido": ["19 LENS LOG", "20 LENS LOG"],
-  "Bloqueo de tallado": ["220 SRFBLK 1", "221 SRFBLK 2", "222 SRFBLK 3", "223 SRFBLK 4", "224 SRFBLK 5", "225 SRFBLK 6"],
-  "Generado": ["241 GENERATOR 1", "242 GENERATOR 2", "250 GENERATOR 3", "245 ORBIT 1 LA", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA", "247 SCHNIDER 1", "248 SCHNIDER 2"],
-  "Pulido": ["255 POLISHR 1", "257 POLISHR 3", "259 POLISHR 5", "262 POLISHR 8", "265 POLISHR 12", "266 MULTIFLEX 1", "267 MULTIFLEX 2", "268 MULTIFLEX 3", "269 MULTIFLEX 4", "254 IFLEX SRVR"],
-  "Engraver": ["270 ENGRVR 1", "271 ENGRVR 2", "272 ENGRVR 3", "273 ENGRVR 4"],
-  "Desbloqueo": ["320 DEBLOCKING 1"],
-  "AntiReflejante": ["91 VELOCITY 1", "92 VELOCITY 2", "52 FUSION", "53 1200 D", "55 TLF 1200.1", "56 TLF 1200.2"],
-  "Bloqueo de terminado": ["280 FINBLKR 1", "281 FINBLKR 2", "282 FINBLKR 3"],
-  "Biselado": ["298 DOUBLER", "299 BISPHERA", "300 EDGER 1", "301 EDGER 2", "302 EDGER 3", "303 EDGER 4", "304 EDGER 5", "305 EDGER 6", "306 EDGER 7", "307 EDGER 8", "308 EDGER 9", "309 EDGER 10", "310 EDGER 11", "311 EDFGER 12", "313 EDGER 13", "314 EDGER 14", "316 EDGER 15", "317 EDGER 16", "327 EDGER 17", "328 EDGER 18", "329 EDGER 19", "330 EDGER 20", "331 EDGER 21", "332 EDGER 22", "333 EDGER 23", "334 EDGER 24", "312 RAZR", "318 HSE 1", "319 HSE 2"],
-  "Producción": ["32 JOB COMPLETE"],
-};
-
-const nombreMostrar = {
-  "19 LENS LOG": "19 LENS LOG SF",
-  "20 LENS LOG": "20 LENS LOG FIN"
-};
+import clienteAxios from "../../../config/clienteAxios";
+import SelectWipDiario from "../../components/others/html_personalizado/SelectWipDiario";
+import TablaHistorial from "../../components/others/tables/TablaHistorial";
+import CardHistorial from "../../components/others/cards/CardHistorial";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
+import Alerta from "../../components/others/alertas/Alerta";
+import Heading from "../../components/others/Heading";
 
 const Historial_Por_Dia = () => {
-  // Para mostrar por defecto "ayer"
-  const hoy = moment();
-  const [anio, setAnio] = useState(hoy.format('YYYY'));
-  const [mes, setMes] = useState(hoy.format('MM'));
-  const [dia, setDia] = useState(hoy.format('DD'));
-  const [registros, setRegistros] = useState([]);
+  // Calcular la fecha de ayer para usarla como fecha por defecto
+  const ayer = moment().subtract(1, "day");
+  const defaultYear = ayer.year();
+  const defaultMonth = ayer.month() + 1; // moment usa meses de 0 a 11
+  const defaultDay = ayer.date();
+  // Datos para los selectores
+  const anios = [defaultYear, 2024];
+  const meses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const dias = Array.from({ length: 31 }, (_, index) => index + 1);
+  const anioOptions = anios.map((anio) => ({ value: anio, label: anio.toString() }));
+  const mesOptions = meses.map((mes) => ({ value: mes, label: mes.toString() }));
+  const diaOptions = dias.map((dia) => ({ value: dia, label: dia.toString() }));
+  // Estados con la fecha seleccionada (por defecto, la de ayer)
+  const [selectedYear, setSelectedYear] = useState(defaultYear);
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+  const [selectedDay, setSelectedDay] = useState(defaultDay);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [metas, setMetas] = useState({});
-
-  const handleAnioChange = (e) => setAnio(e.target.value);
-  const handleMesChange = (e) => setMes(e.target.value);
-  const handleDiaChange = (e) => setDia(e.target.value);
-
+  // Efecto para obtener registros del día seleccionado
   useEffect(() => {
-    const obtenerRegistros = async () => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        /* 
-          Ahora, si el usuario elige el día X (por ejemplo, 13),
-          queremos que la jornada vaya desde el día anterior a las 22:00 (12/22:00)
-          hasta el día seleccionado a las 21:30 (13/21:30)
-        */
-        const fechaFin = moment(`${anio}-${mes}-${dia}`, 'YYYY-MM-DD').set({ hour: 21, minute: 30 });
-        const fechaInicio = moment(`${anio}-${mes}-${dia}`, 'YYYY-MM-DD').subtract(1, 'days').set({ hour: 22, minute: 0 });
-
-        // Consultamos la información del día anterior para capturar registros desde las 22:00 en adelante
-        const { data: dataDiaAnterior } = await clienteAxios(
-          `/historial/historial-2/${fechaInicio.format('YYYY')}/${fechaInicio.format('MM')}/${fechaInicio.format('DD')}`
+        // Se obtiene el historial para el día seleccionado
+        const responseCurrent = await clienteAxios(
+          `/historial/historial-2/${selectedYear}/${selectedMonth}/${selectedDay}`
         );
-        // Consultamos la información del día seleccionado para capturar registros hasta las 21:30
-        const { data: dataDiaSeleccionado } = await clienteAxios(
-          `/historial/historial-2/${anio}/${mes}/${dia}`
-        );
-
-        const registrosCombinados = [
-          ...dataDiaAnterior.registros.filter(r => {
-            const hora = moment(r.hour, 'HH:mm');
-            return hora.isSameOrAfter(moment('22:00', 'HH:mm'));
-          }),
-          ...dataDiaSeleccionado.registros.filter(r => {
-            const hora = moment(r.hour, 'HH:mm');
-            return hora.isBefore(moment('21:30', 'HH:mm'));
-          })
-        ];
-        setRegistros(registrosCombinados);
-      } catch (error) {
-        console.error("Error al obtener los registros:", error);
-        setRegistros([]);
+        // La API devuelve registros agrupados, se aplanan
+        const currentRecords = Array.isArray(responseCurrent.data.registros)
+          ? responseCurrent.data.registros
+          : Object.values(responseCurrent.data.registros).flat();
+        // Construir la fecha seleccionada en formato "YYYY-MM-DD"
+        const selectedDate = moment(`${selectedYear}-${selectedMonth}-${selectedDay}`, "YYYY-M-D");
+        // Filtrar los registros del día actual:
+        // Se combinan record.fecha (que ya viene en "YYYY-MM-DD") y record.hour para obtener la marca temporal.
+        const currentFiltered = currentRecords.filter((record) => {
+          if (!record.fecha || !record.hour) return false;
+          const recordMoment = moment(record.fecha + " " + record.hour, "YYYY-MM-DD HH:mm:ss");
+          const esMismoDia = recordMoment.isSame(selectedDate, "day");
+          // Omitir registros de hora "00:00"
+          if (record.hour === "00:00" || record.hour === "00:00:00") return false;
+          // Solo incluir los registros del día que ocurren antes de las 22:00
+          if (esMismoDia && recordMoment.hour() >= 22) return false;
+          return esMismoDia;
+        });
+        // Se obtienen registros del día anterior para cubrir el turno nocturno.
+        const fechaAnterior = selectedDate.clone().subtract(1, "days");
+        const prevYear = fechaAnterior.format("YYYY");
+        const prevMonth = fechaAnterior.format("MM");
+        const prevDay = fechaAnterior.format("DD");
+        const prevEndpoint = `/historial/historial-2/${prevYear}/${prevMonth}/${prevDay}`;
+        const responsePrev = await clienteAxios(prevEndpoint);
+        const prevRecords = Array.isArray(responsePrev.data.registros)
+          ? responsePrev.data.registros
+          : Object.values(responsePrev.data.registros).flat();
+        // Filtrar el turno nocturno: registros del día anterior posteriores a las 22:00.
+        const prevRecordsFiltered = prevRecords.filter((record) => {
+          if (!record.fecha || !record.hour) return false;
+          const recordMoment = moment(record.fecha + " " + record.hour, "YYYY-MM-DD HH:mm:ss");
+          const esMismoDiaPrev = recordMoment.isSame(fechaAnterior, "day");
+          let adjustedHour = moment(record.hour, "HH:mm:ss");
+          if (adjustedHour.hour() < 6) {
+            adjustedHour.add(24, "hours");
+          }
+          return esMismoDiaPrev && adjustedHour.hour() >= 22;
+        });
+        const todosRegistros = [...prevRecordsFiltered, ...currentFiltered];
+        setData({ registros: todosRegistros });
+      } catch (err) {
+        console.error(err);
+        setError("Error al obtener los datos.");
       }
+      setLoading(false);
     };
-
+    fetchData();
+  }, [selectedYear, selectedMonth, selectedDay]);
+  // Efecto para obtener las metas (sin cambios)
+  useEffect(() => {
     const obtenerMetas = async () => {
       try {
-        const responseMetasTallados = await clienteAxios.get('/metas/metas-tallados');
-        const responseMetasLensLog = await clienteAxios.get('/metas/metas-manuales');
-        const responseMetasGeneradores = await clienteAxios.get('/metas/metas-generadores');
-        const responseMetasPulidos = await clienteAxios.get('/metas/metas-pulidos');
-        const responseMetasEngravers = await clienteAxios.get('/metas/metas-engravers');
-        const responseMetasTerminados = await clienteAxios.get('/metas/metas-terminados');
-        const responseMetasBiselados = await clienteAxios.get('/metas/metas-biselados');
-
-        const metasPorMaquinaTallados = responseMetasTallados.data.registros.reduce((acc, curr) => {
-          acc[curr.name] = curr.meta;
+        const responseMetasTallados = await clienteAxios.get("/metas/metas-tallados");
+        const responseMetasManuales = await clienteAxios.get("/metas/metas-manuales");
+        const responseMetasGeneradores = await clienteAxios.get("/metas/metas-generadores");
+        const responseMetasPulidos = await clienteAxios.get("/metas/metas-pulidos");
+        const responseMetasEngravers = await clienteAxios.get("/metas/metas-engravers");
+        const responseMetasTerminados = await clienteAxios.get("/metas/metas-terminados");
+        const responseMetasBiselados = await clienteAxios.get("/metas/metas-biselados");
+        const metasTallados = responseMetasTallados.data.registros.reduce((acc, curr) => {
+          acc[curr.name.trim()] = curr.meta;
           return acc;
         }, {});
-        const metasPorMaquinaLensLog = responseMetasLensLog.data.registros.reduce((acc, curr) => {
-          if (curr.name.includes('LENS LOG') || curr.name.includes('JOB COMPLETE') || curr.name.includes('DEBLOCKING')) {
-            if (curr.name === 'LENS LOG' || curr.name === '20 LENS LOG FIN') {
-              acc['LENS LOG TOTAL'] = (acc['LENS LOG TOTAL'] || 0) + curr.meta;
-            } else {
-              acc[curr.name] = curr.meta;
-            }
-          }
+        const metasManuales = responseMetasManuales.data.registros.reduce((acc, curr) => {
+          acc[curr.name.trim()] = curr.meta;
           return acc;
         }, {});
-        const metasPorMaquinaGeneradores = responseMetasGeneradores.data.registros.reduce((acc, curr) => {
-          acc[curr.name.toUpperCase().trim()] = curr.meta;
+        const metasGeneradores = responseMetasGeneradores.data.registros.reduce((acc, curr) => {
+          acc[curr.name.trim()] = curr.meta;
           return acc;
         }, {});
-        const metasPorMaquinaPulidos = responseMetasPulidos.data.registros.reduce((acc, curr) => {
-          acc[curr.name.toUpperCase().trim()] = curr.meta;
+        const metasPulidos = responseMetasPulidos.data.registros.reduce((acc, curr) => {
+          acc[curr.name.trim()] = curr.meta;
           return acc;
         }, {});
-        const metasPorMaquinaEngravers = responseMetasEngravers.data.registros.reduce((acc, curr) => {
-          acc[curr.name.toUpperCase().trim()] = curr.meta;
+        const metasEngravers = responseMetasEngravers.data.registros.reduce((acc, curr) => {
+          acc[curr.name.trim()] = curr.meta;
           return acc;
         }, {});
-        const metasPorMaquinaTerminados = responseMetasTerminados.data.registros.reduce((acc, curr) => {
-          acc[curr.name.toUpperCase().trim()] = curr.meta;
+        const metasTerminados = responseMetasTerminados.data.registros.reduce((acc, curr) => {
+          acc[curr.name.trim()] = curr.meta;
           return acc;
         }, {});
-        const metasPorMaquinaBiselados = responseMetasBiselados.data.registros.reduce((acc, curr) => {
-          acc[curr.name.toUpperCase().trim()] = curr.meta;
+        const metasBiselados = responseMetasBiselados.data.registros.reduce((acc, curr) => {
+          acc[curr.name.trim()] = curr.meta;
           return acc;
         }, {});
-
         setMetas({
-          ...metasPorMaquinaTallados,
-          ...metasPorMaquinaLensLog,
-          ...metasPorMaquinaGeneradores,
-          ...metasPorMaquinaPulidos,
-          ...metasPorMaquinaEngravers,
-          ...metasPorMaquinaTerminados,
-          ...metasPorMaquinaBiselados,
+          ...metasTallados,
+          ...metasGeneradores,
+          ...metasPulidos,
+          ...metasEngravers,
+          ...metasTerminados,
+          ...metasBiselados,
+          ...metasManuales,
         });
       } catch (error) {
         console.error("Error al obtener las metas:", error);
       }
     };
-
-    obtenerRegistros();
     obtenerMetas();
-  }, [anio, mes, dia]);
-
-  const calcularMetasPorTurno = (metaPorHora) => ({
-    matutino: metaPorHora * 8,
-    vespertino: metaPorHora * 7,
-    nocturno: metaPorHora * 8
-  });
-
-  const registrosAgrupados = registros.reduce((acc, registro) => {
-    const { name, hits } = registro;
-    if (!acc[name]) {
-      acc[name] = { hits: 0, turnos: { matutino: 0, vespertino: 0, nocturno: 0 } };
-    }
-    acc[name].hits += hits;
-    const hora = moment(registro.hour, 'HH:mm');
-    // Se mantienen los rangos de turnos; si se requiere ajustarlos, se pueden modificar aquí.
-    if (hora.isBetween(moment('06:30', 'HH:mm'), moment('14:29', 'HH:mm'), null, '[]')) {
-      acc[name].turnos.matutino += hits;
-    } else if (hora.isBetween(moment('14:30', 'HH:mm'), moment('21:29', 'HH:mm'), null, '[]')) {
-      acc[name].turnos.vespertino += hits;
-    } else {
-      acc[name].turnos.nocturno += hits;
-    }
-    return acc;
-  }, {});
-
-  const hitsPorEstacion = Object.entries(estaciones).reduce((acc, [nombreEstacion, maquinas]) => {
-    acc[nombreEstacion] = 0;
-    maquinas.forEach(maquina => {
-      const registro = registrosAgrupados[maquina];
-      if (registro) {
-        acc[nombreEstacion] += registro.hits;
-      }
-    });
-    return acc;
-  }, {});
-
-  const hitsPorEstacionYTurno = Object.entries(estaciones).reduce((acc, [nombreEstacion, maquinas]) => {
-    acc[nombreEstacion] = { matutino: 0, vespertino: 0, nocturno: 0 };
-    maquinas.forEach(maquina => {
-      const registro = registrosAgrupados[maquina];
-      if (registro) {
-        acc[nombreEstacion].matutino += registro.turnos.matutino;
-        acc[nombreEstacion].vespertino += registro.turnos.vespertino;
-        acc[nombreEstacion].nocturno += registro.turnos.nocturno;
-      }
-    });
-    return acc;
-  }, {});
-
-  const totalHits = Object.values(registrosAgrupados).reduce((acc, { hits }) => acc + hits, 0);
-  const totalHitsPorTurno = Object.values(hitsPorEstacionYTurno).reduce((acc, { matutino, vespertino, nocturno }) => {
-    acc.matutino += matutino;
-    acc.vespertino += vespertino;
-    acc.nocturno += nocturno;
-    return acc;
-  }, { matutino: 0, vespertino: 0, nocturno: 0 });
-
-  const getClassName = (hits, meta) => {
-    return hits >= meta ? 'text-green-600' : 'text-red-600';
-  };
-
-  const renderizarTablasPorEstacion = () => {
-    // Se define el rango a mostrar: del día anterior a las 22:00 hasta el día seleccionado a las 21:30.
-    const fechaFin = moment(`${anio}-${mes}-${dia}`, 'YYYY-MM-DD').set({ hour: 21, minute: 30 });
-    const fechaInicio = moment(`${anio}-${mes}-${dia}`, 'YYYY-MM-DD').subtract(1, 'days').set({ hour: 22, minute: 0 });
-    const fechaInicioStr = fechaInicio.format('YYYY-MM-DD HH:mm');
-    const fechaFinStr = fechaFin.format('YYYY-MM-DD HH:mm');
-
-    return Object.entries(estaciones).map(([nombreEstacion, maquinas]) => {
-      const registrosEstacion = maquinas.map((maquina) => ({
-        maquina,
-        registro: registrosAgrupados[maquina]
-      })).filter(({ registro }) => Boolean(registro));
-      if (registrosEstacion.length === 0) return null;
-      const totalHitsEstacion = registrosEstacion.reduce((total, { registro }) => total + registro.hits, 0);
-      const turnosEstacion = hitsPorEstacionYTurno[nombreEstacion];
-      const metaPorHoraEstacion = maquinas.reduce((total, maquina) => {
-        if (maquina === '19 LENS LOG' || maquina === '20 LENS LOG FIN') {
-          return total + (metas['LENS LOG TOTAL'] || 0);
-        }
-        return total + (metas[maquina] || 0);
-      }, 0);
-      const metasPorTurno = calcularMetasPorTurno(metaPorHoraEstacion);
-      const totalMetaEstacion = registrosEstacion.reduce((total, { maquina }) => {
-        const metaMaquina = metas[maquina] || 0;
-        return total + (metaMaquina * 24);
-      }, 0);
-      const claseMetaTotal = getClassName(totalHitsEstacion, totalMetaEstacion);
-
-      return (
-        <div key={nombreEstacion} className="mb-8">
-          <p className="md:hidden text-center mb-2 text-sm text-gray-600">
-            Rango de Fecha: {fechaInicioStr} - {fechaFinStr}
-          </p>
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full bg-white border border-gray-300 shadow-lg rounded-lg table-fixed">
-              <thead className="bg-blue-500 text-white uppercase">
-                <tr>
-                  <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Nombre</th>
-                  <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Rango de Fecha</th>
-                  <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Hits</th>
-                  <th className="w-1/4 py-2 px-4 border-b text-center font-medium">Meta por Jornada</th>
-                </tr>
-              </thead>
-              <tbody>
-                {registrosEstacion.map(({ maquina, registro }, index) => {
-                  const metaMaquina = metas[maquina] || 0;
-                  const metaJornada = metaMaquina * 24;
-                  const claseMeta = getClassName(registro.hits, metaJornada);
-                  const nombreMostrarMaquina = nombreMostrar[maquina] || maquina;
-                  return (
-                    <tr key={index} className="bg-white even:bg-gray-100">
-                      <td className="w-1/4 py-2 px-4 border-b text-center">{nombreMostrarMaquina}</td>
-                      <td className="w-1/4 py-2 px-4 border-b text-center">{`${fechaInicioStr} - ${fechaFinStr}`}</td>
-                      <td className={`w-1/4 py-2 px-4 border-b text-center font-semibold ${claseMeta}`}>{registro.hits}</td>
-                      <td className="w-1/4 py-2 px-4 border-b text-center font-semibold">{metaJornada}</td>
-                    </tr>
-                  );
-                })}
-                <tr className="bg-gray-200">
-                  <td className="py-2 px-4 border-b text-center font-bold text-gray-600" colSpan="2">Total</td>
-                  <td className={`py-2 px-4 border-b text-center font-bold ${claseMetaTotal}`}>{totalHitsEstacion}</td>
-                  <td className="py-2 px-4 border-b text-center font-bold">{totalMetaEstacion}</td>
-                </tr>
-                <tr className="bg-green-50">
-                  <td className="py-2 px-4 border-b text-center font-bold text-gray-600" colSpan="2">Turnos: </td>
-                  <td className="py-2 px-4 border-b text-center" colSpan="2">
-                    <div className="flex justify-between">
-                    <span>Nocturno: <strong className={getClassName(turnosEstacion.nocturno, metasPorTurno.nocturno)}>{turnosEstacion.nocturno}</strong> / Meta: <strong className="text-gray-600">{metasPorTurno.nocturno}</strong></span>
-                      <span>Matutino: <strong className={getClassName(turnosEstacion.matutino, metasPorTurno.matutino)}>{turnosEstacion.matutino}</strong> / Meta: <strong className="text-gray-600">{metasPorTurno.matutino}</strong></span>
-                      <span>Vespertino: <strong className={getClassName(turnosEstacion.vespertino, metasPorTurno.vespertino)}>{turnosEstacion.vespertino}</strong> / Meta: <strong className="text-gray-600">{metasPorTurno.vespertino}</strong></span>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="md:hidden bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
-            <div className="bg-blue-500 text-white p-3">
-              <h3 className="text-lg font-semibold">{nombreEstacion}</h3>
-            </div>
-            <div className="p-4 space-y-4">
-              {registrosEstacion.map(({ maquina, registro }, index) => {
-                const metaMaquina = metas[maquina] || 0;
-                const metaJornada = metaMaquina * 24;
-                const claseMeta = getClassName(registro.hits, metaJornada);
-                const nombreMostrarMaquina = nombreMostrar[maquina] || maquina;
-                return (
-                  <div key={index} className="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span className="font-medium text-gray-700">{nombreMostrarMaquina}</span>
-                    <div className="text-right">
-                      <span className="block">
-                        <span className={claseMeta}>{registro.hits}</span>
-                        <span className="text-gray-600"> / {metaJornada}</span>
-                      </span>
-                      <span className="text-xs text-gray-500">Hits / Meta</span>
-                    </div>
-                  </div>
-                );
-              })}
-              <div className="flex justify-between items-center pt-2">
-                <span className="font-semibold text-gray-700">Total Hits / Meta</span>
-                <span className="font-bold">
-                  <span className={claseMetaTotal}>{totalHitsEstacion}</span>
-                  <span className="text-gray-600"> / {totalMetaEstacion}</span>
-                </span>
-              </div>
-            </div>
-            <div className="bg-green-50 p-4 border-t border-gray-200">
-              <h4 className="font-semibold text-green-700 mb-2">Turnos</h4>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-              <div>
-                  <span className="block text-gray-600">Nocturno</span>
-                  <span className={`font-bold ${getClassName(turnosEstacion.nocturno, metasPorTurno.nocturno)}`}>{turnosEstacion.nocturno}</span>
-                  <span className="block text-xs text-gray-500">Meta: {metasPorTurno.nocturno}</span>
-                </div>
-                <div>
-                  <span className="block text-gray-600">Matutino</span>
-                  <span className={`font-bold ${getClassName(turnosEstacion.matutino, metasPorTurno.matutino)}`}>{turnosEstacion.matutino}</span>
-                  <span className="block text-xs text-gray-500">Meta: {metasPorTurno.matutino}</span>
-                </div>
-                <div>
-                  <span className="block text-gray-600">Vespertino</span>
-                  <span className={`font-bold ${getClassName(turnosEstacion.vespertino, metasPorTurno.vespertino)}`}>{turnosEstacion.vespertino}</span>
-                  <span className="block text-xs text-gray-500">Meta: {metasPorTurno.vespertino}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    });
-  };
-
+  }, [selectedYear, selectedMonth, selectedDay]);
+  // Agrupar los registros según las secciones definidas
+  const seccionesAgrupadas = data?.registros
+    ? seccionesOrdenadas.map(({ seccion, nombres }) => {
+        const items = data.registros.filter((item) => nombres.includes(item.name));
+        return { seccion, nombres, items };
+      })
+    : [];
+  // Para mostrar en pantalla el rango de jornada:
+  // - Inicio: día anterior al seleccionado a las 22:00.
+  // - Fin: día seleccionado a las 21:59.
+  const selectedDate = moment(`${selectedYear}-${selectedMonth}-${selectedDay}`, "YYYY-M-D");
+  const inicioJornada = selectedDate.clone().subtract(1, "day").set({ hour: 22, minute: 0, second: 0 });
+  const finJornada = selectedDate.clone().set({ hour: 21, minute: 59, second: 59 });
+  const displayRange = `Rango de fecha: ${inicioJornada.format("YYYY-MM-DD HH:mm")} - ${finJornada.format("YYYY-MM-DD HH:mm")}`;
   return (
-    <div className="p-4 sm:p-6 bg-gray-50">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <div>
-          <label className="block mb-1 sm:mb-2 text-gray-600">Año</label>
-          <select className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg" value={anio} onChange={handleAnioChange}>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-          </select>
+    <div className="p-8 py-0 bg-gray-100 min-h-screen">
+        <Heading title={'Historial produccion por dia'}/>
+      {/* Selectores */}
+      <div className="mb-6 flex flex-wrap gap-4 justify-center">
+        <div className="w-80">
+          <SelectWipDiario
+            options={anioOptions}
+            value={anioOptions.find((option) => option.value === selectedYear)}
+            onChange={(option) => setSelectedYear(option.value)}
+            placeholder="Selecciona Año"
+          />
         </div>
-        <div>
-          <label className="block mb-1 sm:mb-2 text-gray-600">Mes</label>
-          <select className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg" value={mes} onChange={handleMesChange}>
-            <option value="01">Enero</option>
-            <option value="02">Febrero</option>
-            <option value="03">Marzo</option>
-            <option value="04">Abril</option>
-            <option value="05">Mayo</option>
-            <option value="06">Junio</option>
-            <option value="07">Julio</option>
-            <option value="08">Agosto</option>
-            <option value="09">Septiembre</option>
-            <option value="10">Octubre</option>
-            <option value="11">Noviembre</option>
-            <option value="12">Diciembre</option>
-          </select>
+        <div className="w-80">
+          <SelectWipDiario
+            options={mesOptions}
+            value={mesOptions.find((option) => option.value === selectedMonth)}
+            onChange={(option) => setSelectedMonth(option.value)}
+            placeholder="Selecciona Mes"
+          />
         </div>
-        <div>
-          <label className="block mb-1 sm:mb-2 text-gray-600">Día</label>
-          <select className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg" value={dia} onChange={handleDiaChange}>
-            {[...Array(31).keys()].map((day) => (
-              <option key={day + 1} value={(day + 1).toString().padStart(2, '0')}>{day + 1}</option>
-            ))}
-          </select>
+        <div className="w-80">
+          <SelectWipDiario
+            options={diaOptions}
+            value={diaOptions.find((option) => option.value === selectedDay)}
+            onChange={(option) => setSelectedDay(option.value)}
+            placeholder="Selecciona Día"
+          />
         </div>
       </div>
-      {renderizarTablasPorEstacion()}
+      {/* Leyenda con el rango de jornada */}
+      <div className="text-center mb-4 text-sm text-gray-500 hidden lg:block">
+        {displayRange}
+      </div>
+      {loading && <p className="text-center text-gray-700">Cargando datos...</p>}
+      {error && <p className="text-center text-red-500">{error}</p>}
+      {!loading && !error && data && data.registros.length === 0 && (
+        <Alerta message="No se encontraron registros para la fecha seleccionada." type="error" />
+      )}
+      {!loading && !error && data && data.registros.length > 0 && (
+        <>
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
+            {seccionesAgrupadas.map(({ seccion, nombres, items }) => {
+              if (items.length === 0) return null;
+              return (
+                <TablaHistorial
+                  key={seccion}
+                  seccion={seccion}
+                  nombres={nombres}
+                  items={items}
+                  metas={metas}
+                />
+              );
+            })}
+          </div>
+          <div className="md:hidden">
+            <CardHistorial
+              selectedYear={selectedYear}
+              selectedMonth={selectedMonth}
+              selectedDay={selectedDay}
+              registros={data.registros}
+              metas={metas}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };
-
 export default Historial_Por_Dia;
