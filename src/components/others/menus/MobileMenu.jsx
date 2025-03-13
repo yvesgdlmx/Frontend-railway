@@ -126,8 +126,8 @@ const MobileMenu = ({
                 {[
                   { to: "/reportes", label: "WIP DETALLADO" },
                   { to: "/reportes_antiguedad", label: "ANTIGÜEDAD DE TRABAJOS" },
-                  { to: "/reportes_trabajos_nuevos", label: "REPORTE DE TRABAJOS NUEVOS" },
-                  { to: "/reportes_wip_diario", label: "REPORTE DE WIP DIARIO" },
+                  { to: "/reportes_trabajos_nuevos", label: "TRABAJOS NUEVOS" },
+                  { to: "/reportes_wip_diario", label: "WIP DIARIO" },
                   { to: "/reportes_trabajos_enviados", label: "TRABAJOS ENVIADOS" },
                   { to: "/reportes_resumen_trabajo", label: "RESUMEN DE TRABAJOS" },
                   { to: "/reportes_trabajos_sin_movimientos", label: "TRABAJOS SIN MOVIMIENTOS" },

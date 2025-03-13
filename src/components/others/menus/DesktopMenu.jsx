@@ -154,11 +154,11 @@ const DesktopMenu = ({
                 },
                 {
                   to: "/reportes_trabajos_nuevos",
-                  label: "REPORTE DE TRABAJOS NUEVOS",
+                  label: "TRABAJOS NUEVOS",
                 },
                 {
                   to: "/reportes_wip_diario",
-                  label: "REPORTE DE WIP DIARIO",
+                  label: "WIP DIARIO",
                 },
                 {
                   to: "/reportes_trabajos_enviados",
