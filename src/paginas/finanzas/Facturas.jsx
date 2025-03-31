@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import Heading from '../../components/others/Heading';
-import Nvi from '../../components/finanzas/nvi';
+import Nvi from '../../components/finanzas/Nvi';
 import Hoya from '../../components/finanzas/Hoya';
 import Ink from '../../components/finanzas/Ink';
 import CardFacturacionNvi from '../../components/others/cards/CardFacturacionNvi';
