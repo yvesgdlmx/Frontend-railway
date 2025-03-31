@@ -8,9 +8,7 @@ const Nvi = ({ anio, semana }) => {
     const fetchData = async () => {
       try {
         // Se utiliza la URL con los parámetros anio y semana
-        const response = await clienteAxios.get(
-          `/reportes/facturacion-nvi/${anio}/${semana}`
-        );
+        const response = await clienteAxios.get(`/reportes/facturacion-nvi/${anio}/${semana}`);
         console.log("Registros Nvi obtenidos:", response.data.registros);
         setRegistros(response.data.registros);
       } catch (error) {
@@ -30,29 +28,22 @@ const Nvi = ({ anio, semana }) => {
       parseFloat(registro.grad_f) +
       parseFloat(registro.sol_f) +
       parseFloat(registro.uv_f);
+    // Se incorpora p_frm_s y m_frm_s al cálculo de tallado
     const tallado =
       parseFloat(registro.cot_coat) +
       parseFloat(registro.surf_cost) +
       parseFloat(registro.ar) +
       parseFloat(registro.grad_s) +
       parseFloat(registro.sol_s) +
-      parseFloat(registro.uv_s);
+      parseFloat(registro.uv_s) +
+      parseFloat(registro.p_frm_s) +
+      parseFloat(registro.m_frm_s);
     const trabNviUV =
       parseFloat(registro.uv_s_lenses) + parseFloat(registro.uv_f_lenses);
-    const nviUV =
-      parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
-    const totalTrabNvi =
-      parseFloat(registro.cot_coat) +
-      parseFloat(registro.surf_cost) +
-      parseFloat(registro.ar) +
-      parseFloat(registro.p_frm_f) +
-      parseFloat(registro.m_frm_f) +
-      parseFloat(registro.grad_s) +
-      parseFloat(registro.grad_f) +
-      parseFloat(registro.sol_s) +
-      parseFloat(registro.sol_f) +
-      parseFloat(registro.uv_s) +
-      parseFloat(registro.uv_f);
+    const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
+    // El totalTrabNvi en este mapping se puede dejar como cálculo de estilos o montos parciales,
+    // pero puesto que queremos que el "Total $ Nvi" sea la suma de $ Terminado, $ tallado, $ NVI UV, $ NVI HC y $ NVI AR,
+    // en la sección de totales se recalculará de forma global.
     const totalTrab = trabTermNvi + Number(registro.surf_lenses);
     return {
       semana: registro.semana,
@@ -67,10 +58,50 @@ const Nvi = ({ anio, semana }) => {
       nviHC: formatNumber(parseFloat(registro.cot_coat)),
       trabNviAR: formatNumber(registro.ar_lenses),
       nviAR: formatNumber(parseFloat(registro.ar)),
-      totalTrab: formatNumber(totalTrab),
-      totalTrabNvi: formatNumber(totalTrabNvi)
+      totalTrab: formatNumber(totalTrab)
+      // totalTrabNvi se calculará en la sección de totales globales
     };
   });
+  // Cálculo de totales para cada columna monetaria
+  const totales = registros.reduce(
+    (acc, registro) => {
+      const terminado =
+        parseFloat(registro.p_frm_f) +
+        parseFloat(registro.m_frm_f) +
+        parseFloat(registro.grad_f) +
+        parseFloat(registro.sol_f) +
+        parseFloat(registro.uv_f);
+      // Se actualiza tallado sumando p_frm_s y m_frm_s
+      const tallado =
+        parseFloat(registro.cot_coat) +
+        parseFloat(registro.surf_cost) +
+        parseFloat(registro.ar) +
+        parseFloat(registro.grad_s) +
+        parseFloat(registro.sol_s) +
+        parseFloat(registro.uv_s) +
+        parseFloat(registro.p_frm_s) +
+        parseFloat(registro.m_frm_s);
+      const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
+      const nviHC = parseFloat(registro.cot_coat);
+      const nviAR = parseFloat(registro.ar);
+      acc.terminado += terminado;
+      acc.tallado += tallado;
+      acc.nviUV += nviUV;
+      acc.nviHC += nviHC;
+      acc.nviAR += nviAR;
+      return acc;
+    },
+    {
+      terminado: 0,
+      tallado: 0,
+      nviUV: 0,
+      nviHC: 0,
+      nviAR: 0
+    }
+  );
+  // Ahora se define el Total $ Nvi a partir
+  // de la suma de los totales monetarios: $ Terminado + $ tallado + $ NVI UV + $ NVI HC + $ NVI AR.
+  const totalNvi = totales.terminado + totales.tallado + totales.nviUV + totales.nviHC + totales.nviAR;
   // Definición de las columnas para la tabla
   const columns = [
     { header: "Semana", accessor: "semana" },
@@ -85,110 +116,61 @@ const Nvi = ({ anio, semana }) => {
     { header: "$ NVI HC", accessor: "nviHC" },
     { header: "Trab NVI AR", accessor: "trabNviAR" },
     { header: "$ NVI AR", accessor: "nviAR" },
-    { header: "Total trab. Nvi", accessor: "totalTrab" },
-    { header: "Total $ Nvi", accessor: "totalTrabNvi" }
+    { header: "Total trab. Nvi", accessor: "totalTrab" }
+    // Se omite totalTrabNvi a nivel de registro, ya que se calcula el total global abajo.
   ];
-  // Cálculo de totales para las columnas requeridas
-  const totals = registros.reduce(
-    (acc, registro) => {
-      const terminado =
-        parseFloat(registro.p_frm_f) +
-        parseFloat(registro.m_frm_f) +
-        parseFloat(registro.grad_f) +
-        parseFloat(registro.sol_f) +
-        parseFloat(registro.uv_f);
-      const tallado =
-        parseFloat(registro.cot_coat) +
-        parseFloat(registro.surf_cost) +
-        parseFloat(registro.ar) +
-        parseFloat(registro.grad_s) +
-        parseFloat(registro.sol_s) +
-        parseFloat(registro.uv_s);
-      const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
-      const nviHC = parseFloat(registro.cot_coat);
-      const nviAR = parseFloat(registro.ar);
-      const totalTrabNvi =
-        parseFloat(registro.cot_coat) +
-        parseFloat(registro.surf_cost) +
-        parseFloat(registro.ar) +
-        parseFloat(registro.p_frm_f) +
-        parseFloat(registro.m_frm_f) +
-        parseFloat(registro.grad_s) +
-        parseFloat(registro.grad_f) +
-        parseFloat(registro.sol_s) +
-        parseFloat(registro.sol_f) +
-        parseFloat(registro.uv_s) +
-        parseFloat(registro.uv_f);
-      acc.terminado += terminado;
-      acc.tallado += tallado;
-      acc.nviUV += nviUV;
-      acc.nviHC += nviHC;
-      acc.nviAR += nviAR;
-      acc.totalTrabNvi += totalTrabNvi;
-      return acc;
-    },
-    {
-      terminado: 0,
-      tallado: 0,
-      nviUV: 0,
-      nviHC: 0,
-      nviAR: 0,
-      totalTrabNvi: 0
-    }
-  );
   return (
     <div className="mb-8">
       {registros.length > 0 && (
         <>
-        <h2 className="text-center mb-4 uppercase font-semibold text-2xl text-gray-500">NVI</h2>
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <TablaGenerica columns={columns} data={data} />
-          {/* Sección de totales con diseño refinado y compacto */}
-          <div className="mt-6 border-t border-gray-200 pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-500 font-medium text-sm">$ Terminado</p>
-                <p className="text-2xl font-semibold text-cyan-600">
-                  {formatNumber(totals.terminado)}
-                </p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-500 font-medium text-sm">$ Tallado</p>
-                <p className="text-2xl font-semibold text-cyan-600">
-                  {formatNumber(totals.tallado)}
-                </p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-500 font-medium text-sm">$ NVI UV</p>
-                <p className="text-2xl font-semibold text-cyan-600">
-                  {formatNumber(totals.nviUV)}
-                </p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-500 font-medium text-sm">$ NVI HC</p>
-                <p className="text-2xl font-semibold text-cyan-600">
-                  {formatNumber(totals.nviHC)}
-                </p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-500 font-medium text-sm">$ NVI AR</p>
-                <p className="text-2xl font-semibold text-cyan-600">
-                  {formatNumber(totals.nviAR)}
-                </p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-500 font-medium text-sm">Total $ NVI</p>
-                <p className="text-2xl font-semibold text-cyan-600">
-                  {formatNumber(totals.totalTrabNvi)}
-                </p>
+          <h2 className="text-center mb-4 uppercase font-semibold text-2xl text-gray-500">NVI</h2>
+          <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <TablaGenerica columns={columns} data={data} />
+            {/* Sección de totales con diseño refinado y compacto */}
+            <div className="mt-6 border-t border-gray-200 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
+                  <p className="text-gray-500 font-medium text-sm">$ Terminado</p>
+                  <p className="text-2xl font-semibold text-cyan-600">
+                    {formatNumber(totales.terminado)}
+                  </p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
+                  <p className="text-gray-500 font-medium text-sm">$ Tallado</p>
+                  <p className="text-2xl font-semibold text-cyan-600">
+                    {formatNumber(totales.tallado)}
+                  </p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
+                  <p className="text-gray-500 font-medium text-sm">$ NVI UV</p>
+                  <p className="text-2xl font-semibold text-cyan-600">
+                    {formatNumber(totales.nviUV)}
+                  </p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
+                  <p className="text-gray-500 font-medium text-sm">$ NVI HC</p>
+                  <p className="text-2xl font-semibold text-cyan-600">
+                    {formatNumber(totales.nviHC)}
+                  </p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
+                  <p className="text-gray-500 font-medium text-sm">$ NVI AR</p>
+                  <p className="text-2xl font-semibold text-cyan-600">
+                    {formatNumber(totales.nviAR)}
+                  </p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
+                  <p className="text-gray-500 font-medium text-sm">Total $ NVI</p>
+                  <p className="text-2xl font-semibold text-cyan-600">
+                    {formatNumber(totalNvi)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </>
       )}
     </div>
   );
 };
 export default Nvi;
-
