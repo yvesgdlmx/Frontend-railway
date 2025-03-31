@@ -47,6 +47,7 @@ const ReporteWipDiario = lazy(() => import('./paginas/reportes/ReporteWipDiario'
 const ReportesTrabajosEnviados = lazy(() => import('./paginas/reportes/ReportesTrabajosEnviados'));
 const ResumenTrabajo = lazy(() => import('./paginas/reportes/ResumenTrabajo'));
 const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/ReporteTrabajosSinMovimientos'));
+const Facturas =  lazy(() => import('./paginas/finanzas/Facturas'));
 
 
 
@@ -98,6 +99,7 @@ function App() {
               <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
               <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
               <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
+              <Route path='/finanzas_facturas' element={<Facturas/>} />
             </Route>
             <Route path='/auth' element={<AuthLayout />}>
               <Route index element={<Login />} />
