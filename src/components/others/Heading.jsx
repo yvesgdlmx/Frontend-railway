@@ -16,3 +16,4 @@ const Heading = ({ title, actions }) => {
 };
 
 export default Heading;
+
