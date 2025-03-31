@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import Heading from '../../components/others/Heading';
-import Nvi from '../../components/finanzas/Nvi';
+import Nvi from '../../components/finanzas/nvi';
 import Hoya from '../../components/finanzas/Hoya';
 import Ink from '../../components/finanzas/Ink';
 import CardFacturacionNvi from '../../components/others/cards/CardFacturacionNvi';
@@ -10,6 +10,17 @@ import ModalSemanas from '../../components/modals/ModalSemanas';
 import { optionsYear, optionsWeek, dataSemanas } from '../../components/others/arrays/ArrayFinanzas';
 // Importamos el ícono de calendario de Heroicons v2
 import { CalendarIcon } from '@heroicons/react/24/outline';
+// Función para calcular el número de semana ISO
+const getWeekNumber = (d) => {
+  // Copia de la fecha
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  // Obtener el día de la semana (lunes=1, domingo=7)
+  const dayNum = date.getUTCDay() || 7;
+  // Se ajusta para que la semana inicie en lunes
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+};
 const Datos = () => {
   const [selectedYear, setSelectedYear] = useState(null);
   const [selectedWeek, setSelectedWeek] = useState(null);
@@ -25,6 +36,23 @@ const Datos = () => {
     }),
     menu: (provided) => ({ ...provided, zIndex: 9999 })
   };
+  useEffect(() => {
+    const currentYear = new Date().getFullYear();
+    const currentWeek = getWeekNumber(new Date());
+    // Buscar en los arrays de opciones el año y la semana correspondientes
+    const defaultYearOption = optionsYear.find((option) => option.value === currentYear);
+    const defaultWeekOption = optionsWeek.find((option) => {
+      // Dependiendo del formato de week en tu array,
+      // se puede hacer comparación numérica o por string.
+      return Number(option.value) === currentWeek;
+    });
+    if (defaultYearOption) {
+      setSelectedYear(defaultYearOption);
+    }
+    if (defaultWeekOption) {
+      setSelectedWeek(defaultWeekOption);
+    }
+  }, []);
   return (
     <>
       <div className="px-4 py-2">
