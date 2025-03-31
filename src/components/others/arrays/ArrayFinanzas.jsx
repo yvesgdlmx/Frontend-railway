@@ -52,3 +52,4 @@ function formatDate(date) {
   ];
   // Exportamos también el arreglo con la data completa de semanas
   export const dataSemanas = weekRanges2023;
+  

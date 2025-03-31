@@ -7,7 +7,7 @@ import Ink from '../../components/finanzas/Ink';
 import CardFacturacionNvi from '../../components/others/cards/CardFacturacionNvi';
 import ModalSemanas from '../../components/modals/ModalSemanas';
 // Importamos las opciones y datos generados en el módulo de constantes
-import { optionsYear, optionsWeek, dataSemanas } from '../../components/others/arrays/arrayFinanzas';
+import { optionsYear, optionsWeek, dataSemanas } from '../../components/others/arrays/ArrayFinanzas';
 // Importamos el ícono de calendario de Heroicons v2
 import { CalendarIcon } from '@heroicons/react/24/outline';
 const Datos = () => {
