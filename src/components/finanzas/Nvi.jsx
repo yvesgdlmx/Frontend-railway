@@ -37,7 +37,8 @@ const Nvi = ({ anio, semana }) => {
       parseFloat(registro.sol_s) +
       parseFloat(registro.uv_s) +
       parseFloat(registro.p_frm_s) +
-      parseFloat(registro.m_frm_s);
+      parseFloat(registro.m_frm_s) +
+      parseFloat(registro.ar_lenses);
     const trabNviUV =
       parseFloat(registro.uv_s_lenses) + parseFloat(registro.uv_f_lenses);
     const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
@@ -80,7 +81,8 @@ const Nvi = ({ anio, semana }) => {
         parseFloat(registro.sol_s) +
         parseFloat(registro.uv_s) +
         parseFloat(registro.p_frm_s) +
-        parseFloat(registro.m_frm_s);
+        parseFloat(registro.m_frm_s) +
+        parseFloat(registro.ar_lenses);
       const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
       const nviHC = parseFloat(registro.cot_coat);
       const nviAR = parseFloat(registro.ar);
@@ -101,7 +103,7 @@ const Nvi = ({ anio, semana }) => {
   );
   // Ahora se define el Total $ Nvi a partir
   // de la suma de los totales monetarios: $ Terminado + $ tallado + $ NVI UV + $ NVI HC + $ NVI AR.
-  const totalNvi = totales.terminado + totales.tallado + totales.nviUV + totales.nviHC + totales.nviAR;
+  const totalNvi = totales.terminado + totales.tallado;
   // Definición de las columnas para la tabla
   const columns = [
     { header: "Semana", accessor: "semana" },
