@@ -22,6 +22,7 @@ const Nvi = ({ anio, semana }) => {
   // Mapeamos cada registro para generar los datos a mostrar en la tabla
   const data = registros.map((registro) => {
     const trabTermNvi = registro.p_frm_f_lenses + registro.m_frm_f_lenses;
+    // Cálculo de $ Terminado
     const terminado =
       parseFloat(registro.p_frm_f) +
       parseFloat(registro.m_frm_f) +
@@ -42,10 +43,10 @@ const Nvi = ({ anio, semana }) => {
     const trabNviUV =
       parseFloat(registro.uv_s_lenses) + parseFloat(registro.uv_f_lenses);
     const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
-    // El totalTrabNvi en este mapping se puede dejar como cálculo de estilos o montos parciales,
-    // pero puesto que queremos que el "Total $ Nvi" sea la suma de $ Terminado, $ tallado, $ NVI UV, $ NVI HC y $ NVI AR,
-    // en la sección de totales se recalculará de forma global.
+    // El total de trabajo Nvi se calcula en este mapping (para otros fines)
     const totalTrab = trabTermNvi + Number(registro.surf_lenses);
+    // Nuevo cálculo: Total $ Nvi de cada fila = $ Terminado + $ Tallado
+    const totalNviFila = terminado + tallado;
     return {
       semana: registro.semana,
       fecha: registro.fecha,
@@ -59,8 +60,8 @@ const Nvi = ({ anio, semana }) => {
       nviHC: formatNumber(parseFloat(registro.cot_coat)),
       trabNviAR: formatNumber(registro.ar_lenses),
       nviAR: formatNumber(parseFloat(registro.ar)),
-      totalTrab: formatNumber(totalTrab)
-      // totalTrabNvi se calculará en la sección de totales globales
+      totalTrab: formatNumber(totalTrab),
+      totalNvi: formatNumber(totalNviFila) // Nueva propiedad agregada
     };
   });
   // Cálculo de totales para cada columna monetaria
@@ -101,9 +102,9 @@ const Nvi = ({ anio, semana }) => {
       nviAR: 0
     }
   );
-  // Ahora se define el Total $ Nvi a partir
-  // de la suma de los totales monetarios: $ Terminado + $ tallado + $ NVI UV + $ NVI HC + $ NVI AR.
-  const totalNvi = totales.terminado + totales.tallado;
+  // Ahora se define el Total $ Nvi global a partir
+  // de la suma de los totales monetarios: $ Terminado + $ Tallado.
+  const totalNviGlobal = totales.terminado + totales.tallado;
   // Definición de las columnas para la tabla
   const columns = [
     { header: "Semana", accessor: "semana" },
@@ -111,14 +112,15 @@ const Nvi = ({ anio, semana }) => {
     { header: "Trab term. nvi", accessor: "trabTermNvi" },
     { header: "$ Terminado", accessor: "terminado" },
     { header: "Trab tall. nvi", accessor: "trabTallNvi" },
-    { header: "$ tallado", accessor: "tallado" },
+    { header: "$ Tallado", accessor: "tallado" },
     { header: "Trab. NVI UV", accessor: "trabNviUV" },
     { header: "$ NVI UV", accessor: "nviUV" },
     { header: "Trab. NVI HC", accessor: "trabNviHC" },
     { header: "$ NVI HC", accessor: "nviHC" },
     { header: "Trab NVI AR", accessor: "trabNviAR" },
     { header: "$ NVI AR", accessor: "nviAR" },
-    { header: "Total trab. Nvi", accessor: "totalTrab" }
+    { header: "Total trab. Nvi", accessor: "totalTrab" },
+    { header: "Total $ Nvi", accessor: "totalNvi" }, // Nueva columna agregada
     // Se omite totalTrabNvi a nivel de registro, ya que se calcula el total global abajo.
   ];
   return (
@@ -164,7 +166,7 @@ const Nvi = ({ anio, semana }) => {
                 <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
                   <p className="text-gray-500 font-medium text-sm">Total $ NVI</p>
                   <p className="text-2xl font-semibold text-cyan-600">
-                    {formatNumber(totalNvi)}
+                    {formatNumber(totalNviGlobal)}
                   </p>
                 </div>
               </div>
