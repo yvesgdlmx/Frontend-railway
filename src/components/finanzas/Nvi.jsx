@@ -7,7 +7,6 @@ const Nvi = ({ anio, semana }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Se utiliza la URL con los parámetros anio y semana
         const response = await clienteAxios.get(`/reportes/facturacion-nvi/${anio}/${semana}`);
         console.log("Registros Nvi obtenidos:", response.data.registros);
         setRegistros(response.data.registros);
@@ -19,17 +18,15 @@ const Nvi = ({ anio, semana }) => {
       fetchData();
     }
   }, [anio, semana]);
-  // Mapeamos cada registro para generar los datos a mostrar en la tabla
   const data = registros.map((registro) => {
+    // Cálculos individuales
     const trabTermNvi = registro.p_frm_f_lenses + registro.m_frm_f_lenses;
-    // Cálculo de $ Terminado
     const terminado =
       parseFloat(registro.p_frm_f) +
       parseFloat(registro.m_frm_f) +
       parseFloat(registro.grad_f) +
       parseFloat(registro.sol_f) +
       parseFloat(registro.uv_f);
-    // Se incorpora p_frm_s y m_frm_s al cálculo de tallado
     const tallado =
       parseFloat(registro.cot_coat) +
       parseFloat(registro.surf_cost) +
@@ -40,31 +37,41 @@ const Nvi = ({ anio, semana }) => {
       parseFloat(registro.p_frm_s) +
       parseFloat(registro.m_frm_s) +
       parseFloat(registro.ar_lenses);
-    const trabNviUV =
-      parseFloat(registro.uv_s_lenses) + parseFloat(registro.uv_f_lenses);
-    const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
-    // El total de trabajo Nvi se calcula en este mapping (para otros fines)
-    const totalTrab = trabTermNvi + Number(registro.surf_lenses);
-    // Nuevo cálculo: Total $ Nvi de cada fila = $ Terminado + $ Tallado
+    // Total NVI fila
     const totalNviFila = terminado + tallado;
+    // Total real y diferencia (se utiliza solo la parte entera)
+    const totalReal = parseFloat(registro.total_real) || 0;
+    const diferencia = Math.trunc(totalReal - totalNviFila);
+    // Ajuste en tallado: se suma (o resta) la parte entera de la diferencia
+    const talladoAjustado = tallado + diferencia;
+    // Ajuste en "trab. NVI HC": se suma la parte entera de la diferencia al valor original (registro.cot_coat)
+    const trabNviHC = parseFloat(registro.cot_coat) + Math.trunc(totalReal - totalNviFila);
+    // Se mantiene la lógica para NVI HC (para la columna "$ NVI HC")
+    const nuevoNviHC = trabNviHC;
+    // Ajuste en Total Nvi, conservando la parte decimal de (tallado+terminado)
+    const parteEnteraTotalReal = Math.floor(totalReal);
+    const parteDecimalTotalNvi = totalNviFila - Math.floor(totalNviFila);
+    const totalNviCorregido = parteEnteraTotalReal + parteDecimalTotalNvi;
     return {
       semana: registro.semana,
       fecha: registro.fecha,
       trabTermNvi: formatNumber(trabTermNvi),
       terminado: formatNumber(terminado),
       trabTallNvi: formatNumber(registro.surf_lenses),
-      tallado: formatNumber(tallado),
-      trabNviUV: formatNumber(trabNviUV),
-      nviUV: formatNumber(nviUV),
-      trabNviHC: formatNumber(registro.cot_lenses),
-      nviHC: formatNumber(parseFloat(registro.cot_coat)),
+      tallado: formatNumber(talladoAjustado),
+      trabNviUV: formatNumber(
+        parseFloat(registro.uv_s_lenses) + parseFloat(registro.uv_f_lenses)
+      ),
+      nviUV: formatNumber(parseFloat(registro.uv_s) + parseFloat(registro.uv_f)),
+      trabNviHC: formatNumber(trabNviHC),  // Se ha modificado para incluir el ajuste con la diferencia
+      nviHC: formatNumber(nuevoNviHC),
       trabNviAR: formatNumber(registro.ar_lenses),
       nviAR: formatNumber(parseFloat(registro.ar)),
-      totalTrab: formatNumber(totalTrab),
-      totalNvi: formatNumber(totalNviFila) // Nueva propiedad agregada
+      totalTrab: formatNumber(trabTermNvi + Number(registro.surf_lenses)),
+      totalNvi: formatNumber(totalNviCorregido),
     };
   });
-  // Cálculo de totales para cada columna monetaria
+  // Cálculo de totales con ajuste en tallado y NVI HC usando solo la parte entera de la diferencia
   const totales = registros.reduce(
     (acc, registro) => {
       const terminado =
@@ -73,7 +80,6 @@ const Nvi = ({ anio, semana }) => {
         parseFloat(registro.grad_f) +
         parseFloat(registro.sol_f) +
         parseFloat(registro.uv_f);
-      // Se actualiza tallado sumando p_frm_s y m_frm_s
       const tallado =
         parseFloat(registro.cot_coat) +
         parseFloat(registro.surf_cost) +
@@ -84,11 +90,19 @@ const Nvi = ({ anio, semana }) => {
         parseFloat(registro.p_frm_s) +
         parseFloat(registro.m_frm_s) +
         parseFloat(registro.ar_lenses);
+      const totalFila = terminado + tallado;
+      const totalReal = parseFloat(registro.total_real) || 0;
+      const diferencia = Math.trunc(totalReal - totalFila);
+      // Ajuste en tallado para el total
+      const talladoAjustado = tallado + diferencia;
+      // Ajuste en trab. NVI HC para el total: se aplica la parte entera de la diferencia al valor de cot_coat
+      const trabNviHC = parseFloat(registro.cot_coat) + Math.trunc(totalReal - totalFila);
+      // Otros cálculos (se mantiene la lógica para NVI UV y NVI AR)
+      const nviHC = trabNviHC;
       const nviUV = parseFloat(registro.uv_s) + parseFloat(registro.uv_f);
-      const nviHC = parseFloat(registro.cot_coat);
       const nviAR = parseFloat(registro.ar);
       acc.terminado += terminado;
-      acc.tallado += tallado;
+      acc.tallado += talladoAjustado;
       acc.nviUV += nviUV;
       acc.nviHC += nviHC;
       acc.nviAR += nviAR;
@@ -99,13 +113,10 @@ const Nvi = ({ anio, semana }) => {
       tallado: 0,
       nviUV: 0,
       nviHC: 0,
-      nviAR: 0
+      nviAR: 0,
     }
   );
-  // Ahora se define el Total $ Nvi global a partir
-  // de la suma de los totales monetarios: $ Terminado + $ Tallado.
   const totalNviGlobal = totales.terminado + totales.tallado;
-  // Definición de las columnas para la tabla
   const columns = [
     { header: "Semana", accessor: "semana" },
     { header: "Fecha", accessor: "fecha" },
@@ -120,17 +131,17 @@ const Nvi = ({ anio, semana }) => {
     { header: "Trab NVI AR", accessor: "trabNviAR" },
     { header: "$ NVI AR", accessor: "nviAR" },
     { header: "Total trab. Nvi", accessor: "totalTrab" },
-    { header: "Total $ Nvi", accessor: "totalNvi" }, // Nueva columna agregada
-    // Se omite totalTrabNvi a nivel de registro, ya que se calcula el total global abajo.
+    { header: "Total $ Nvi", accessor: "totalNvi" },
   ];
   return (
     <div className="mb-8">
       {registros.length > 0 && (
         <>
-          <h2 className="text-center mb-4 uppercase font-semibold text-2xl text-gray-500">NVI</h2>
+          <h2 className="text-center mb-4 uppercase font-semibold text-2xl text-gray-500">
+            NVI
+          </h2>
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <TablaGenerica columns={columns} data={data} />
-            {/* Sección de totales con diseño refinado y compacto */}
             <div className="mt-6 border-t border-gray-200 pt-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
@@ -164,7 +175,9 @@ const Nvi = ({ anio, semana }) => {
                   </p>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                  <p className="text-gray-500 font-medium text-sm">Total $ NVI</p>
+                  <p className="text-gray-500 font-medium text-sm">
+                    Total $ NVI
+                  </p>
                   <p className="text-2xl font-semibold text-cyan-600">
                     {formatNumber(totalNviGlobal)}
                   </p>
