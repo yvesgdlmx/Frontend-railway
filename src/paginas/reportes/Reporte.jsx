@@ -76,7 +76,7 @@ const agruparDatos = (registros) => {
       grupos.bloqueoTallado.push(datos);
     } else if (['241 GENERATOR 1', '242 GENERATOR 2', '243 ORBIT 4 LA', '244 ORBIT 3 LA', '245 ORBIT 1 LA', '246 ORBIT 2 LA', '247 SCHNIDER 1', '248 SCHNIDER 2', '250 GENERATOR 3'].includes(estacion)) {
       grupos.generadores.push(datos);
-    } else if (['254 IFLEX SRVR', '255 POLISHR 1', '256 POLISHR 2', '257 POLISHR 3', '259 POLISHR 5', '260 POLISHR 6', '262 POLISHR 8', '266 MULTIFLEX 1', '267 MULTIFLEX 2', '268 MULTIFLEX 3', '269 MULTIFLEX 4', '265 POLISHR 12'].includes(estacion)) {
+    } else if (['254 IFLEX SRVR', '255 POLISHR 1', '256 POLISHR 2', '257 POLISHR 3', '259 POLISHR 5', '260 POLISHR 6', '262 POLISHR 8', '266 MULTIFLEX 1', '267 MULTIFLEX 2', '268 MULTIFLEX 3', '269 MULTIFLEX 4', '265 POLISHR 12', '258 POLISHR 4'].includes(estacion)) {
       grupos.pulido.push(datos);
     } else if (['272 ENGRVR 3', '273 ENGRVR 4', '270 ENGRVR 1', '271 ENGRVR 2'].includes(estacion)) {
       grupos.engraver.push(datos);
