@@ -74,7 +74,7 @@ const agruparDatos = (registros) => {
       grupos.surtido.push(datos);
     } else if (['220 SRFBLK 1', '221 SRFBLK 2', '222 SRFBLK 3', '223 SRFBLK 4', '224 SRFBLK 5', '225 SRFBLK 6'].includes(estacion)) {
       grupos.bloqueoTallado.push(datos);
-    } else if (['241 GENERATOR 1', '242 GENERATOR 2', '243 ORBIT 4 LA', '244 ORBIT 3 LA', '245 ORBIT 1 LA', '246 ORBIT 2 LA', '247 SCHNIDER 1', '248 SCHNIDER 2'].includes(estacion)) {
+    } else if (['241 GENERATOR 1', '242 GENERATOR 2', '243 ORBIT 4 LA', '244 ORBIT 3 LA', '245 ORBIT 1 LA', '246 ORBIT 2 LA', '247 SCHNIDER 1', '248 SCHNIDER 2', '250 GENERATOR 3'].includes(estacion)) {
       grupos.generadores.push(datos);
     } else if (['254 IFLEX SRVR', '255 POLISHR 1', '256 POLISHR 2', '257 POLISHR 3', '259 POLISHR 5', '260 POLISHR 6', '262 POLISHR 8', '266 MULTIFLEX 1', '267 MULTIFLEX 2', '268 MULTIFLEX 3', '269 MULTIFLEX 4', '265 POLISHR 12'].includes(estacion)) {
       grupos.pulido.push(datos);
@@ -86,15 +86,15 @@ const agruparDatos = (registros) => {
       grupos.recubrimiento.push(datos);
     } else if (estacion === '320 DEBLOCKING 1') {
       grupos.desbloqueo = [datos];
-    } else if (['280 FINBLKR 1', '281 FINBLKR 2', '282 FINBLKR 3'].includes(estacion)) {
+    } else if (['280 FINBLKR 1', '281 FINBLKR 2', '282 FINBLKR 3', '283 FINBLKR 4'].includes(estacion)) {
       grupos.bloqueoTerminado.push(datos);
-    } else if (['299 BISPHERA', '300 EDGER 1', '301 EDGER 2', '302 EDGER 3', '303 EDGER 4', '304 EDGER 5', '305 EDGER 6', '306 EDGER 7', '307 EDGER 8', '308 EDGER 9', '309 EDGER 10', '310 EDGER 11', '311 EDFGER 12', '312 RAZR', '313 EDGER 13', '314 EDGER 14', '316 EDGER 15', '317 EDGER 16', '327 EDGER 17', '328 EDGER 18', '329 EDGER 19', '330 EDGER 20', '331 EDGER 21', '332 EDGER 22', '333 EDGER 23', '334 EDGER 24', '318 HSE 1', '319 HSE 2'].includes(estacion)) {
+    } else if (['299 BISPHERA', '300 EDGER 1', '301 EDGER 2', '302 EDGER 3', '303 EDGER 4', '304 EDGER 5', '305 EDGER 6', '306 EDGER 7', '307 EDGER 8', '308 EDGER 9', '309 EDGER 10', '310 EDGER 11', '311 EDFGER 12', '312 RAZR', '313 EDGER 13', '314 EDGER 14', '316 EDGER 15', '317 EDGER 16', '327 EDGER 17', '328 EDGER 18', '329 EDGER 19', '330 EDGER 20', '331 EDGER 21', '332 EDGER 22', '333 EDGER 23', '334 EDGER 24', '318 HSE 1', '319 HSE 2', '298 DOUBLER', '311 EDGER 12', '335 EDGER TRZ', '336 EDGER 25', '337 EDGER 26', '338 EDGER 28', '347 EDGER 27', '299 BISPHERA', '312 RAZR'].includes(estacion)) {
       grupos.biselado.push(datos);
     } else if (estacion === '32 JOB COMPLETE') {
       grupos.produccion.push(datos);
-    } else if (['136 Q-NVI P F', '137 Q-NVI PLY F', '138 Q-NVI B F AR', '139 Q-NVI BLY F', '141 Q-NVI BLY AR', 'Q-HOYA JOBS', 'Q-INK NO QOH', '140 Q-NVI BLY', '141 Q-NVI BLY AR', '142 Q-NVI BLY TR', '143 Q-NVI BLY AT', '144 Q-NVI CR A T', '145 Q-NVI PY AT', '146 Q-NVI PLY TR', '147 Q-NVI CR39', '148 Q-NVI PLY AR', '149 Q-NVI TRACE', '150 Q-DIG CALC', '151 Q-CALC FAIL', '152 Q-NVI JOBS', '153 Q-NVI NO ES', '154 Q-NVI AR', '155 Q-NVI NO QOH', 'Q-HOYA BAD PICK', 'Q-LENS ISSUE', 'Q-INK', 'Q-HIPWR', 'Q-HOYA NO QOH', 'Q-INK NO QOH', 'Q-JAI KUDO JOBS', '134 Q-NVI B50 AR', '135 Q-NVI B50' ].includes(estacion)) {
+    } else if (['136 Q-NVI P F', '137 Q-NVI PLY F', '138 Q-NVI B F AR', '139 Q-NVI BLY F', '141 Q-NVI BLY AR', 'Q-HOYA JOBS', 'Q-INK NO QOH', '140 Q-NVI BLY', '141 Q-NVI BLY AR', '142 Q-NVI BLY TR', '143 Q-NVI BLY AT', '144 Q-NVI CR A T', '145 Q-NVI PY AT', '146 Q-NVI PLY TR', '147 Q-NVI CR39', '148 Q-NVI PLY AR', '149 Q-NVI TRACE', '150 Q-DIG CALC', '151 Q-CALC FAIL', '152 Q-NVI JOBS', '153 Q-NVI NO ES', '154 Q-NVI AR', '155 Q-NVI NO QOH', '166 POLY AR F', '167 CR AR F', '168 CR 75', 'Q-HOYA BAD PICK', 'Q-LENS ISSUE', 'Q-INK', 'Q-HIPWR', 'Q-HOYA NO QOH', 'Q-INK NO QOH', 'Q-JAI KUDO JOBS', '134 Q-NVI B50 AR', '135 Q-NVI B50' ].includes(estacion)) {
       grupos.enCola.push(datos);
-    } else if (['48 MR3.1', '50 MR3.3', '91 VELOCITY 1', '92 VELOCITY 2'].includes(estacion)) {
+    } else if (['48 MR3.1', '50 MR3.3', '91 VELOCITY 1', '92 VELOCITY 2', '49 MR3.2', 'OTB 1', 'OTB 2'].includes(estacion)) {
       grupos.HardCoat.push(datos);
     }
   });
