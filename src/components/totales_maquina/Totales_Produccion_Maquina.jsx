@@ -102,6 +102,8 @@ const Totales_Produccion_Maquina = () => {
 
   // Arreglo fijo de horas (ordenado de forma que la primera sea la más reciente)
   const fixedHoras = [
+    "20:30 - 21:30",
+    "19:30 - 20:30",
     "18:30 - 19:30",
     "17:30 - 18:30",
     "16:30 - 17:30",
