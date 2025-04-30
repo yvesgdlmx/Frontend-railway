@@ -48,6 +48,7 @@ const ReportesTrabajosEnviados = lazy(() => import('./paginas/reportes/ReportesT
 const ResumenTrabajo = lazy(() => import('./paginas/reportes/ResumenTrabajo'));
 const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/ReporteTrabajosSinMovimientos'));
 const Facturas =  lazy(() => import('./paginas/finanzas/Facturas'));
+const Surtido_Detallado = lazy(() => import('./components/totales_maquina/totales_detallados/Surtido_Detallado'))
 
 
 
@@ -73,6 +74,7 @@ function App() {
               <Route path='/totales_terminado_maquina' element={<Totales_Terminado_Maquina />} />
               <Route path='/totales_biselado_maquina' element={<Totales_Biselado_Maquina />} />
               <Route path='/totales_produccion_maquina' element={<Totales_Produccion_Maquina />} />
+              <Route path='/surtido_detallado' element={<Surtido_Detallado />} />
               <Route path='/manuales_metas' element={<Manuales_Metas />} />
               <Route path='/tallado_metas' element={<Tallado_Metas />} />
               <Route path='/generado_metas' element={<Generado_Metas />} />

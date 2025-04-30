@@ -128,6 +128,11 @@ const DesktopMenuWhite = () => {
                     <p className="block px-4 py-2 hover:bg-gray-100">Tableros de tallado y terminado</p>
                   </Link>
                 </li>
+                <li>
+                  <Link to={'/surtido_detallado'} onClick={handleMenuItemClick}>
+                    <p className="block px-4 py-2 hover:bg-gray-100">Surtido - Almacen</p>
+                  </Link>
+                </li>
               </ul>
             </div>
           )}

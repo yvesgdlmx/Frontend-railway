@@ -90,6 +90,10 @@ const DesktopMenu = ({
                   to: "/tableros_tallado_terminado",
                   label: "Tallado y Terminado",
                 },
+                {
+                  to: "/surtido_detallado",
+                  label: "Surtido - Almacen",
+                },
               ].map((item, index) => (
                 <li key={index}>
                   <Link
