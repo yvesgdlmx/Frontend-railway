@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import moment from 'moment-timezone';
 import clienteAxios from '../../../../config/clienteAxios';
 import Heading from '../../others/Heading';
@@ -21,6 +21,8 @@ const Surtido_Detallado = () => {
   const [metaTotal, setMetaTotal] = useState(null); 
   const [isFullScreen, setIsFullScreen] = useState(false);
   const currentTime = moment.tz("America/Mexico_City");
+  // Usamos una ref para mantener estable el contenedor fullscreen
+  const fullscreenRef = useRef(null);
   // Inicializamos los selectores de fecha
   useEffect(() => {
     const now = new Date();
@@ -99,7 +101,7 @@ const Surtido_Detallado = () => {
         setDataNocturno(agrupadoNocturno);
         setDataMatutino(agrupadoMatutino);
         setDataVespertino(agrupadoVespertino);
-        // Combinamos los grupos de los tres turnos y filtramos solo los que ocurrieron hasta el momento actual.
+        // Combinamos los grupos y filtramos hasta el momento actual.
         const allGroups = [...agrupadoNocturno, ...agrupadoMatutino, ...agrupadoVespertino];
         const gruposValidos = allGroups.filter(grupo => grupo.sortKey.isBefore(currentTime));
         if (gruposValidos.length > 0) {
@@ -116,15 +118,14 @@ const Surtido_Detallado = () => {
       }
     }
   };
-  // Llamada inicial para obtener datos
+  // Llamada inicial y actualización de datos cada 2 minutos sin recargar la página
   useEffect(() => {
     fetchData();
   }, [selectedYear, selectedMonth, selectedDay]);
-  // Actualización de datos cada 2 minutos (sin recargar la página)
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchData();
-    }, 120000); // 120000 ms = 2 minutos
+    }, 120000);
     return () => clearInterval(intervalId);
   }, [selectedYear, selectedMonth, selectedDay]);
   const computedFechaSeleccionada = selectedYear && selectedMonth && selectedDay
@@ -156,7 +157,7 @@ const Surtido_Detallado = () => {
   const vespertinoEnd = computedFechaSeleccionada
     ? moment.tz(`${computedFechaSeleccionada} 22:00`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
     : null;
-  // Función para renderizar las tablas de turno
+  // Renderizado de las tablas por turno
   const renderTurnoTables = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div>
@@ -203,7 +204,7 @@ const Surtido_Detallado = () => {
       </div>
     </div>
   );
-  // Manejo del cambio en el estado fullscreen
+  // Manejo del cambio en fullscreen
   useEffect(() => {
     const handleFullScreenChange = () => {
       setIsFullScreen(document.fullscreenElement !== null);
@@ -211,18 +212,17 @@ const Surtido_Detallado = () => {
     document.addEventListener('fullscreenchange', handleFullScreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
   }, []);
-  // Función para activar o desactivar el modo fullscreen sin recargar la página
+  // Función para activar/desactivar fullscreen usando la ref, evitando que el elemento se remonte
   const togglePantallaCompleta = () => {
-    const elem = document.getElementById('componente-activo');
     if (!document.fullscreenElement) {
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.mozRequestFullScreen) {
-        elem.mozRequestFullScreen();
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
+      if (fullscreenRef.current.requestFullscreen) {
+        fullscreenRef.current.requestFullscreen();
+      } else if (fullscreenRef.current.mozRequestFullScreen) {
+        fullscreenRef.current.mozRequestFullScreen();
+      } else if (fullscreenRef.current.webkitRequestFullscreen) {
+        fullscreenRef.current.webkitRequestFullscreen();
+      } else if (fullscreenRef.current.msRequestFullscreen) {
+        fullscreenRef.current.msRequestFullscreen();
       }
     } else {
       document.exitFullscreen();
@@ -230,12 +230,10 @@ const Surtido_Detallado = () => {
   };
   return (
     <>
-      {/* Título sin modificar */}
       <div className="mt-6 md:mt-0">
         <Heading title="Surtido Detallado" />
       </div>
       <Actualizacion />
-      {/* Div de selectores y rango (incluye "Último registro" en versión normal) */}
       <div className="p-4 bg-white mb-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center">
           <div className="md:w-1/2">
@@ -275,7 +273,6 @@ const Surtido_Detallado = () => {
           </div>
         </div>
       </div>
-      {/* Botón de "Pantalla Completa" entre selectores y tablas, alineado a la izquierda */}
       <div className="mb-6">
         <button
           onClick={togglePantallaCompleta}
@@ -284,9 +281,9 @@ const Surtido_Detallado = () => {
           Pantalla Completa
         </button>
       </div>
-      {/* Contenedor de las tablas (usa el id para fullscreen) */}
       <div
         id="componente-activo"
+        ref={fullscreenRef}
         style={{
           display: isFullScreen ? 'flex' : 'block',
           justifyContent: isFullScreen ? 'center' : 'initial',
@@ -297,10 +294,6 @@ const Surtido_Detallado = () => {
         }}
         className="p-4 bg-white"
       >
-        {/**
-          En modo fullscreen, mostramos el bloque de "Último registro" centrado horizontalmente
-          con un ancho mayor (max-w-lg)
-        */}
         {isFullScreen && ultimoGrupo && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-indigo-50 border border-indigo-200 rounded-lg shadow-lg p-4 max-w-lg w-full">
             <div className="flex justify-center">
