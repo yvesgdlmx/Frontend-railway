@@ -49,7 +49,7 @@ const ResumenTrabajo = lazy(() => import('./paginas/reportes/ResumenTrabajo'));
 const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/ReporteTrabajosSinMovimientos'));
 const Facturas =  lazy(() => import('./paginas/finanzas/Facturas'));
 const Surtido_Detallado = lazy(() => import('./components/totales_maquina/totales_detallados/Surtido_Detallado'))
-
+const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
 
 
 function App() {
@@ -102,6 +102,7 @@ function App() {
               <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
               <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
               <Route path='/finanzas_facturas' element={<Facturas/>} />
+              <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
             </Route>
             <Route path='/auth' element={<AuthLayout />}>
               <Route index element={<Login />} />
