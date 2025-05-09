@@ -3,8 +3,8 @@ import Heading from '../../components/others/Heading';
 import Actualizacion from '../../components/others/Actualizacion';
 import clienteAxios from '../../../config/clienteAxios';
 import RazonesDeMerma from '../../components/mermas/RazonesDeMerma';
-// Importar el nuevo componente de la gráfica
 import GraficaMermasPorHora from '../../components/others/charts/GraficaMermasPorHora';
+import { InformationCircleIcon } from '@heroicons/react/20/solid';
 const obtenerFechaLocal = (fecha) => {
   const anio = fecha.getFullYear();
   const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
@@ -22,7 +22,6 @@ const MermaPorHora = () => {
   const [produccionHora, setProduccionHora] = useState(null);
   const [totalProduccionDia, setTotalProduccionDia] = useState(null);
   // Función para obtener el rango de 1 hora a partir de una hora dada.
-  // Ejemplo: si la hora es "14:30", retorna "14:30 - 15:30"
   const obtenerIntervalo = (horaStr) => {
     const inicio = horaStr.slice(0, 5);
     const [hora, minutos] = inicio.split(':');
@@ -37,10 +36,6 @@ const MermaPorHora = () => {
         const horaActual = ahora.getHours();
         let fechaObjetivo, fechaAnterior;
         // Lógica de turno:
-        // • Si la hora actual es menor a las 22:00, se toma el turno actual:
-        //   registros del día anterior (>=22:00) + registros del día actual (<22:00)
-        // • Si la hora actual es mayor o igual a las 22:00, se asigna el turno al día siguiente:
-        //   registros del día actual (>=22:00) + registros del día siguiente (<22:00)
         if (horaActual < 22) {
           fechaObjetivo = obtenerFechaLocal(ahora); // día actual
           const ayer = new Date(ahora);
@@ -53,9 +48,6 @@ const MermaPorHora = () => {
         // Llamada al endpoint: /mermas/conteo_de_mermas
         const respMermas = await clienteAxios.get('/mermas/conteo_de_mermas');
         const datos = respMermas.data.registros;
-        // Filtrar registros según nuestro turno:
-        // • Para el día "fechaAnterior": registros con hora >= "22:00:00"
-        // • Para el día "fechaObjetivo": registros con hora < "22:00:00"
         const registrosTurno = datos.filter(reg => {
           if (reg.fecha === fechaAnterior && reg.hora >= "22:00:00") return true;
           if (reg.fecha === fechaObjetivo && reg.hora < "22:00:00") return true;
@@ -64,7 +56,6 @@ const MermaPorHora = () => {
         let ultimoRegistro = null;
         let totalDiaMermas = 0;
         if (registrosTurno.length > 0) {
-          // Para determinar el último registro, se usa la fecha completa (fecha y hora)
           const obtenerFechaCompleta = (reg) => `${reg.fecha} ${reg.hora}`;
           ultimoRegistro = registrosTurno.reduce((prev, current) =>
             obtenerFechaCompleta(current) > obtenerFechaCompleta(prev) ? current : prev
@@ -82,7 +73,6 @@ const MermaPorHora = () => {
         // Llamada al endpoint: /mermas/produccion
         const respProduccion = await clienteAxios.get('/mermas/produccion');
         const registrosProduccionTurno = respProduccion.data.registros.filter(prod => {
-          // Adaptamos la lógica: en producción el campo de hora se llama "hour"
           if (prod.fecha === fechaAnterior && prod.hour >= "22:00:00") return true;
           if (prod.fecha === fechaObjetivo && prod.hour < "22:00:00") return true;
           return false;
@@ -135,24 +125,24 @@ const MermaPorHora = () => {
               </h2>
               <div className="grid grid-cols-1 gap-4 mt-12">
                 <div className="bg-gray-100 p-3 rounded-lg text-center">
-                  <p className="text-xs md:text-sm  font-medium text-gray-600 uppercase">Último registro</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Último registro</p>
                   <p className="text-xl md:text-2xl font-bold text-cyan-600">{ultimoRegistroIntervalo}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="bg-gray-100 p-3 rounded-lg text-center">
-                  <p className="text-xs md:text-sm  font-medium text-gray-600 uppercase">Piezas por hora</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Piezas por hora</p>
                   <p className="text-xl md:text-2xl font-semibold text-red-600">{piezasPorHora}</p>
                 </div>
                 <div className="bg-gray-100 p-3 rounded-lg text-center">
-                  <p className="text-xs md:text-sm  font-medium text-gray-600 uppercase">Piezas por día</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Piezas por día</p>
                   <p className="text-xl md:text-2xl font-semibold text-red-600">{piezasPorDia}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
                   <div className="bg-gray-100 p-3 rounded-lg text-center">
-                    <p className="text-xs md:text-sm  font-medium text-gray-600 uppercase">% por hora</p>
+                    <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">% por hora</p>
                     <p className="text-xl md:text-2xl font-semibold text-red-600">{porcentajePorHora}</p>
                   </div>
                   <div className="mt-1 text-center text-xs text-gray-500">
@@ -169,9 +159,16 @@ const MermaPorHora = () => {
                   </div>
                 </div>
               </div>
+              {/* Div informativo posicionado al final */}
+              <div className="bg-blue-50 border border-blue-200 p-3 rounded-md flex items-start mt-24">
+                <InformationCircleIcon className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                <p className="ml-3 text-xs md:text-sm text-blue-700">
+                  El porcentaje por hora refleja las mermas de la hora actual en relación con la producción registrada en el mismo período. Por otro lado, el porcentaje acumulado del día se determina comparando las mermas totales con la producción total diaria.
+                </p>
+              </div>
             </div>
           </div>
-          {/* Card que ahora solo trae el componente de la gráfica */}
+          {/* Card que muestra la gráfica */}
           <div className="md:col-span-7 mt-4 md:mt-0">
             <div className="bg-white shadow-md rounded-lg p-4">
               <h2 className="text-xl font-semibold text-gray-500 mb-2 text-center uppercase hidden md:block">
@@ -181,8 +178,8 @@ const MermaPorHora = () => {
             </div>
           </div>
         </div>
-        <div className='mt-10'>
-          <RazonesDeMerma/>
+        <div className="mt-10">
+          <RazonesDeMerma />
         </div>
       </div>
     </>
