@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { InformationCircleIcon } from '@heroicons/react/20/solid';
 // Registrar los componentes necesarios de Chart.js
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 // Función auxiliar para obtener el intervalo para el tooltip o el resumen en el card.
@@ -107,7 +108,7 @@ const GraficaMermasPorHora = () => {
               fill: false,
               borderColor: '#0891B2', // Color cyan-600
               tension: 0.1,
-              pointRadius: 4,        // Tamaño de los puntos
+              pointRadius: 4,
               pointHoverRadius: 5,
             },
           ],
@@ -181,6 +182,15 @@ const GraficaMermasPorHora = () => {
       },
     },
   };
+  // Aviso informativo
+  const AvisoInformativo = () => (
+    <div className="bg-blue-50 border border-blue-200 p-3 rounded-md flex items-start mt-6">
+      <InformationCircleIcon className="h-6 w-6 text-blue-500 flex-shrink-0" />
+      <p className="ml-3 text-xs md:text-sm text-blue-700">
+        El registro de cada hora comprende un intervalo de tiempo; por ejemplo, 06:30 - 07:30.
+      </p>
+    </div>
+  );
   // En dispositivos móviles se muestra un resumen en forma de card
   if (isMobile) {
     return (
@@ -215,13 +225,19 @@ const GraficaMermasPorHora = () => {
             );
           })
         )}
+        {/* Aviso informativo en dispositivos móviles */}
+        <AvisoInformativo />
       </div>
     );
   }
   // En pantallas grandes se muestra la gráfica completa
   return (
-    <div className="h-[400px] p-4">
-      <Line data={chartData} options={options} />
+    <div className="p-4">
+      <div className="h-[400px]">
+        <Line data={chartData} options={options} />
+      </div>
+      {/* Aviso informativo para pantallas grandes */}
+      <AvisoInformativo />
     </div>
   );
 };
