@@ -148,10 +148,28 @@ const GraficaMermasPorHora = () => {
         beginAtZero: true,
         grid: { color: '#e2e8f0' },
         ticks: { color: '#1e293b' },
+        title: {
+          display: true,
+          text: 'Cantidad',
+          color: '#9b9b9b', // Ajusta el color según tus necesidades
+          font: {
+            size: 14, // Ajusta el tamaño de fuente si es necesario
+            weight: 'bold'
+          }
+        }
       },
       x: {
         grid: { color: '#e2e8f0' },
         ticks: { color: '#1e293b' },
+        title: {
+          display: true,
+          text: 'Horas',
+          color: '#9b9b9b',
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        }
       },
     },
     plugins: {
@@ -167,7 +185,7 @@ const GraficaMermasPorHora = () => {
             return `${rango} : ${merma}  -  % Merma: ${porcentaje}%`;
           },
         },
-        backgroundColor: '#0d9488', // cyan-700
+        backgroundColor: '#0d9488',
         titleColor: '#fff',
         bodyColor: '#fff',
         titleFont: { weight: 'bold' },

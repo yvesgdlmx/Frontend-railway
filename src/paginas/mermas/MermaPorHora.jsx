@@ -131,18 +131,18 @@ const MermaPorHora = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="bg-gray-100 p-3 rounded-lg text-center">
-                  <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Piezas por hora</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Piezas hora actual</p>
                   <p className="text-xl md:text-2xl font-semibold text-red-600">{piezasPorHora}</p>
                 </div>
                 <div className="bg-gray-100 p-3 rounded-lg text-center">
-                  <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Piezas por día</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Piezas Acumulado</p>
                   <p className="text-xl md:text-2xl font-semibold text-red-600">{piezasPorDia}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
                   <div className="bg-gray-100 p-3 rounded-lg text-center">
-                    <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">% por hora</p>
+                    <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">% hora actual</p>
                     <p className="text-xl md:text-2xl font-semibold text-red-600">{porcentajePorHora}</p>
                   </div>
                   <div className="mt-1 text-center text-xs text-gray-500">

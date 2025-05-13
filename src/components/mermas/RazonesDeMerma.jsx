@@ -36,7 +36,7 @@ const RazonesDeMerma = () => {
           fechaAnterior = obtenerFechaLocal(ahora);
         }
         // Filtrar registros según el turno:
-        // • De la fechaAnterior: solo registros con hora >= "22:00" 
+        // • De la fechaAnterior: solo registros con hora >= "22:00" (se asume formato "HH:mm" o "HH:mm:ss")
         // • De la fechaObjetivo: solo registros con hora < "22:00"
         const registrosTurno = registros.filter(reg => {
           if (reg.fecha === fechaAnterior && reg.hora >= "22:00") return true;
@@ -81,7 +81,7 @@ const RazonesDeMerma = () => {
   };
   return (
     <div className="mx-auto py-4">
-      <Heading title={'Razones de merma'} />
+      <Heading title={'Razones mermas acumuladas'} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {horas.map((hora) => {
           const sumaTotal = mermasPorHora[hora].reduce(
