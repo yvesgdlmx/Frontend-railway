@@ -106,7 +106,7 @@ const GraficaMermasPorHora = () => {
               label: 'Mermas',
               data: datosTotales,
               fill: false,
-              borderColor: '#0891B2', // Color cyan-600
+              borderColor: '#0891B2', 
               tension: 0.1,
               pointRadius: 4,
               pointHoverRadius: 5,
