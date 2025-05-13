@@ -139,7 +139,6 @@ const GraficaMermasPorHora = () => {
     };
     obtenerDatos();
   }, []);
-  
   // Opciones para la gráfica en escritorio con tooltip personalizado
   const options = {
     responsive: true,
