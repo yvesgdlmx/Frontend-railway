@@ -5,11 +5,21 @@ import clienteAxios from '../../../config/clienteAxios';
 import RazonesDeMerma from '../../components/mermas/RazonesDeMerma';
 import GraficaMermasPorHora from '../../components/others/charts/GraficaMermasPorHora';
 import { InformationCircleIcon } from '@heroicons/react/20/solid';
+// Función para obtener la fecha en formato "YYYY-MM-DD"
 const obtenerFechaLocal = (fecha) => {
   const anio = fecha.getFullYear();
   const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
   const dia = fecha.getDate().toString().padStart(2, '0');
   return `${anio}-${mes}-${dia}`;
+};
+// Función para formatear la fecha con nombre (ej. "lunes 25 de enero del 2025")
+const obtenerFechaConNombre = (fecha) => {
+  return fecha.toLocaleDateString('es-ES', {
+    weekday: 'long',  // Nombre del día (lunes, martes, etc.)
+    day: 'numeric',   // Día numérico
+    month: 'long',    // Nombre completo del mes (enero, febrero, etc.)
+    year: 'numeric'   // Año con cuatro dígitos
+  });
 };
 const MermaPorHora = () => {
   const [ultimoRegistroIntervalo, setUltimoRegistroIntervalo] = useState('Sin datos');
@@ -109,10 +119,18 @@ const MermaPorHora = () => {
     };
     fetchData();
   }, []);
+  // Obtener la fecha actual formateada con nombre
+  const fechaActualFormateada = obtenerFechaConNombre(new Date());
   return (
     <>
       <div className="mt-6 md:mt-2">
         <Heading title="Mermas por hora" />
+      </div>
+      {/* Sección para mostrar la fecha actual */}
+      <div className="text-center mb-4">
+        <p className="text-gray-600 font-medium uppercase">
+          FECHA: {fechaActualFormateada}
+        </p>
       </div>
       <Actualizacion />
       <div className="">
