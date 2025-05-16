@@ -27,6 +27,7 @@ const MermaPorHora = () => {
   const [piezasPorDia, setPiezasPorDia] = useState('Sin datos');
   const [porcentajePorHora, setPorcentajePorHora] = useState('Sin datos');
   const [porcentajeAcumuladoDia, setPorcentajeAcumuladoDia] = useState('Sin datos');
+  
   // Estados para almacenar los valores reales para la fórmula:
   const [mermaHora, setMermaHora] = useState(null);
   const [produccionHora, setProduccionHora] = useState(null);
@@ -58,6 +59,7 @@ const MermaPorHora = () => {
         // Llamada al endpoint: /mermas/conteo_de_mermas
         const respMermas = await clienteAxios.get('/mermas/conteo_de_mermas');
         const datos = respMermas.data.registros;
+        // Filtrar registros del turno:
         const registrosTurno = datos.filter(reg => {
           if (reg.fecha === fechaAnterior && reg.hora >= "22:00:00") return true;
           if (reg.fecha === fechaObjetivo && reg.hora < "22:00:00") return true;
@@ -66,6 +68,7 @@ const MermaPorHora = () => {
         let ultimoRegistro = null;
         let totalDiaMermas = 0;
         if (registrosTurno.length > 0) {
+          // Se arma una "fecha completa" combinando fecha y hora para poder comparar
           const obtenerFechaCompleta = (reg) => `${reg.fecha} ${reg.hora}`;
           ultimoRegistro = registrosTurno.reduce((prev, current) =>
             obtenerFechaCompleta(current) > obtenerFechaCompleta(prev) ? current : prev
@@ -87,6 +90,7 @@ const MermaPorHora = () => {
           if (prod.fecha === fechaObjetivo && prod.hour < "22:00:00") return true;
           return false;
         });
+        
         const totalProduccionDiaCalc = registrosProduccionTurno.reduce((acc, prod) => acc + Number(prod.hits), 0);
         if (totalProduccionDiaCalc > 0) {
           const porcentajeAcumulado = ((totalDiaMermas / totalProduccionDiaCalc) * 100).toFixed(2);
@@ -95,18 +99,23 @@ const MermaPorHora = () => {
         } else {
           setPorcentajeAcumuladoDia('Sin datos');
         }
-        if (ultimoRegistro) {
-          const registroProduccionHora = respProduccion.data.registros.find(prod => prod.hour === ultimoRegistro.hora);
-          if (registroProduccionHora) {
-            const produccionHoraCalc = Number(registroProduccionHora.hits);
-            const mermasHoraCalc = Number(ultimoRegistro.total);
-            const porcentajeHora = produccionHoraCalc > 0 ? ((mermasHoraCalc / produccionHoraCalc) * 100).toFixed(2) : 0;
-            setPorcentajePorHora(`${porcentajeHora}%`);
-            setMermaHora(mermasHoraCalc);
-            setProduccionHora(produccionHoraCalc);
-          } else {
-            setPorcentajePorHora('Sin datos');
-          }
+        
+        // Para el cálculo del porcentaje por hora, se toma el registro de producción con la hora más reciente
+        if (ultimoRegistro && registrosProduccionTurno.length > 0) {
+          const ultimoRegistroProduccion = registrosProduccionTurno.reduce((prev, current) => {
+            const prevDate = new Date(`${prev.fecha}T${prev.hour}`);
+            const currentDate = new Date(`${current.fecha}T${current.hour}`);
+            return currentDate > prevDate ? current : prev;
+          });
+          const produccionHoraCalc = Number(ultimoRegistroProduccion.hits);
+          const mermasHoraCalc = Number(ultimoRegistro.total);
+          const porcentajeHora = produccionHoraCalc > 0 ? ((mermasHoraCalc / produccionHoraCalc) * 100).toFixed(2) : 0;
+          
+          setPorcentajePorHora(`${porcentajeHora}%`);
+          setMermaHora(mermasHoraCalc);
+          setProduccionHora(produccionHoraCalc);
+        } else {
+          setPorcentajePorHora('Sin datos');
         }
       } catch (error) {
         console.error('Error al obtener datos del endpoint:', error);
