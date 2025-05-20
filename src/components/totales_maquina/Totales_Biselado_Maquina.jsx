@@ -164,6 +164,11 @@ const Totales_Biselado_Maquina = () => {
 
   // Orden de las máquinas/células
   const ordenCelulas = [
+    "228 DOUBLER 2",
+    "229 DOUBLER 3",
+    "230 DOUBLER 4",
+    "231 DOUBLER 5",
+    "232 DOUBLER 6",
     "298 DOUBLER",
     "299 BISPHERA",
     "300 EDGER 1",

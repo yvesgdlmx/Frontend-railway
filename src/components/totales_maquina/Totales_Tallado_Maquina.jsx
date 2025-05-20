@@ -130,6 +130,7 @@ const Totales_Tallado_Maquina = () => {
     "223 SRFBLK 4",
     "224 SRFBLK 5",
     "225 SRFBLK 6",
+    "226 SRFBLK 7",
   ];
 
   // Función auxiliar que calcula el total de hits en un intervalo de horas
