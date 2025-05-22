@@ -15,10 +15,10 @@ const obtenerFechaLocal = (fecha) => {
 // Función para formatear la fecha con nombre (ej. "lunes 25 de enero del 2025")
 const obtenerFechaConNombre = (fecha) => {
   return fecha.toLocaleDateString('es-ES', {
-    weekday: 'long',  // Nombre del día (lunes, martes, etc.)
-    day: 'numeric',   // Día numérico
-    month: 'long',    // Nombre completo del mes (enero, febrero, etc.)
-    year: 'numeric'   // Año con cuatro dígitos
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
   });
 };
 const MermaPorHora = () => {
@@ -27,7 +27,6 @@ const MermaPorHora = () => {
   const [piezasPorDia, setPiezasPorDia] = useState('Sin datos');
   const [porcentajePorHora, setPorcentajePorHora] = useState('Sin datos');
   const [porcentajeAcumuladoDia, setPorcentajeAcumuladoDia] = useState('Sin datos');
-  
   // Estados para almacenar los valores reales para la fórmula:
   const [mermaHora, setMermaHora] = useState(null);
   const [produccionHora, setProduccionHora] = useState(null);
@@ -48,13 +47,17 @@ const MermaPorHora = () => {
         let fechaObjetivo, fechaAnterior;
         // Lógica de turno:
         if (horaActual < 22) {
-          fechaObjetivo = obtenerFechaLocal(ahora); // día actual
+          // Día actual
+          fechaObjetivo = obtenerFechaLocal(ahora);
           const ayer = new Date(ahora);
           ayer.setDate(ahora.getDate() - 1);
-          fechaAnterior = obtenerFechaLocal(ayer); // día anterior
+          // Día anterior
+          fechaAnterior = obtenerFechaLocal(ayer);
         } else {
-          fechaObjetivo = obtenerFechaLocal(new Date(ahora.getTime() + 24 * 60 * 60 * 1000)); // mañana
-          fechaAnterior = obtenerFechaLocal(ahora); // día actual
+          // Mañana
+          fechaObjetivo = obtenerFechaLocal(new Date(ahora.getTime() + 24 * 60 * 60 * 1000));
+          // Día actual
+          fechaAnterior = obtenerFechaLocal(ahora);
         }
         // Llamada al endpoint: /mermas/conteo_de_mermas
         const respMermas = await clienteAxios.get('/mermas/conteo_de_mermas');
@@ -68,7 +71,7 @@ const MermaPorHora = () => {
         let ultimoRegistro = null;
         let totalDiaMermas = 0;
         if (registrosTurno.length > 0) {
-          // Se arma una "fecha completa" combinando fecha y hora para poder comparar
+          // Función auxiliar para combinar fecha y hora y poder comparar
           const obtenerFechaCompleta = (reg) => `${reg.fecha} ${reg.hora}`;
           ultimoRegistro = registrosTurno.reduce((prev, current) =>
             obtenerFechaCompleta(current) > obtenerFechaCompleta(prev) ? current : prev
@@ -90,7 +93,6 @@ const MermaPorHora = () => {
           if (prod.fecha === fechaObjetivo && prod.hour < "22:00:00") return true;
           return false;
         });
-        
         const totalProduccionDiaCalc = registrosProduccionTurno.reduce((acc, prod) => acc + Number(prod.hits), 0);
         if (totalProduccionDiaCalc > 0) {
           const porcentajeAcumulado = ((totalDiaMermas / totalProduccionDiaCalc) * 100).toFixed(2);
@@ -99,8 +101,7 @@ const MermaPorHora = () => {
         } else {
           setPorcentajeAcumuladoDia('Sin datos');
         }
-        
-        // Para el cálculo del porcentaje por hora, se toma el registro de producción con la hora más reciente
+        // Calcular el porcentaje por hora usando el registro de producción más reciente
         if (ultimoRegistro && registrosProduccionTurno.length > 0) {
           const ultimoRegistroProduccion = registrosProduccionTurno.reduce((prev, current) => {
             const prevDate = new Date(`${prev.fecha}T${prev.hour}`);
@@ -110,7 +111,6 @@ const MermaPorHora = () => {
           const produccionHoraCalc = Number(ultimoRegistroProduccion.hits);
           const mermasHoraCalc = Number(ultimoRegistro.total);
           const porcentajeHora = produccionHoraCalc > 0 ? ((mermasHoraCalc / produccionHoraCalc) * 100).toFixed(2) : 0;
-          
           setPorcentajePorHora(`${porcentajeHora}%`);
           setMermaHora(mermasHoraCalc);
           setProduccionHora(produccionHoraCalc);
@@ -144,8 +144,8 @@ const MermaPorHora = () => {
       <Actualizacion />
       <div className="">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          {/* Card informativa */}
-          <div className="md:col-span-5">
+          {/* Card informativa: ahora se muestra en 12 columnas en pantallas pequeñas/medianas, y en 5 columnas en pantallas grandes */}
+          <div className="md:col-span-12 lg:col-span-5">
             <div className="bg-white p-4 rounded shadow-md h-full">
               <h2 className="text-xl font-semibold text-center mb-4 text-gray-500 uppercase">
                 Información de Mermas
@@ -186,7 +186,6 @@ const MermaPorHora = () => {
                   </div>
                 </div>
               </div>
-              {/* Div informativo posicionado al final */}
               <div className="bg-blue-50 border border-blue-200 p-3 rounded-md flex items-start mt-24">
                 <InformationCircleIcon className="h-6 w-6 text-blue-500 flex-shrink-0" />
                 <p className="ml-3 text-xs md:text-sm text-blue-700">
@@ -195,10 +194,10 @@ const MermaPorHora = () => {
               </div>
             </div>
           </div>
-          {/* Card que muestra la gráfica */}
-          <div className="md:col-span-7 mt-4 md:mt-0">
+          {/* Card que muestra la gráfica: se oculta en pantallas pequeñas y medianas */}
+          <div className="hidden lg:block lg:col-span-7 mt-4 lg:mt-0">
             <div className="bg-white shadow-md rounded-lg p-4">
-              <h2 className="text-xl font-semibold text-gray-500 mb-2 text-center uppercase hidden md:block">
+              <h2 className="text-xl font-semibold text-gray-500 mb-2 text-center uppercase">
                 Gráfica de Mermas
               </h2>
               <GraficaMermasPorHora />

@@ -14,7 +14,7 @@ import { InformationCircleIcon } from '@heroicons/react/20/solid';
 // Registrar los componentes necesarios de Chart.js
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 // Función auxiliar para obtener el intervalo para el tooltip o el resumen en el card.
-// Ahora: para cualquier hora se muestra el rango hacia adelante (por ejemplo, "14:30 - 15:30")
+// Por ejemplo, "14:30 - 15:30"
 const obtenerIntervaloHover = (horaStr) => {
   const partes = horaStr.split(':');
   const hora = parseInt(partes[0], 10);
@@ -51,16 +51,6 @@ const GraficaMermasPorHora = () => {
   const [registrosTurno, setRegistrosTurno] = useState([]);
   // Estado para guardar el mapeo de producción por hora (en formato "HH:MM")
   const [produccionMap, setProduccionMap] = useState({});
-  // Estado para determinar si es dispositivo móvil (ancho menor a 768px)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  // Listener para actualizar el modo mobile al cambiar el tamaño de la ventana
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
@@ -106,7 +96,7 @@ const GraficaMermasPorHora = () => {
               label: 'Mermas',
               data: datosTotales,
               fill: false,
-              borderColor: '#0891B2', 
+              borderColor: '#0891B2', // Color cyan-600
               tension: 0.1,
               pointRadius: 4,
               pointHoverRadius: 5,
@@ -139,7 +129,7 @@ const GraficaMermasPorHora = () => {
     };
     obtenerDatos();
   }, []);
-  // Opciones para la gráfica en escritorio con tooltip personalizado
+  // Opciones para la gráfica en pantallas grandes con tooltip personalizado
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -151,9 +141,9 @@ const GraficaMermasPorHora = () => {
         title: {
           display: true,
           text: 'Cantidad',
-          color: '#9b9b9b', // Ajusta el color según tus necesidades
+          color: '#9b9b9b',
           font: {
-            size: 14, // Ajusta el tamaño de fuente si es necesario
+            size: 14,
             weight: 'bold'
           }
         }
@@ -200,7 +190,7 @@ const GraficaMermasPorHora = () => {
       },
     },
   };
-  // Aviso informativo
+  // Aviso informativo que se muestra debajo de la gráfica
   const AvisoInformativo = () => (
     <div className="bg-blue-50 border border-blue-200 p-3 rounded-md flex items-start mt-6">
       <InformationCircleIcon className="h-6 w-6 text-blue-500 flex-shrink-0" />
@@ -209,52 +199,12 @@ const GraficaMermasPorHora = () => {
       </p>
     </div>
   );
-  // En dispositivos móviles se muestra un resumen en forma de card
-  if (isMobile) {
-    return (
-      <div>
-        <h2 className="text-center text-xl font-light text-sky-600 mb-4 uppercase">
-          Resumen de Mermas por Hora
-        </h2>
-        {registrosTurno.length === 0 ? (
-          <p className="text-center text-gray-600">No hay datos disponibles para este turno.</p>
-        ) : (
-          registrosTurno.map((reg, index) => {
-            const horaFormateada = reg.hora.length > 5 ? reg.hora.substring(0, 5) : reg.hora;
-            const rango = obtenerIntervaloHover(horaFormateada);
-            const prod = produccionMap[horaFormateada] || 0;
-            const merma = Number(reg.total);
-            const porcentaje = prod > 0 ? ((merma / prod) * 100).toFixed(2) : "N/A";
-            return (
-              <div key={index} className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-3">
-                <p className="text-gray-500 font-medium">
-                  Rango: <span className="font-bold text-sky-600">{rango}</span>
-                </p>
-                <p className="text-gray-500 font-medium">
-                  Total de Mermas: <span className="font-bold text-sky-600">{reg.total}</span>
-                </p>
-                <p className="text-gray-500 font-medium">
-                  Producción: <span className="font-bold text-sky-600">{prod}</span>
-                </p>
-                <p className="text-gray-500 font-medium">
-                  Porcentaje de Merma: <span className="font-bold text-sky-600">{porcentaje}%</span>
-                </p>
-              </div>
-            );
-          })
-        )}
-        {/* Aviso informativo en dispositivos móviles */}
-        <AvisoInformativo />
-      </div>
-    );
-  }
   // En pantallas grandes se muestra la gráfica completa
   return (
     <div className="p-4">
       <div className="h-[400px]">
         <Line data={chartData} options={options} />
       </div>
-      {/* Aviso informativo para pantallas grandes */}
       <AvisoInformativo />
     </div>
   );
