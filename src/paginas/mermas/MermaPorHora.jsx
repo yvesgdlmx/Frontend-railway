@@ -198,7 +198,7 @@ const MermaPorHora = () => {
           <div className="hidden lg:block lg:col-span-7 mt-4 lg:mt-0">
             <div className="bg-white shadow-md rounded-lg p-4">
               <h2 className="text-xl font-semibold text-gray-500 mb-2 text-center uppercase">
-                Gráfica de Mermas
+                Gráfica de mermas
               </h2>
               <GraficaMermasPorHora />
             </div>
