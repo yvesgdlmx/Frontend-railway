@@ -4,7 +4,6 @@ import Layout from './layouts/Layout';
 import ScrollToTop from './components/others/ScrollToTop';
 import { AuthProvider } from '../context/AuthProvider';
 import AuthLayout from './layouts/AuthLayout';
-import Totales_Surtido_Maquina2 from './components/totales_maquina/Totales_Surtido_Maquina2';
 
 // Usar React.lazy para cargar componentes de forma asíncrona
 const RutaProtegida = lazy(() => import('./components/RutaProtegida'));
@@ -64,7 +63,6 @@ function App() {
               <Route index element={<Procesos />} />
               <Route path='/totales_estacion' element={<Totales_Estacion />} />
               <Route path='/totales_surtido_maquina' element={<Totales_Surtido_Maquina />} />
-              <Route path='/totales_surtido_maquina2' element={<Totales_Surtido_Maquina2 />} />
               <Route path='/totales_generado_maquina' element={<Totales_Generado_Maquina />} />
               <Route path='/totales_pulido_maquina' element={<Totales_Pulido_Maquina />} />
               <Route path='/totales_ar_maquina' element={<Totales_AR_Maquina />} />
