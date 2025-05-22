@@ -6,7 +6,6 @@ import { AuthProvider } from '../context/AuthProvider';
 import AuthLayout from './layouts/AuthLayout';
 
 // Usar React.lazy para cargar componentes de forma asíncrona
-const RutaProtegida = lazy(() => import('./components/RutaProtegida'));
 const Login = lazy(() => import('./components/others/Login'));
 const Procesos = lazy(() => import('./paginas/Procesos'));
 const Totales_Estacion = lazy(() => import('./paginas/totales/Totales_Estacion'));
@@ -75,25 +74,20 @@ function App() {
               <Route path='/totales_biselado_maquina' element={<Totales_Biselado_Maquina />} />
               <Route path='/totales_produccion_maquina' element={<Totales_Produccion_Maquina />} />
               <Route path='/surtido_detallado' element={<Surtido_Detallado />} />
-              
-              {/* Rutas protegidas */}
-              <Route element={<RutaProtegida />}>
-                <Route path='/manuales_metas' element={<Manuales_Metas />} />
-                <Route path='/tallado_metas' element={<Tallado_Metas />} />
-                <Route path='/generado_metas' element={<Generado_Metas />} />
-                <Route path='/pulido_metas' element={<Pulido_Metas />} />
-                <Route path='/engraver_metas' element={<Engraver_Metas />} />
-                <Route path='/terminado_metas' element={<Terminado_Metas />} />
-                <Route path='/biselado_metas' element={<Biselado_Metas />} />
-                <Route path='/editar_tallado/:id' element={<Editar_Tallado />} />
-                <Route path='/editar_generado/:id' element={<Editar_Generado />} />
-                <Route path='/editar_pulido/:id' element={<Editar_Pulido />} />
-                <Route path='/editar_engraver/:id' element={<Editar_Engraver />} />
-                <Route path='/editar_terminado/:id' element={<Editar_Terminado />} />
-                <Route path='/editar_biselado/:id' element={<Editar_Biselado />} />
-                <Route path='/editar_manuales/:id' element={<Editar_Manuales />} />
-                <Route path='/finanzas_facturas' element={<Facturas/>} />
-              </Route>
+              <Route path='/manuales_metas' element={<Manuales_Metas />} />
+              <Route path='/tallado_metas' element={<Tallado_Metas />} />
+              <Route path='/generado_metas' element={<Generado_Metas />} />
+              <Route path='/pulido_metas' element={<Pulido_Metas />} />
+              <Route path='/engraver_metas' element={<Engraver_Metas />} />
+              <Route path='/terminado_metas' element={<Terminado_Metas />} />
+              <Route path='/biselado_metas' element={<Biselado_Metas />} />
+              <Route path='/editar_tallado/:id' element={<Editar_Tallado />} />
+              <Route path='/editar_generado/:id' element={<Editar_Generado />} />
+              <Route path='/editar_pulido/:id' element={<Editar_Pulido />} />
+              <Route path='/editar_engraver/:id' element={<Editar_Engraver />} />
+              <Route path='/editar_terminado/:id' element={<Editar_Terminado />} />
+              <Route path='/editar_biselado/:id' element={<Editar_Biselado />} />
+              <Route path='/editar_manuales/:id' element={<Editar_Manuales />} />
               <Route path='/historial_por_rangos' element={<Historial_Por_Rangos />} />
               <Route path='/historial_por_dia' element={<Historial_Por_Dia />} />
               <Route path='/tableros_tallado' element={<Tableros_Tallado />} />
@@ -106,6 +100,7 @@ function App() {
               <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
               <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
               <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
+              <Route path='/finanzas_facturas' element={<Facturas/>} />
               <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
             </Route>
             <Route path='/auth' element={<AuthLayout />}>
