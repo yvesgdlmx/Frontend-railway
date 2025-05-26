@@ -93,11 +93,13 @@ const MermaPorHora = () => {
           if (prod.fecha === fechaObjetivo && prod.hour < "22:00:00") return true;
           return false;
         });
+        // Total de producción diaria ajustado (multiplicado por 2)
         const totalProduccionDiaCalc = registrosProduccionTurno.reduce((acc, prod) => acc + Number(prod.hits), 0);
-        if (totalProduccionDiaCalc > 0) {
-          const porcentajeAcumulado = ((totalDiaMermas / totalProduccionDiaCalc) * 100).toFixed(2);
+        const totalProduccionAjustado = totalProduccionDiaCalc * 2;
+        if (totalProduccionAjustado > 0) {
+          const porcentajeAcumulado = ((totalDiaMermas / totalProduccionAjustado) * 100).toFixed(2);
           setPorcentajeAcumuladoDia(`${porcentajeAcumulado}%`);
-          setTotalProduccionDia(totalProduccionDiaCalc);
+          setTotalProduccionDia(totalProduccionAjustado);
         } else {
           setPorcentajeAcumuladoDia('Sin datos');
         }
@@ -108,7 +110,8 @@ const MermaPorHora = () => {
             const currentDate = new Date(`${current.fecha}T${current.hour}`);
             return currentDate > prevDate ? current : prev;
           });
-          const produccionHoraCalc = Number(ultimoRegistroProduccion.hits);
+          // Producción de la hora actual ajustada (multiplicada por 2)
+          const produccionHoraCalc = Number(ultimoRegistroProduccion.hits) * 2;
           const mermasHoraCalc = Number(ultimoRegistro.total);
           const porcentajeHora = produccionHoraCalc > 0 ? ((mermasHoraCalc / produccionHoraCalc) * 100).toFixed(2) : 0;
           setPorcentajePorHora(`${porcentajeHora}%`);
@@ -189,7 +192,7 @@ const MermaPorHora = () => {
               <div className="bg-blue-50 border border-blue-200 p-3 rounded-md flex items-start mt-24">
                 <InformationCircleIcon className="h-6 w-6 text-blue-500 flex-shrink-0" />
                 <p className="ml-3 text-xs md:text-sm text-blue-700">
-                  El porcentaje por hora refleja las mermas de la hora actual en relación con la producción registrada en el mismo período. Por otro lado, el porcentaje acumulado del día se determina comparando las mermas totales con la producción total diaria.
+                  El porcentaje por hora refleja las mermas de la hora actual en relación con la producción registrada en el mismo período. Por otro lado, el porcentaje acumulado del día se determina comparando las mermas totales con la producción total diaria (ajustada).
                 </p>
               </div>
             </div>
@@ -198,7 +201,7 @@ const MermaPorHora = () => {
           <div className="hidden lg:block lg:col-span-7 mt-4 lg:mt-0">
             <div className="bg-white shadow-md rounded-lg p-4">
               <h2 className="text-xl font-semibold text-gray-500 mb-2 text-center uppercase">
-                Gráfica de mermas
+                Gráfica de Mermas
               </h2>
               <GraficaMermasPorHora />
             </div>
