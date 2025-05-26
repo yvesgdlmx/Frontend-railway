@@ -27,10 +27,13 @@ const MermaPorHora = () => {
   const [piezasPorDia, setPiezasPorDia] = useState('Sin datos');
   const [porcentajePorHora, setPorcentajePorHora] = useState('Sin datos');
   const [porcentajeAcumuladoDia, setPorcentajeAcumuladoDia] = useState('Sin datos');
-  // Estados para almacenar los valores reales para la fórmula:
+  // Estados para almacenar los valores reales ajustados (multiplicados por 2)
   const [mermaHora, setMermaHora] = useState(null);
-  const [produccionHora, setProduccionHora] = useState(null);
-  const [totalProduccionDia, setTotalProduccionDia] = useState(null);
+  const [produccionHora, setProduccionHora] = useState(null);              // producción ajustada (por 2)
+  const [totalProduccionDia, setTotalProduccionDia] = useState(null);       // producción diaria ajustada (por 2)
+  // Estados para almacenar los valores originales (antes de multiplicar)
+  const [produccionHoraOriginal, setProduccionHoraOriginal] = useState(null);
+  const [totalProduccionDiaOriginal, setTotalProduccionDiaOriginal] = useState(null);
   // Función para obtener el rango de 1 hora a partir de una hora dada.
   const obtenerIntervalo = (horaStr) => {
     const inicio = horaStr.slice(0, 5);
@@ -93,8 +96,10 @@ const MermaPorHora = () => {
           if (prod.fecha === fechaObjetivo && prod.hour < "22:00:00") return true;
           return false;
         });
-        // Total de producción diaria ajustado (multiplicado por 2)
+        // Total de producción diaria obtenido (antes de multiplicar)
         const totalProduccionDiaCalc = registrosProduccionTurno.reduce((acc, prod) => acc + Number(prod.hits), 0);
+        setTotalProduccionDiaOriginal(totalProduccionDiaCalc);
+        // Total de producción diaria ajustado (multiplicado por 2)
         const totalProduccionAjustado = totalProduccionDiaCalc * 2;
         if (totalProduccionAjustado > 0) {
           const porcentajeAcumulado = ((totalDiaMermas / totalProduccionAjustado) * 100).toFixed(2);
@@ -110,8 +115,11 @@ const MermaPorHora = () => {
             const currentDate = new Date(`${current.fecha}T${current.hour}`);
             return currentDate > prevDate ? current : prev;
           });
+          // Obtener la producción original de la hora antes de multiplicar
+          const originalProduccionHora = Number(ultimoRegistroProduccion.hits);
+          setProduccionHoraOriginal(originalProduccionHora);
           // Producción de la hora actual ajustada (multiplicada por 2)
-          const produccionHoraCalc = Number(ultimoRegistroProduccion.hits) * 2;
+          const produccionHoraCalc = originalProduccionHora * 2;
           const mermasHoraCalc = Number(ultimoRegistro.total);
           const porcentajeHora = produccionHoraCalc > 0 ? ((mermasHoraCalc / produccionHoraCalc) * 100).toFixed(2) : 0;
           setPorcentajePorHora(`${porcentajeHora}%`);
@@ -147,7 +155,7 @@ const MermaPorHora = () => {
       <Actualizacion />
       <div className="">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          {/* Card informativa: ahora se muestra en 12 columnas en pantallas pequeñas/medianas, y en 5 columnas en pantallas grandes */}
+          {/* Card informativa: se muestra en 12 columnas en pantallas pequeñas/medianas y en 5 columnas en pantallas grandes */}
           <div className="md:col-span-12 lg:col-span-5">
             <div className="bg-white p-4 rounded shadow-md h-full">
               <h2 className="text-xl font-semibold text-center mb-4 text-gray-500 uppercase">
@@ -170,34 +178,42 @@ const MermaPorHora = () => {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
+                {/* Porcentaje por hora */}
                 <div>
                   <div className="bg-gray-100 p-3 rounded-lg text-center">
                     <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">% hora actual</p>
                     <p className="text-xl md:text-2xl font-semibold text-red-600">{porcentajePorHora}</p>
                   </div>
                   <div className="mt-1 text-center text-xs text-gray-500">
-                    ( % por hora = ({mermaHora !== null ? mermaHora : '-' } / {produccionHora !== null ? produccionHora : '-'}) * 100 = {porcentajePorHora} )
+                    ( % por hora = ( {mermaHora !== null ? mermaHora : '-'} / ( {produccionHoraOriginal !== null ? produccionHoraOriginal : '-'} * 2 ) ) * 100 = {porcentajePorHora} )
+                  </div>
+                  <div className="mt-1 text-center text-xs text-gray-500">
+                    Producción hora original: {produccionHoraOriginal !== null ? produccionHoraOriginal : '-'} | Producción hora (ajustada x2): {produccionHora !== null ? produccionHora : '-'}
                   </div>
                 </div>
+                {/* Porcentaje acumulado */}
                 <div>
                   <div className="bg-gray-100 p-3 rounded-lg text-center">
                     <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">% acumulado del día</p>
                     <p className="text-xl md:text-2xl font-semibold text-red-600">{porcentajeAcumuladoDia}</p>
                   </div>
                   <div className="mt-1 text-center text-xs text-gray-500">
-                    ( % acumulado = ({typeof piezasPorDia === 'number' ? piezasPorDia : '-' } / {totalProduccionDia !== null ? totalProduccionDia : '-'}) * 100 = {porcentajeAcumuladoDia} )
+                    ( % acumulado = ( {typeof piezasPorDia === 'number' ? piezasPorDia : '-'} / ( {totalProduccionDiaOriginal !== null ? totalProduccionDiaOriginal : '-'} * 2 ) ) * 100 = {porcentajeAcumuladoDia} )
+                  </div>
+                  <div className="mt-1 text-center text-xs text-gray-500">
+                    Producción diaria original: {totalProduccionDiaOriginal !== null ? totalProduccionDiaOriginal : '-'} | Producción diaria (ajustada x2): {totalProduccionDia !== null ? totalProduccionDia : '-'}
                   </div>
                 </div>
               </div>
-              <div className="bg-blue-50 border border-blue-200 p-3 rounded-md flex items-start mt-24">
+              <div className="bg-blue-50 border border-blue-200 p-3 rounded-md flex items-start mt-10">
                 <InformationCircleIcon className="h-6 w-6 text-blue-500 flex-shrink-0" />
                 <p className="ml-3 text-xs md:text-sm text-blue-700">
-                  El porcentaje por hora refleja las mermas de la hora actual en relación con la producción registrada en el mismo período. Por otro lado, el porcentaje acumulado del día se determina comparando las mermas totales con la producción total diaria (ajustada).
+                  El porcentaje por hora refleja las mermas de la hora actual en relación con la producción registrada en el mismo período (se multiplica la producción original por 2 antes de realizar el cálculo). De manera similar, el porcentaje acumulado se determina comparando las mermas totales con la producción total diaria (original * 2).
                 </p>
               </div>
             </div>
           </div>
-          {/* Card que muestra la gráfica: se oculta en pantallas pequeñas y medianas */}
+          {/* Card de la gráfica, se oculta en pantallas pequeñas/medianas */}
           <div className="hidden lg:block lg:col-span-7 mt-4 lg:mt-0">
             <div className="bg-white shadow-md rounded-lg p-4">
               <h2 className="text-xl font-semibold text-gray-500 mb-2 text-center uppercase">
