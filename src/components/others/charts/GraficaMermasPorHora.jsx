@@ -169,7 +169,7 @@ const GraficaMermasPorHora = () => {
             const hora = context.label;
             const horaFormateada = hora.length > 5 ? hora.substring(0, 5) : hora;
             const rango = obtenerIntervaloHover(horaFormateada);
-            const produccion = produccionMap[horaFormateada] || 0;
+            const produccion = (produccionMap[horaFormateada] || 0) * 2;
             const merma = context.parsed.y;
             const porcentaje = produccion > 0 ? ((merma / produccion) * 100).toFixed(2) : "N/A";
             return `${rango} : ${merma}  -  % Merma: ${porcentaje}%`;
