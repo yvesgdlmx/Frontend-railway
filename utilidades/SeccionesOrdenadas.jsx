@@ -7,6 +7,6 @@ export const seccionesOrdenadas = [
     { seccion: "Desbloqueo", nombres: ["320 DEBLOCKING 1"] },
     { seccion: "AntiReflejante", nombres: ["91 VELOCITY 1", "92 VELOCITY 2", "52 FUSION", "53 1200 D", "55 TLF 1200.1", "56 TLF 1200.2"] },
     { seccion: "Bloqueo de terminado", nombres: ["280 FINBLKR 1", "281 FINBLKR 2", "282 FINBLKR 3"] },
-    { seccion: "Biselado", nombres: ["298 DOUBLER", "299 BISPHERA", "300 EDGER 1", "301 EDGER 2", "302 EDGER 3", "303 EDGER 4", "304 EDGER 5", "305 EDGER 6", "306 EDGER 7", "307 EDGER 8", "308 EDGER 9", "309 EDGER 10", "310 EDGER 11", "311 EDFGER 12", "313 EDGER 13", "314 EDGER 14", "316 EDGER 15", "317 EDGER 16", "327 EDGER 17", "328 EDGER 18", "329 EDGER 19", "330 EDGER 20", "331 EDGER 21", "332 EDGER 22", "333 EDGER 23", "334 EDGER 24", "312 RAZR", "318 HSE 1", "319 HSE 2"] },
+    { seccion: "Biselado", nombres: ["228 DOUBLER 2", "229 DOUBLER 3", "230 DOUBLER 4", "231 DOUBLER 5", "232 DOUBLER 6", "298 DOUBLER", "299 BISPHERA", "300 EDGER 1", "301 EDGER 2", "302 EDGER 3", "303 EDGER 4", "304 EDGER 5", "305 EDGER 6", "306 EDGER 7", "307 EDGER 8", "308 EDGER 9", "309 EDGER 10", "310 EDGER 11", "311 EDGER 12", "313 EDGER 13", "314 EDGER 14", "316 EDGER 15", "317 EDGER 16", "327 EDGER 17", "328 EDGER 18", "329 EDGER 19", "330 EDGER 20", "331 EDGER 21", "332 EDGER 22", "333 EDGER 23", "334 EDGER 24", "336 EDGER 25", "337 EDGER 26", "338 EDGER 28", "347 EDGER 27", "312 RAZR", "318 HSE 1", "319 HSE 2"] },
     { seccion: "Producción", nombres: ["32 JOB COMPLETE"] },
   ]; 
