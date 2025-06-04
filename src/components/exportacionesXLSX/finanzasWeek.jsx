@@ -2,6 +2,7 @@ import React from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { AiFillFileExcel } from "react-icons/ai";  // Importamos el ícono
+
 const FinanzasWeek = ({ data, columns, filename = "export.xlsx" }) => {
   // Filtramos las columnas comunes (sin subheader)
   const commonColumns = columns.filter(col => !col.subHeader);
