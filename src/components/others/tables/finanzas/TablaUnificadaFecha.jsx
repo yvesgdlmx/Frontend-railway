@@ -7,6 +7,7 @@ import { useFetchInk } from "../../../../../hooks/finanzas/historial/useFetchInk
 import { mergeRegistros } from "../../../../../helpers/margeFinanzas";
 import { calculateTotales } from "../../../../../helpers/calculateTotales";
 import { columnsFinanzas } from "../../../../../config/columnsFinanzas";
+
 const TablaUnificadaFecha = ({ fechaInicio, fechaFin }) => {
   const nviData = useFetchNvi(fechaInicio, fechaFin);
   const hoyaData = useFetchHoya(fechaInicio, fechaFin);
