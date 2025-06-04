@@ -48,6 +48,7 @@ const ReporteWipDiario = lazy(() => import('./paginas/reportes/ReporteWipDiario'
 const ReportesTrabajosEnviados = lazy(() => import('./paginas/reportes/ReportesTrabajosEnviados'));
 const ResumenTrabajo = lazy(() => import('./paginas/reportes/ResumenTrabajo'));
 const Facturas =  lazy(() => import('./paginas/finanzas/Facturas'));
+const HistorialFacturas = lazy(() => import('./paginas/finanzas/HistorialFacturas'))
 const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/ReporteTrabajosSinMovimientos'));
 const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
 
@@ -101,6 +102,7 @@ function App() {
               <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
               <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
               <Route path='/finanzas_facturas' element={<Facturas/>} />
+              <Route path='/historial_facturas' element={<HistorialFacturas/>} />
               <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
             </Route>
             <Route path='/auth' element={<AuthLayout />}>
