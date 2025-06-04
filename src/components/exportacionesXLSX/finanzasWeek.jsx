@@ -55,5 +55,4 @@ const FinanzasWeek = ({ data, columns, filename = "export.xlsx" }) => {
     </button>
   );
 };
-
 export default FinanzasWeek;
