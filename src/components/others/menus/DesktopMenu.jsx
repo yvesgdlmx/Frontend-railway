@@ -10,6 +10,9 @@ const DesktopMenu = ({
 }) => {
   return (
     <nav className="hidden md:flex gap-6 text-white font-semibold text-sm mr-16">
+      <Link to={'/cargar_media'}>
+          <p className="uppercase">Avisos</p>
+      </Link>
       <Link to="/" onClick={handleMenuItemClick} className="uppercase">
         Producción
       </Link>

@@ -51,6 +51,7 @@ const Facturas =  lazy(() => import('./paginas/finanzas/Facturas'));
 const HistorialFacturas = lazy(() => import('./paginas/finanzas/HistorialFacturas'))
 const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/ReporteTrabajosSinMovimientos'));
 const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
+const CargarMedia = lazy(() => import('./paginas/CargarMedia'));
 
 function App() {
   return (
@@ -104,6 +105,7 @@ function App() {
               <Route path='/finanzas_facturas' element={<Facturas/>} />
               <Route path='/historial_facturas' element={<HistorialFacturas/>} />
               <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
+              <Route path='/cargar_media' element={<CargarMedia/>} />
             </Route>
             <Route path='/auth' element={<AuthLayout />}>
               <Route index element={<Login />} />
