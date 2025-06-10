@@ -1,5 +1,4 @@
 import React from 'react';
-
 const TablaRepoResumen = ({ datos, formatNumber }) => {
   return (
     <div className="overflow-x-auto">
@@ -20,6 +19,13 @@ const TablaRepoResumen = ({ datos, formatNumber }) => {
             </th>
             <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               No Surtido Terminado
+            </th>
+            {/* Nuevas columnas entre las dos siguientes */}
+            <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              No Surtido AR Semi
+            </th>
+            <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              No Surtido Sin AR Semi
             </th>
             <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               No Surtido Semiterminado
@@ -69,6 +75,13 @@ const TablaRepoResumen = ({ datos, formatNumber }) => {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-semibold">
                 {formatNumber(fila.no_surtido_term)}
+              </td>
+              {/* Nuevas columnas */}
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
+                {formatNumber(fila.no_surtido_ar_semi)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
+                {formatNumber(fila.no_surtido_sin_ar_semi)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-semibold">
                 {formatNumber(fila.no_surtido_ster)}
@@ -120,6 +133,17 @@ const TablaRepoResumen = ({ datos, formatNumber }) => {
             <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-700">
               {formatNumber(
                 datos.reduce((acc, curr) => acc + curr.no_surtido_term, 0)
+              )}
+            </td>
+            {/* Totales de las nuevas columnas */}
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+              {formatNumber(
+                datos.reduce((acc, curr) => acc + curr.no_surtido_ar_semi, 0)
+              )}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+              {formatNumber(
+                datos.reduce((acc, curr) => acc + curr.no_surtido_sin_ar_semi, 0)
               )}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-700">
