@@ -51,8 +51,8 @@ const MediasActivas_Tableros = () => {
         <img
           src={`${backendUrl}/uploads/${currentMedia.nombre}`}
           alt={currentMedia.descripcion}
-          className="w-full h-auto object-contain"
-          style={{ maxWidth: "100vw" }}
+          className="w-full h-full object-contain object-center"
+          style={{ maxWidth: "100vw", maxHeight: "98vh" }}
         />
       ) : (
         <video autoPlay loop playsInline className="w-full h-auto object-contain" style={{ maxWidth: "100vw" }}>
