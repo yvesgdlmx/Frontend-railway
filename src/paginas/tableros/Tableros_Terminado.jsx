@@ -4,7 +4,6 @@ import HeaderPantallaCompleta from "../../components/others/html_personalizado/H
 import Totales_Terminado_Tableros from '../../components/tableros/Totales_Terminado_Tableros';
 import Totales_Biselado_Tableros from '../../components/tableros/Totales_Biselado_Tableros';
 import Totales_Biselado2_Tableros from '../../components/tableros/Totales_Biselado2_Tableros';
-import Totales_Produccion_Tableros from '../../components/tableros/Totales_Produccion_Tableros';
 import MediasActivas_Tableros from '../../components/tableros/MediasActivas_Tableros';
 const Tableros_Terminado = () => {
   // Lista de componentes a mostrar (incluyendo MediasActivas)
