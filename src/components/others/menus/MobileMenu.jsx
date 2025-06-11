@@ -51,26 +51,6 @@ const MobileMenu = ({
                 Producción
               </Link>
             </li>
-            <li>
-              <p className="block py-2 px-3 text-white font-semibold uppercase">
-                Mermas
-              </p>
-              <ul className="ml-4">
-                {[
-                  { to: "/mermas_por_hora", label: "Mermas por hora" },
-                ].map((item, index) => (
-                  <li key={index}>
-                    <Link
-                      to={item.to}
-                      onClick={handleMenuItemClick}
-                      className="block py-2 px-3 text-white uppercase hover:bg-gray-600"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </li>
             {auth && auth.id && (
               <>
                 <li>

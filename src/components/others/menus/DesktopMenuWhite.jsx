@@ -44,22 +44,6 @@ const DesktopMenuWhite = () => {
         <Link to={'/'}>
           <p>Producción</p>
         </Link>
-        <div className="relative" ref={menuRefs.mermas}>
-            <button onClick={() => toggleMenu('mermas')} className="hover:text-gray-900 focus:outline-none uppercase">
-              Mermas
-            </button>
-            {menuVisible === 'mermas' && (
-              <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg">
-                <ul className="py-1 text-slate-700">
-                  <li>
-                    <Link to={'/mermas_por_hora'} onClick={handleMenuItemClick}>
-                      <p className="block px-4 py-2 hover:bg-gray-100">Merma por hora</p>
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            )}
-        </div>
         {auth && auth.id && (
           <>
             <div className="relative" ref={menuRefs.finanzas}>

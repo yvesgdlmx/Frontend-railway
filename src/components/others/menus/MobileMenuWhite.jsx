@@ -35,18 +35,6 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 Producción
               </Link>
             </li>
-            <li>
-              <p className="flex items-center p-3 text-gray-700 font-semibold">
-                Mermas
-              </p>
-              <ul className="ml-6 mt-2 space-y-2">
-                <li>
-                  <Link to={'/mermas_por_hora'} onClick={handleClick} className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-                    mermas por hora
-                  </Link>
-                </li>
-              </ul>
-            </li>
             {auth && auth.id && (
               <li>
                 <p className="flex items-center p-3 text-gray-700 font-semibold">
