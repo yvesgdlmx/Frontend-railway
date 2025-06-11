@@ -5,6 +5,7 @@ import Totales_Pulido_Tableros from '../../components/tableros/Totales_Pulido_Ta
 import Totales_Tallado_Tableros from '../../components/tableros/Totales_Tallado_Tableros';
 import Totales_Engraver_Tableros from '../../components/tableros/Totales_Engraver_Tableros';
 import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
+import Totales_Produccion_Tableros from "../../components/tableros/Totales_Produccion_Tableros";
 import MediasActivas_Tableros from '../../components/tableros/MediasActivas_Tableros';
 import HeaderPantallaCompleta from "../../components/others/html_personalizado/HeaderPantallaCompleta";
 const Tableros_Tallado = () => {
