@@ -1,32 +1,14 @@
 import React, { useState, useEffect } from "react";
-import clienteAxios from "../../../config/clienteAxios";
-const MediasActivas_Tableros = () => {
-  const [medias, setMedias] = useState([]);
+const MediasActivas_Tableros = ({ medias }) => {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
-  // Función para obtener los medios activos del backend
-  const fetchMedia = async () => {
-    try {
-      const response = await clienteAxios.get("/media");
-      const activos = response.data.filter((item) => item.estado === true);
-      setMedias(activos);
-    } catch (error) {
-      console.error("Error al obtener los medios activos:", error);
-    }
-  };
-  // Hacer fetch cuando se monta el componente y cada 15 segundos (ajusta este intervalo si lo crees necesario)
-  useEffect(() => {
-    fetchMedia();
-    const fetchInterval = setInterval(fetchMedia, 15000);
-    return () => clearInterval(fetchInterval);
-  }, []);
-  // Este efecto se encarga de ajustar el índice actual si el array de medios se reduce
+  // Reinicia el índice si la cantidad de medios cambia o si el índice es mayor
   useEffect(() => {
     if (currentMediaIndex >= medias.length) {
       setCurrentMediaIndex(0);
     }
   }, [medias, currentMediaIndex]);
-  // Cambiar el índice del medio visible cada 15 segundos si hay más de uno
+  // Si hay más de un medio, se rota cada 15 segundos
   useEffect(() => {
     if (medias.length > 1) {
       const sliderInterval = setInterval(() => {
@@ -35,15 +17,8 @@ const MediasActivas_Tableros = () => {
       return () => clearInterval(sliderInterval);
     }
   }, [medias.length]);
-  // Si no hay medios activos, se muestra un mensaje
-  if (medias.length === 0) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-black">
-        <p className="text-white">No hay medios activos</p>
-      </div>
-    );
-  }
-  // Selecciona solo la media actual (únicamente una se muestra a la vez)
+  // Si no hay medios, retorna null—aunque en este caso siempre se le pasa una lista con elementos
+  if (medias.length === 0) return null;
   const currentMedia = medias[currentMediaIndex];
   return (
     <div className="relative w-full h-screen">
@@ -55,11 +30,14 @@ const MediasActivas_Tableros = () => {
           style={{ maxWidth: "100vw", maxHeight: "98vh" }}
         />
       ) : (
-        <video autoPlay loop playsInline className="w-full h-auto object-contain" style={{ maxWidth: "100vw" }}>
-          <source
-            src={`${backendUrl}/uploads/${currentMedia.nombre}`}
-            type="video/mp4"
-          />
+        <video
+          autoPlay
+          loop
+          playsInline
+          className="w-full h-auto object-contain"
+          style={{ maxWidth: "100vw" }}
+        >
+          <source src={`${backendUrl}/uploads/${currentMedia.nombre}`} type="video/mp4" />
           Tu navegador no soporta este video.
         </video>
       )}

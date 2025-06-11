@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import clienteAxios from '../../../config/clienteAxios';
 import HeaderPantallaCompleta from "../../components/others/html_personalizado/HeaderPantallaCompleta";
 import Totales_Terminado_Tableros from '../../components/tableros/Totales_Terminado_Tableros';
 import Totales_Biselado_Tableros from '../../components/tableros/Totales_Biselado_Tableros';
 import Totales_Biselado2_Tableros from '../../components/tableros/Totales_Biselado2_Tableros';
-import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
+import Totales_Produccion_Tableros from '../../components/tableros/Totales_Produccion_Tableros';
 import MediasActivas_Tableros from '../../components/tableros/MediasActivas_Tableros';
 const Tableros_Terminado = () => {
-  // Lista de componentes a mostrar, ahora integrando MediasActivas
+  // Lista de componentes a mostrar (incluyendo MediasActivas)
   const componentes = [
     'TotalesTerminado',
     'TotalesBiselado',
@@ -14,7 +15,7 @@ const Tableros_Terminado = () => {
     'TotalesProduccion',
     'MediasActivas'
   ];
-  // Definición de las duraciones para cada componente (se asigna 40 seg a MediasActivas)
+  // Duraciones asignadas a cada uno
   const initialDurations = {
     TotalesTerminado: 30,
     TotalesBiselado: 30,
@@ -22,20 +23,35 @@ const Tableros_Terminado = () => {
     TotalesProduccion: 30,
     MediasActivas: 40,
   };
-  // Estados para manejar la duración, el componente activo, el contador y el modo de pantalla completa
   const [durations, setDurations] = useState(initialDurations);
   const [componenteActivo, setComponenteActivo] = useState(componentes[0]);
   const [contador, setContador] = useState(initialDurations[componentes[0]]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mediasActivasDuration, setMediasActivasDuration] = useState(durations.MediasActivas);
-  // Efecto para controlar el contador y el cambio de componentes de forma automática
+  // Se levanta el estado de los medios activos
+  const [mediasActivas, setMediasActivas] = useState([]);
+  // Función para obtener la lista de medios activos desde el backend
+  const fetchMediasActivas = async () => {
+    try {
+      const response = await clienteAxios.get("/media");
+      const activos = response.data.filter((item) => item.estado === true);
+      setMediasActivas(activos);
+    } catch (error) {
+      console.error("Error al obtener medias activas:", error);
+    }
+  };
+  // Se hace el fetch inicial y luego cada 15 segundos
   useEffect(() => {
-    // Al cambiar el componente activo se actualiza el contador
+    fetchMediasActivas();
+    const interval = setInterval(fetchMediasActivas, 15000);
+    return () => clearInterval(interval);
+  }, []);
+  // Controla la cuenta regresiva y el cambio automático de componentes
+  useEffect(() => {
     setContador(durations[componenteActivo]);
     const interval = setInterval(() => {
       setContador(prev => {
         if (prev <= 1) {
-          // Cuando el contador llega a 1 se reinicia y se muestra el siguiente componente
           clearInterval(interval);
           const currentIndex = componentes.indexOf(componenteActivo);
           const nextIndex = (currentIndex + 1) % componentes.length;
@@ -47,7 +63,13 @@ const Tableros_Terminado = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [componenteActivo, durations]);
-  // Control del cambio de estado de pantalla completa
+  // Si el componente activo es MediasActivas y no hay medios, se cambia automáticamente al siguiente
+  useEffect(() => {
+    if (componenteActivo === "MediasActivas" && mediasActivas.length === 0) {
+      cambiarComponenteSiguiente();
+    }
+  }, [componenteActivo, mediasActivas]);
+  // Controla el cambio en el modo pantalla completa
   useEffect(() => {
     const handleFullScreenChange = () => {
       setIsFullScreen(document.fullscreenElement !== null);
@@ -56,7 +78,6 @@ const Tableros_Terminado = () => {
     return () =>
       document.removeEventListener("fullscreenchange", handleFullScreenChange);
   }, []);
-  // Función para alternar el modo pantalla completa
   const togglePantallaCompleta = () => {
     const elem = document.getElementById("componente-activo");
     if (document.fullscreenElement) {
@@ -73,7 +94,6 @@ const Tableros_Terminado = () => {
       }
     }
   };
-  // Funciones para cambiar manualmente entre componentes
   const cambiarComponenteAnterior = () => {
     const currentIndex = componentes.indexOf(componenteActivo);
     const newIndex = (currentIndex - 1 + componentes.length) % componentes.length;
@@ -103,14 +123,14 @@ const Tableros_Terminado = () => {
   };
   return (
     <div>
-      {/* Se incorpora el Header reutilizable para la funcionalidad de pantalla completa */}
-        <HeaderPantallaCompleta
-          togglePantallaCompleta={togglePantallaCompleta}
-          mediasActivasDuration={mediasActivasDuration}
-          handleDurationChange={handleDurationChange}
-          actualizarDuracionMediasActivas={actualizarDuracionMediasActivas}
-        />
-      {/* Se muestran controles manuales solo cuando NO se está en pantalla completa */}
+      {/* Header reutilizable para pantalla completa */}
+      <HeaderPantallaCompleta
+        togglePantallaCompleta={togglePantallaCompleta}
+        mediasActivasDuration={mediasActivasDuration}
+        handleDurationChange={handleDurationChange}
+        actualizarDuracionMediasActivas={actualizarDuracionMediasActivas}
+      />
+      {/* Controles manuales (solo fuera de pantalla completa) */}
       {!isFullScreen && (
         <div className="flex justify-between mb-4 px-4 mt-4">
           <button
@@ -127,7 +147,7 @@ const Tableros_Terminado = () => {
           </button>
         </div>
       )}
-      {/* Área donde se muestra el componente activo */}
+      {/* El contenedor full screen se mantiene siempre para evitar que se salga del modo */}
       <div
         id="componente-activo"
         style={{
@@ -161,7 +181,13 @@ const Tableros_Terminado = () => {
         {componenteActivo === 'TotalesBiselado' && <Totales_Biselado_Tableros />}
         {componenteActivo === 'TotalesBiselado2' && <Totales_Biselado2_Tableros />}
         {componenteActivo === 'TotalesProduccion' && <Totales_Produccion_Tableros />}
-        {componenteActivo === 'MediasActivas' && <MediasActivas_Tableros />}
+        {componenteActivo === 'MediasActivas' &&
+          (mediasActivas.length > 0 ? (
+            <MediasActivas_Tableros medias={mediasActivas} />
+          ) : (
+            // Se muestra un placeholder vacío para mantener el contenedor en full screen
+            <div style={{ width: "100%", height: "100%" }} />
+          ))}
       </div>
     </div>
   );

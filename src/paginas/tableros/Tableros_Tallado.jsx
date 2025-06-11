@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
+import clienteAxios from "../../../config/clienteAxios";
 import Totales_Generado_Tableros from '../../components/tableros/Totales_Generado_Tableros';
 import Totales_Pulido_Tableros from '../../components/tableros/Totales_Pulido_Tableros';
 import Totales_Tallado_Tableros from '../../components/tableros/Totales_Tallado_Tableros';
 import Totales_Engraver_Tableros from '../../components/tableros/Totales_Engraver_Tableros';
-import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
+import Totales_Produccion_Tableros from '../../components/tableros/Totales_Produccion_Tableros';
 import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
 import MediasActivas_Tableros from '../../components/tableros/MediasActivas_Tableros';
 import HeaderPantallaCompleta from "../../components/others/html_personalizado/HeaderPantallaCompleta";
@@ -31,6 +32,25 @@ const Tableros_Tallado = () => {
   const [contador, setContador] = useState(durations[componenteActivo]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mediasActivasDuration, setMediasActivasDuration] = useState(durations.MediasActivas);
+  // Estado para almacenar los medios activos (levantado en el padre)
+  const [mediasActivas, setMediasActivas] = useState([]);
+  // Función para obtener la lista de medios activos
+  const fetchMediasActivas = async () => {
+    try {
+      const response = await clienteAxios.get("/media");
+      const activos = response.data.filter(item => item.estado === true);
+      setMediasActivas(activos);
+    } catch (error) {
+      console.error("Error al obtener los medios activos:", error);
+    }
+  };
+  // Realiza el fetch inicial y luego cada 15 segundos
+  useEffect(() => {
+    fetchMediasActivas();
+    const interval = setInterval(fetchMediasActivas, 15000);
+    return () => clearInterval(interval);
+  }, []);
+  // Cada vez que cambia el componente activo, actualizamos el contador
   useEffect(() => {
     setContador(durations[componenteActivo]);
     const interval = setInterval(() => {
@@ -47,6 +67,13 @@ const Tableros_Tallado = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [componenteActivo, durations]);
+  // Si el componente activo es MediasActivas y no hay medios, se cambia automáticamente al siguiente componente
+  useEffect(() => {
+    if (componenteActivo === "MediasActivas" && mediasActivas.length === 0) {
+      // Cambia al siguiente componente para evitar que se muestre un contenedor vacío y se salga del full screen.
+      cambiarComponenteSiguiente();
+    }
+  }, [componenteActivo, mediasActivas]);
   useEffect(() => {
     const handleFullScreenChange = () => {
       setIsFullScreen(document.fullscreenElement !== null);
@@ -100,14 +127,14 @@ const Tableros_Tallado = () => {
   };
   return (
     <div>
-      {/* Componente Header importado */}
+      {/* Header */}
       <HeaderPantallaCompleta
         togglePantallaCompleta={togglePantallaCompleta}
         mediasActivasDuration={mediasActivasDuration}
         handleDurationChange={handleDurationChange}
         actualizarDuracionMediasActivas={actualizarDuracionMediasActivas}
       />
-      {/* Controles de navegación */}
+      {/* Botones de navegación */}
       <div className="flex justify-between p-4">
         <button
           className="bg-gray-500 text-white font-bold uppercase p-2 rounded-md hover:bg-gray-600 transition duration-300 ease-in-out"
@@ -122,6 +149,9 @@ const Tableros_Tallado = () => {
           Siguiente
         </button>
       </div>
+      {/* El contenedor que se pone en full screen se renderiza siempre.
+          Dentro de él se muestra el componente correspondiente. En el caso de "MediasActivas",
+          si no hay medios, se muestra un placeholder vacío para mantener el contenedor y evitar salir del FS. */}
       <div
         id="componente-activo"
         style={{
@@ -153,7 +183,14 @@ const Tableros_Tallado = () => {
         {componenteActivo === "TotalesPulido" && <Totales_Pulido_Tableros />}
         {componenteActivo === "TotalesEngraver" && <Totales_Engraver_Tableros />}
         {componenteActivo === "TotalesProduccion" && <Totales_Produccion_Tableros />}
-        {componenteActivo === "MediasActivas" && <MediasActivas_Tableros />}
+        {componenteActivo === "MediasActivas" &&
+          (mediasActivas.length > 0 ? (
+            <MediasActivas_Tableros medias={mediasActivas} />
+          ) : (
+            // Si no hay medios, se muestra un div vacío (placeholder) para no destruir el contenedor full screen
+            <div style={{ width: "100%", height: "100%" }} />
+          ))
+        }
       </div>
     </div>
   );
