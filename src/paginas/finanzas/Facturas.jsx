@@ -41,7 +41,7 @@ const Datos = () => {
        <Heading title={'Reporte de facturación'}/>
       </div>
       <div className="p-2 space-y-10">
-        <div className="flex flex-wrap justify-center gap-6 mb-8">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-8">
           <div className="w-64">
             <Select
               options={optionsYear}
@@ -51,7 +51,7 @@ const Datos = () => {
               styles={customStyles}
             />
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-center space-x-2">
             <div className="w-64">
               <Select
                 options={optionsWeek}
@@ -62,7 +62,7 @@ const Datos = () => {
               />
             </div>
             <button
-              className="flex items-center px-4 py-1.5 bg-blue-500 text-white rounded hover:bg-blue-700 transition-colors shadow-md"
+              className="flex items-center mt-3 sm:mt-0 px-4 py-1.5 bg-blue-500 text-white rounded hover:bg-blue-700 transition-colors shadow-md"
               onClick={() => setIsModalOpen(true)}
             >
               <CalendarIcon className="h-5 w-5" />
