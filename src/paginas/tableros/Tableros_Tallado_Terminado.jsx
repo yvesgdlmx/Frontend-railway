@@ -1,52 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
-import HeaderPantallaCompleta from "../../components/others/html_personalizado/HeaderPantallaCompleta";
+import Totales_Surtido_Tableros from '../../components/tableros/Totales_Surtido_Tableros';
+import Totales_Tallado_Tableros from '../../components/tableros/Totales_Tallado_Tableros';
+import Totales_Generado_Tableros from '../../components/tableros/Totales_Generado_Tableros';
+import Totales_Pulido_Tableros from '../../components/tableros/Totales_Pulido_Tableros';
+import Totales_Engraver_Tableros from '../../components/tableros/Totales_Engraver_Tableros';
 import Totales_Terminado_Tableros from '../../components/tableros/Totales_Terminado_Tableros';
 import Totales_Biselado_Tableros from '../../components/tableros/Totales_Biselado_Tableros';
 import Totales_Biselado2_Tableros from '../../components/tableros/Totales_Biselado2_Tableros';
 import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
+import HeaderPantallaCompleta from '../../components/others/html_personalizado/HeaderPantallaCompleta';
 import MediasActivas_Tableros from '../../components/tableros/MediasActivas_Tableros';
-const Tableros_Terminado = () => {
-  // Lista de componentes a mostrar (incluyendo MediasActivas)
+const Tableros_Tallado_Terminado = () => {
+  // Lista de componentes a mostrar
   const componentes = [
-    'TotalesTerminado',
-    'TotalesBiselado',
-    'TotalesBiselado2',
-    'TotalesProduccion',
-    'MediasActivas'
+    "TotalesSurtido",
+    "TotalesTallado",
+    "TotalesGenerado",
+    "TotalesPulido",
+    "TotalesEngraver",
+    "TotalesTerminado", 
+    "TotalesBiselado", 
+    "TotalesBiselado2",
+    "TotalesProduccion",
+    "MediasActivas"
   ];
-  // Duraciones asignadas a cada uno
+  
+  // Duraciones para cada componente
   const initialDurations = {
+    TotalesSurtido: 30,
+    TotalesTallado: 30,
+    TotalesGenerado: 30,
+    TotalesPulido: 30,
+    TotalesEngraver: 30,
     TotalesTerminado: 30,
     TotalesBiselado: 30,
     TotalesBiselado2: 30,
     TotalesProduccion: 30,
-    MediasActivas: 40,
+    MediasActivas: 40
   };
   const [durations, setDurations] = useState(initialDurations);
   const [componenteActivo, setComponenteActivo] = useState(componentes[0]);
-  const [contador, setContador] = useState(initialDurations[componentes[0]]);
+  const [contador, setContador] = useState(durations[componenteActivo]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mediasActivasDuration, setMediasActivasDuration] = useState(durations.MediasActivas);
-  // Se levanta el estado de los medios activos
+  // Estado para almacenar las medias activas levantadas desde el backend
   const [mediasActivas, setMediasActivas] = useState([]);
-  // Función para obtener la lista de medios activos desde el backend
+  // Función para obtener la lista de medios activos
   const fetchMediasActivas = async () => {
     try {
       const response = await clienteAxios.get("/media");
       const activos = response.data.filter((item) => item.estado === true);
       setMediasActivas(activos);
     } catch (error) {
-      console.error("Error al obtener medias activas:", error);
+      console.error("Error obteniendo medias activas:", error);
     }
   };
-  // Se hace el fetch inicial y luego cada 15 segundos
+  // Fetch inicial y cada 15 segundos para actualizar las medias activas
   useEffect(() => {
     fetchMediasActivas();
     const interval = setInterval(fetchMediasActivas, 15000);
     return () => clearInterval(interval);
   }, []);
-  // Controla la cuenta regresiva y el cambio automático de componentes
+  // Efecto para la cuenta regresiva y cambio automático de componente
   useEffect(() => {
     setContador(durations[componenteActivo]);
     const interval = setInterval(() => {
@@ -63,13 +79,14 @@ const Tableros_Terminado = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [componenteActivo, durations]);
-  // Si el componente activo es MediasActivas y no hay medios, se cambia automáticamente al siguiente
+  // Si el componente activo es "MediasActivas" y no hay medios activos, se cambia automáticamente al siguiente
   useEffect(() => {
     if (componenteActivo === "MediasActivas" && mediasActivas.length === 0) {
+      // Cambio automático para evitar que se muestre espacio vacío:
       cambiarComponenteSiguiente();
     }
   }, [componenteActivo, mediasActivas]);
-  // Controla el cambio en el modo pantalla completa
+  // Manejamos el cambio en el modo full screen
   useEffect(() => {
     const handleFullScreenChange = () => {
       setIsFullScreen(document.fullscreenElement !== null);
@@ -112,10 +129,7 @@ const Tableros_Terminado = () => {
   const actualizarDuracionMediasActivas = () => {
     const nuevaDuracion = parseInt(mediasActivasDuration, 10);
     if (!isNaN(nuevaDuracion) && nuevaDuracion > 0) {
-      setDurations({
-        ...durations,
-        MediasActivas: nuevaDuracion
-      });
+      setDurations({ ...durations, MediasActivas: nuevaDuracion });
       if (componenteActivo === "MediasActivas") {
         setContador(nuevaDuracion);
       }
@@ -123,31 +137,29 @@ const Tableros_Terminado = () => {
   };
   return (
     <div>
-      {/* Header reutilizable para pantalla completa */}
+      {/* Header con controles para pantalla completa */}
       <HeaderPantallaCompleta
         togglePantallaCompleta={togglePantallaCompleta}
         mediasActivasDuration={mediasActivasDuration}
         handleDurationChange={handleDurationChange}
         actualizarDuracionMediasActivas={actualizarDuracionMediasActivas}
       />
-      {/* Controles manuales (solo fuera de pantalla completa) */}
-      {!isFullScreen && (
-        <div className="flex justify-between mb-4 px-4 mt-4">
-          <button
-            className="bg-gray-500 text-white font-bold uppercase p-2 rounded-md hover:bg-gray-600 transition duration-300 ease-in-out"
-            onClick={cambiarComponenteAnterior}
-          >
-            Anterior
-          </button>
-          <button
-            className="bg-gray-500 text-white font-bold uppercase p-2 rounded-md hover:bg-gray-600 transition duration-300 ease-in-out"
-            onClick={cambiarComponenteSiguiente}
-          >
-            Siguiente
-          </button>
-        </div>
-      )}
-      {/* El contenedor full screen se mantiene siempre para evitar que se salga del modo */}
+      {/* Controles de navegación */}
+      <div className="flex justify-between p-4">
+        <button
+          className="bg-gray-500 text-white font-bold uppercase p-2 rounded-md hover:bg-gray-600 transition duration-300 ease-in-out"
+          onClick={cambiarComponenteAnterior}
+        >
+          Anterior
+        </button>
+        <button
+          className="bg-gray-500 text-white font-bold uppercase p-2 rounded-md hover:bg-gray-600 transition duration-300 ease-in-out"
+          onClick={cambiarComponenteSiguiente}
+        >
+          Siguiente
+        </button>
+      </div>
+      {/* Contenedor que siempre se mantiene para preservar el full screen */}
       <div
         id="componente-activo"
         style={{
@@ -159,24 +171,25 @@ const Tableros_Terminado = () => {
           position: "relative",
         }}
       >
-        {isFullScreen && (
+        {isFullScreen && componenteActivo !== "MediasActivas" && (
           <div
             style={{
               position: "absolute",
               top: "20px",
               right: "20px",
-              background: "rgba(255, 255, 255, 0.8)",
-              color: "black",
-              padding: "10px 15px",
-              borderRadius: "10px",
               fontSize: "25px",
               fontWeight: "bold",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              color: "#FFF",
             }}
           >
             Cambio en: {contador}s
           </div>
         )}
+        {componenteActivo === 'TotalesSurtido' && <Totales_Surtido_Tableros />}
+        {componenteActivo === 'TotalesTallado' && <Totales_Tallado_Tableros />}
+        {componenteActivo === 'TotalesGenerado' && <Totales_Generado_Tableros />}
+        {componenteActivo === 'TotalesPulido' && <Totales_Pulido_Tableros />}
+        {componenteActivo === 'TotalesEngraver' && <Totales_Engraver_Tableros />}
         {componenteActivo === 'TotalesTerminado' && <Totales_Terminado_Tableros />}
         {componenteActivo === 'TotalesBiselado' && <Totales_Biselado_Tableros />}
         {componenteActivo === 'TotalesBiselado2' && <Totales_Biselado2_Tableros />}
@@ -185,11 +198,13 @@ const Tableros_Terminado = () => {
           (mediasActivas.length > 0 ? (
             <MediasActivas_Tableros medias={mediasActivas} />
           ) : (
-            // Se muestra un placeholder vacío para mantener el contenedor en full screen
-            <div style={{ width: "100%", height: "100%" }} />
-          ))}
+            // En caso de que no haya medias, se muestra un fragmento vacío,
+            // pero el useEffect cambiará el componente automáticamente
+            <></>
+          ))
+        }
       </div>
     </div>
   );
 };
-export default Tableros_Terminado;
+export default Tableros_Tallado_Terminado;
