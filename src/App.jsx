@@ -38,6 +38,9 @@ const Editar_Biselado = lazy(() => import('./paginas/metas/editar/Editar_Biselad
 const Editar_Manuales = lazy(() => import('./paginas/metas/editar/Editar_Manuales'));
 const Historial_Por_Rangos = lazy(() => import('./paginas/historial/Historial_Por_Rangos'));
 const Historial_Por_Dia = lazy(() => import('./paginas/historial/Historial_Por_Dia'));
+const Tableros_Tallado = lazy(() => import('./paginas/tableros/Tableros_Tallado'));
+const Tableros_Terminado = lazy(() => import('./paginas/tableros/Tableros_Terminado'));
+const Tableros_Tallado_Terminado = lazy(() => import('./paginas/tableros/Tableros_Tallado_Terminado'));
 const Reporte = lazy(() => import('./paginas/reportes/Reporte'));
 const ReporteAntiguedad = lazy(() => import('./paginas/reportes/ReporteAntiguedad'));
 const ReporteTrabajosNuevos = lazy(() => import('./paginas/reportes/ReporteTrabajosNuevos'));
@@ -89,6 +92,9 @@ function App() {
               <Route path='/editar_manuales/:id' element={<Editar_Manuales />} />
               <Route path='/historial_por_rangos' element={<Historial_Por_Rangos />} />
               <Route path='/historial_por_dia' element={<Historial_Por_Dia />} />
+              <Route path='/tableros_tallado' element={<Tableros_Tallado />} />
+              <Route path='/tableros_terminado' element={<Tableros_Terminado />} />
+              <Route path='/tableros_tallado_terminado' element={<Tableros_Tallado_Terminado />} />
               <Route path='/reportes' element={<Reporte />} />
               <Route path='/reportes_antiguedad' element={<ReporteAntiguedad />} />
               <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos />} />
