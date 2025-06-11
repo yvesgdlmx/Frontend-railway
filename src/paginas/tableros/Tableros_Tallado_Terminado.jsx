@@ -9,7 +9,6 @@ import Totales_Terminado_Tableros from '../../components/tableros/Totales_Termin
 import Totales_Biselado_Tableros from '../../components/tableros/Totales_Biselado_Tableros';
 import Totales_Biselado2_Tableros from '../../components/tableros/Totales_Biselado2_Tableros';
 import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
-import Totales_Produccion_Tableros from '../../components/tableros/Totales_produccion_Tableros';
 import HeaderPantallaCompleta from '../../components/others/html_personalizado/HeaderPantallaCompleta';
 import MediasActivas_Tableros from '../../components/tableros/MediasActivas_Tableros';
 const Tableros_Tallado_Terminado = () => {
