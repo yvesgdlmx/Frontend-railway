@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Select from "react-select";
 import Heading from "../../components/others/Heading";
 import TablaUnificadaFecha from "../../components/others/tables/finanzas/TablaUnificadaFecha";
-// Función para generar opciones para los selects
+// Función para generar opciones para los selects de año y día
 const generarOpciones = (inicio, fin) => {
   const options = [];
   for (let i = inicio; i <= fin; i++) {
@@ -10,9 +10,29 @@ const generarOpciones = (inicio, fin) => {
   }
   return options;
 };
+// Opciones para el selector de años y días
 const anioOptions = generarOpciones(2020, new Date().getFullYear());
-const mesOptions = generarOpciones(1, 12);
 const diaOptions = generarOpciones(1, 31);
+// Arreglo con los nombres de los meses
+const monthNames = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre"
+];
+// Generar opciones para el select de meses utilizando el arreglo de nombres
+const mesOptions = monthNames.map((nombre, index) => ({
+  value: index + 1,
+  label: nombre
+}));
 const customStyles = {
   control: (provided) => ({
     ...provided,
@@ -49,7 +69,9 @@ const HistorialFacturas = () => {
         <div className="flex flex-col md:flex-row justify-center gap-6 mb-8">
           {/* Sección Fecha de Inicio */}
           <div className="p-4 flex-1 bg-white rounded shadow">
-            <h3 className="text-center font-semibold text-gray-500 uppercase mb-4">Fecha Inicio</h3>
+            <h3 className="text-center font-semibold text-gray-500 uppercase mb-4">
+              Fecha Inicio
+            </h3>
             <div className="flex flex-row gap-4">
               <div className="flex-1">
                 <Select
@@ -82,7 +104,9 @@ const HistorialFacturas = () => {
           </div>
           {/* Sección Fecha de Fin */}
           <div className="p-4 flex-1 bg-white rounded shadow">
-            <h3 className="text-center font-semibold text-gray-500 uppercase mb-4">Fecha Fin</h3>
+            <h3 className="text-center font-semibold text-gray-500 uppercase mb-4">
+              Fecha Fin
+            </h3>
             <div className="flex flex-row gap-4">
               <div className="flex-1">
                 <Select
