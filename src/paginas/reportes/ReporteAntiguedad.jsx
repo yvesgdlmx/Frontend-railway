@@ -117,6 +117,11 @@ const ReporteAntiguedad = () => {
     setTotalRegistrosAntiguos(total);
   };
   const diasAgrupados = agruparPorDia(registros);
+    diasAgrupados.sort((a, b) => {
+      // a[0] y b[0] son las fechas en formato 'yyyy-MM-dd'
+      return new Date(b[0]) - new Date(a[0]);
+    });
+    
   return (
     <>
       <div className="mt-6 md:mt-0">
