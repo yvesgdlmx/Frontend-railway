@@ -209,7 +209,7 @@ const Totales_Desbloqueo_Estacion = () => {
           </thead>
           <tbody>
             <tr className="font-semibold text-gray-700">
-              <td className="px-4 border-b min-w-[150px] whitespace-nowrap">
+              <td className="border-b min-w-[150px] whitespace-nowrap">
                 <Link
                   to={"/totales_desblocking_maquina"}
                   className="link__tabla"
@@ -219,9 +219,9 @@ const Totales_Desbloqueo_Estacion = () => {
                       src="./img/ver.png"
                       alt=""
                       width={25}
-                      className="relative left-2"
+                      className="relative left-3"
                     />
-                    <div className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
+                    <div className="py-2 ml-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
                       Desbloqueo <br />
                       <span className="text-gray-500">
                         Meta por hora: <span>{meta}</span>
