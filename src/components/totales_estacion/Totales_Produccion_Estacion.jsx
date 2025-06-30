@@ -282,11 +282,11 @@ const Totales_Produccion_Estacion = () => {
           <div className="py-4">
             <span className="font-bold text-gray-700">Horas:</span>
             {columnas.map((col, idx) => (
-              <div key={idx} className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}>
-                <span className="font-bold text-gray-700">{col.rango}:</span>
-                <span className="font-bold">{col.valor}</span>
-              </div>
-            ))}
+                <div key={idx} className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}>
+                  <span className="font-bold text-gray-700">{col.rango}:</span>
+                  <span className={`font-bold ${getClassName(col.valor, meta)}`}>{col.valor}</span>
+                </div>
+              ))}
           </div>
           <div className="flex justify-center mt-4">
             <Link to={"/totales_produccion_maquina"} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">

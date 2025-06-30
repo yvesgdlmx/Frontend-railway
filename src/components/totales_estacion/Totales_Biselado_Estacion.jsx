@@ -20,6 +20,7 @@ const Totales_Biselado_Estacion = () => {
     vespertino: 0,
     nocturno: 0,
   });
+  
   // Arreglo fijo de buckets (horas) en el orden deseado
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
@@ -255,6 +256,7 @@ const Totales_Biselado_Estacion = () => {
           </div>
         </div>
       </div>
+      
       {/* Diseño tipo card para pantallas pequeñas y medianas */}
       <div className="block lg:hidden mt-4">
         <div className="bg-white shadow-md rounded-lg mb-4 p-6">
@@ -269,14 +271,25 @@ const Totales_Biselado_Estacion = () => {
           <div className="py-4">
             <span className="font-bold text-gray-700">Horas:</span>
             {columnas.map((col, idx) => (
-              <div key={idx} className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}>
+              <div
+                key={idx}
+                className={`flex justify-between py-2 px-4 ${
+                  idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
+                }`}
+              >
                 <span className="font-bold text-gray-700">{col.rango}:</span>
-                <span className="font-bold">{col.valor}</span>
+                {/* Uso de getClassName para evaluar el valor y asignar la clase correspondiente */}
+                <span className={`font-bold ${getClassName(col.valor, meta)}`}>
+                  {col.valor}
+                </span>
               </div>
             ))}
           </div>
           <div className="flex justify-center mt-4">
-            <Link to={"/totales_biselado_maquina"} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
+            <Link
+              to={"/totales_biselado_maquina"}
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+            >
               <button className="text-white font-bold uppercase">Ver Detalles</button>
             </Link>
           </div>
@@ -290,27 +303,34 @@ const Totales_Biselado_Estacion = () => {
                   <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
                     {formatNumber(totalesPorTurno.nocturno)}
                   </span>
-                  <span className="text-xs text-gray-500 ml-1">/ Meta: {formatNumber(metasPorTurno.nocturno)}</span>
+                  <span className="text-xs text-gray-500 ml-1">
+                    / Meta: {formatNumber(metasPorTurno.nocturno)}
+                  </span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Matutino: </span>
                   <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}`}>
                     {formatNumber(totalesPorTurno.matutino)}
                   </span>
-                  <span className="text-xs text-gray-500 ml-1">/ Meta: {formatNumber(metasPorTurno.matutino)}</span>
+                  <span className="text-xs text-gray-500 ml-1">
+                    / Meta: {formatNumber(metasPorTurno.matutino)}
+                  </span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Vespertino: </span>
                   <span className={`text-md font-semibold ${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}`}>
                     {formatNumber(totalesPorTurno.vespertino)}
                   </span>
-                  <span className="text-xs text-gray-500 ml-1">/ Meta: {formatNumber(metasPorTurno.vespertino)}</span>
+                  <span className="text-xs text-gray-500 ml-1">
+                    / Meta: {formatNumber(metasPorTurno.vespertino)}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      
     </div>
   );
 };
