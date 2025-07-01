@@ -33,15 +33,17 @@ const MobileMenu = ({
         </div>
         <nav className="px-4 py-2">
           <ul className="space-y-2">
-             <li>
-              <Link
-                to="/cargar_media"
-                onClick={handleMenuItemClick}
-                className="block py-2 px-3 text-white uppercase hover:bg-gray-600"
-              >
-                Avisos
-              </Link>
-            </li>
+             {auth && auth.id && (
+              <li>
+                <Link
+                  to="/cargar_media"
+                  onClick={handleMenuItemClick}
+                  className="block py-2 px-3 text-white uppercase hover:bg-gray-600"
+                >
+                  Avisos
+                </Link>
+              </li>
+            )}
             <li>
               <Link
                 to="/"

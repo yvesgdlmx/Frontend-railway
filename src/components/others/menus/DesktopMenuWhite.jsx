@@ -38,9 +38,11 @@ const DesktopMenuWhite = () => {
   return (
     <nav className="hidden lg:block">
       <div className="flex gap-8 font-semibold uppercase text-sm text-gray-500">
-        <Link to={'/cargar_media'}>
-          <p>Avisos</p>
-        </Link>
+        {auth && auth.id && (
+          <Link to="/cargar_media">
+            <p className="uppercase">Avisos</p>
+          </Link>
+        )}
         <Link to={'/'}>
           <p>Producción</p>
         </Link>

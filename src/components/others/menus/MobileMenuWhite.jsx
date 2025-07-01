@@ -25,11 +25,13 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
         </div>
         <nav className="px-4 py-2">
           <ul className="space-y-2">
-             <li>
-              <Link to={'/cargar_media'} onClick={handleClick} className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7">
-                Avisos
-              </Link>
-            </li>
+             {auth && auth.id && (
+                <li>
+                  <Link to={'/cargar_media'} onClick={handleClick} className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7">
+                    Avisos
+                  </Link>
+                </li>
+              )}
             <li>
               <Link to={'/'} onClick={handleClick} className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7">
                 Producción
