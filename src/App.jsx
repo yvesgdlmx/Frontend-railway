@@ -39,6 +39,7 @@ const HistorialFacturas = lazy(() => import('./paginas/finanzas/HistorialFactura
 const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/ReporteTrabajosSinMovimientos'));
 const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
 const CargarMedia = lazy(() => import('./paginas/CargarMedia'));
+const EditarMetas = lazy(() => import('./paginas/metas/EditarMetas'))
 
 function App() {
   return (
