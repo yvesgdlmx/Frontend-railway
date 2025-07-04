@@ -7,25 +7,34 @@ moment.tz.setDefault("America/Mexico_City");
 const Totales_Tallado_Estacion = () => {
   const location = useLocation();
   const talladoRef = useRef(null);
+  
+  // Estados para registros y totales acumulados de hits
   const [registros, setRegistros] = useState([]);
-  const [meta, setMeta] = useState(0);
   const [totalesPorTurno, setTotalesPorTurno] = useState({
     matutino: 0,
     vespertino: 0,
     nocturno: 0
   });
-  const [metasPorTurno, setMetasPorTurno] = useState({
+  
+  // Estados nuevos: metas por hora y metas acumuladas (por turno)
+  const [metasPorHora, setMetasPorHora] = useState({
     matutino: 0,
     vespertino: 0,
     nocturno: 0
   });
-  // Arreglo fijo con el orden de los buckets (horas)
+  const [metasTotalesPorTurno, setMetasTotalesPorTurno] = useState({
+    matutino: 0,
+    vespertino: 0,
+    nocturno: 0
+  });
+  
+  // Orden de buckets (horas) para la tabla.
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
     "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:30", // Matutino
     "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00"  // Nocturno
   ];
-  // Efecto para scroll en caso de hash en la URL.
+  // Efecto para hacer scroll si existe hash en la URL.
   useEffect(() => {
     if (location.hash === "#tallado" && talladoRef.current) {
       setTimeout(() => {
@@ -36,7 +45,7 @@ const Totales_Tallado_Estacion = () => {
       }, 100);
     }
   }, [location]);
-  // Función para calcular el rango de horas (bucket de 1 hora)
+  // Función que calcula el rango de horas (por bucket).
   const calcularRangoHoras = (hora) => {
     const inicio = hora;
     let fin;
@@ -48,43 +57,61 @@ const Totales_Tallado_Estacion = () => {
     }
     return `${inicio} - ${fin}`;
   };
-  // Función para obtener los datos (metas y registros)
+  // Función para obtener los datos: metas y registros (hits)
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
+        // Obtener las metas para cada turno
         const responseMetas = await clienteAxios("/metas/metas-tallados");
-        const sumaMetas = responseMetas.data.registros.reduce(
-          (acc, curr) => acc + curr.meta,
-          0
-        );
-        setMeta(sumaMetas);
+        const registrosMetas = responseMetas.data.registros;
+        let sumaNocturno = 0, sumaMatutino = 0, sumaVespertino = 0;
+        registrosMetas.forEach((item) => {
+          sumaNocturno += item.meta_nocturno;
+          sumaMatutino += item.meta_matutino;
+          sumaVespertino += item.meta_vespertino;
+        });
+        // Se establece la meta por hora para cada turno
+        setMetasPorHora({
+          nocturno: sumaNocturno,
+          matutino: sumaMatutino,
+          vespertino: sumaVespertino
+        });
+        // Calculamos la meta acumulada por turno:
+        // → Turno nocturno: 8 horas
+        // → Turno matutino: 8 horas
+        // → Turno vespertino: 7 horas
+        setMetasTotalesPorTurno({
+          nocturno: sumaNocturno * 8,
+          matutino: sumaMatutino * 8,
+          vespertino: sumaVespertino * 7
+        });
+        // Obtener los registros (hits) del día actual
         const responseRegistros = await clienteAxios("/tallado/tallado/actualdia");
         const registrosAPI = responseRegistros.data.registros;
         const ahora = moment();
-        let inicioHoy = moment().startOf("day").add(22, "hours"); // 22:00 del día anterior
-        let finHoy = moment(inicioHoy).add(1, "days").subtract(30, "minutes"); // 21:30 del día siguiente
-        if (ahora.isBefore(inicioHoy)) {
-          inicioHoy.subtract(1, "days");
-          finHoy.subtract(1, "days");
+        let inicioJornada = moment().startOf("day").add(22, "hours"); // 22:00 del día anterior
+        let finJornada = moment(inicioJornada).add(1, "days").subtract(30, "minutes"); // 21:30 del día siguiente
+        if (ahora.isBefore(inicioJornada)) {
+          inicioJornada.subtract(1, "day");
+          finJornada.subtract(1, "day");
         }
         const registrosFiltrados = registrosAPI.filter((registro) => {
           const fechaHoraRegistro = moment(
             `${registro.fecha} ${registro.hour}`,
             "YYYY-MM-DD HH:mm:ss"
           );
-          return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, "[)");
+          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)");
         });
         setRegistros(registrosFiltrados);
-        calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
-        calcularMetasPorTurno(sumaMetas);
+        calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
     };
     obtenerDatos();
   }, []);
-  // Función para calcular totales por turno
-  const calcularTotalesPorTurno = (registros, inicioHoy) => {
+  // Función para calcular los totales por turno
+  const calcularTotalesPorTurno = (registros, inicioJornada) => {
     const totales = {
       matutino: 0,
       vespertino: 0,
@@ -95,33 +122,33 @@ const Totales_Tallado_Estacion = () => {
         `${registro.fecha} ${registro.hour}`,
         "YYYY-MM-DD HH:mm:ss"
       );
-      // Turno Nocturno: 22:00 a 05:59
+      // Turno Nocturno: inicioJornada a inicioJornada + 8 horas
       if (
         fechaHoraRegistro.isBetween(
-          inicioHoy.clone(),
-          inicioHoy.clone().add(8, "hours"),
+          inicioJornada.clone(),
+          inicioJornada.clone().add(8, "hours"),
           null,
           "[)"
         )
       ) {
         totales.nocturno += registro.hits;
       }
-      // Turno Matutino: 06:30 a 13:30
+      // Turno Matutino: de inicioJornada + 8h 30min a inicioJornada + 16 horas
       else if (
         fechaHoraRegistro.isBetween(
-          inicioHoy.clone().add(8, "hours").add(30, "minutes"),
-          inicioHoy.clone().add(16, "hours"),
+          inicioJornada.clone().add(8, "hours").add(30, "minutes"),
+          inicioJornada.clone().add(16, "hours"),
           null,
           "[)"
         )
       ) {
         totales.matutino += registro.hits;
       }
-      // Turno Vespertino: 14:30 a 21:30
+      // Turno Vespertino: de inicioJornada + 16h 30min a inicioJornada + 23h 30min
       else if (
         fechaHoraRegistro.isBetween(
-          inicioHoy.clone().add(16, "hours").add(30, "minutes"),
-          inicioHoy.clone().add(23, "hours").add(30, "minutes"),
+          inicioJornada.clone().add(16, "hours").add(30, "minutes"),
+          inicioJornada.clone().add(23, "hours").add(30, "minutes"),
           null,
           "[)"
         )
@@ -131,15 +158,7 @@ const Totales_Tallado_Estacion = () => {
     });
     setTotalesPorTurno(totales);
   };
-  // Función para calcular las metas por turno
-  const calcularMetasPorTurno = (metaPorHora) => {
-    setMetasPorTurno({
-      matutino: 8 * metaPorHora,
-      vespertino: 7 * metaPorHora,
-      nocturno: 8 * metaPorHora
-    });
-  };
-  // Función para agrupar los hits por hora a partir de los registros
+  // Función para agrupar los hits por hora (bucket)
   const agruparHitsPorHora = () => {
     const hits = {};
     registros.forEach((registro) => {
@@ -157,12 +176,13 @@ const Totales_Tallado_Estacion = () => {
     return hits;
   };
   const hitsPorHora = agruparHitsPorHora();
-  // Función para obtener el objeto moment del bucket (hora de inicio) dado una hora y el inicio de la jornada
-  const getBucketMoment = (horaStr, inicioHoy) => {
+  // Función para obtener el objeto moment del bucket dado una hora y el inicio de la jornada
+  const getBucketMoment = (horaStr, inicioJornada) => {
     const [h, m] = horaStr.split(":").map(Number);
-    let bucket = inicioHoy
+    let bucket = inicioJornada
       .clone()
       .set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    // Si la hora es menor a 22 se considera del día siguiente
     if (h < 22) {
       bucket.add(1, "day");
     }
@@ -170,26 +190,25 @@ const Totales_Tallado_Estacion = () => {
   };
   /* 
     Función que devuelve el valor a mostrar para cada bucket:
-    - Si existe valor en hitsPorHora, se retorna ese valor.
-    - Si no existe, se verifica si el bucket ya debió haber cerrado (se suma un margen de 5 minutos).
-      Si ya cerró el bucket se devuelve 0; de lo contrario, se retorna "".
+    - Si existe valor en hitsPorHora se regresa ese valor.
+    - Si no se encuentra valor, se determina si el bucket ya cerró (con un margen de 5 minutos)
+      y se retorna 0 o "" según corresponda.
   */
   const getDisplayValue = (horaStr) => {
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
     const ahora = moment();
-    let inicioHoy = moment().startOf("day").add(22, "hours");
-    if (ahora.isBefore(inicioHoy)) {
-      inicioHoy.subtract(1, "day");
+    let inicioJornada = moment().startOf("day").add(22, "hours");
+    if (ahora.isBefore(inicioJornada)) {
+      inicioJornada.subtract(1, "day");
     }
-    const bucketInicio = getBucketMoment(horaStr, inicioHoy);
+    const bucketInicio = getBucketMoment(horaStr, inicioJornada);
     const bucketFin = bucketInicio.clone().add(1, "hour");
     const margen = 5; // minutos
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes"))
       ? 0
       : "";
   };
-  // Se arma un arreglo de columnas con la información de cada bucket (hora, rango y valor)
-  // Se filtran únicamente aquellos buckets que ya tienen un valor definido (ya sea un número o 0)
+  // Armar el arreglo de columnas, filtrando los buckets sin valor definido.
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
@@ -197,9 +216,47 @@ const Totales_Tallado_Estacion = () => {
       valor: getDisplayValue(hora)
     }))
     .filter((col) => col.valor !== "");
-  // Función para asignar una clase según se cumpla la meta (para cada celda)
-  const getClassName = (hits, metaPorHora) =>
-    hits >= metaPorHora ? "text-green-500" : "text-red-500";
+  // Función para asignar la clase (color) según se cumpla la meta en cada celda.
+  const getClassName = (hits, meta) =>
+    hits >= meta ? "text-green-500" : "text-red-500";
+  // Cálculo del inicio de jornada
+  let inicioJornada = moment().startOf("day").add(22, "hours");
+  if (moment().isBefore(inicioJornada)) {
+    inicioJornada.subtract(1, "day");
+  }
+  // Función que dado la hora (bucket) retorna la meta por hora correspondiente según turno.
+  const getMetaParaHora = (horaStr, inicioJornada) => {
+    const bucketMoment = getBucketMoment(horaStr, inicioJornada);
+    if (
+      bucketMoment.isBetween(
+        inicioJornada.clone(),
+        inicioJornada.clone().add(8, "hours"),
+        null,
+        "[)"
+      )
+    ) {
+      return metasPorHora.nocturno;
+    } else if (
+      bucketMoment.isBetween(
+        inicioJornada.clone().add(8, "hours").add(30, "minutes"),
+        inicioJornada.clone().add(16, "hours"),
+        null,
+        "[)"
+      )
+    ) {
+      return metasPorHora.matutino;
+    } else if (
+      bucketMoment.isBetween(
+        inicioJornada.clone().add(16, "hours").add(30, "minutes"),
+        inicioJornada.clone().add(23, "hours").add(30, "minutes"),
+        null,
+        "[)"
+      )
+    ) {
+      return metasPorHora.vespertino;
+    }
+    return 0;
+  };
   return (
     <div className="max-w-screen-xl rounded-lg">
       {/* Versión para pantallas grandes */}
@@ -207,20 +264,21 @@ const Totales_Tallado_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              <th className="py-2 px-4 min-w-[150px] whitespace-nowrap"></th>
+              {/* La primera columna solo contiene el enlace con el ícono y el nombre */}
+              <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
                 <th
                   key={i}
-                  className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap"
+                  className="py-3 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base"
                 >
                   {col.rango}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-center bg-white">
             <tr className="font-semibold text-gray-700">
-              <td>
+              <td className="py-3">
                 <Link to={"/totales_tallado_maquina"} className="link__tabla">
                   <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
                     <img
@@ -229,65 +287,60 @@ const Totales_Tallado_Estacion = () => {
                       width={25}
                       className="relative left-2"
                     />
-                    <div className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap text-center">
-                      Bloq. tallado <br />
-                      <span className="text-gray-500">
-                        Meta por hora: <span>{meta}</span>
-                      </span>
+                    <div className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base">
+                      Bloq. tallado
                     </div>
                   </div>
                 </Link>
               </td>
-              {columnas.map((col, i) => (
-                <td
-                  key={i}
-                  className="py-2 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-center"
-                >
-                  <span className={getClassName(col.valor, meta)}>
-                    {col.valor}
-                  </span>
-                </td>
-              ))}
+              {columnas.map((col, i) => {
+                const metaParaCol = getMetaParaHora(col.hora, inicioJornada);
+                return (
+                  <td
+                    key={i}
+                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white"
+                  >
+                    <span className={getClassName(col.valor, metaParaCol)}>
+                      {col.valor}
+                    </span>
+                  </td>
+                );
+              })}
             </tr>
           </tbody>
         </table>
-        {/* Totales por turno en versión desktop */}
-        <div className="flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4">
-          <div className="bg-white p-2 px-10 rounded-lg shadow-md">
+        {/* Totales por turno para versión desktop */}
+        <div className="flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4 gap-6">
+          <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
-              Total Nocturno Acumulado:{" "}
-              <span className={`${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)} ml-1 font-bold`}>
+              Total Nocturno:{" "}
+              <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.nocturno)}
-              </span>
-              <span className="text-gray-600 font-semibold block">
-                Meta Acumulada: {formatNumber(metasPorTurno.nocturno)}
-              </span>
+              </span>{" "}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
             </p>
           </div>
-          <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+          <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
-              Total Matutino Acumulado:{" "}
-              <span className={`${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)} ml-1 font-bold`}>
+              Total Matutino:{" "}
+              <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.matutino)}
-              </span>
-              <span className="text-gray-600 font-semibold block">
-                Meta Acumulada: {formatNumber(metasPorTurno.matutino)}
-              </span>
+              </span>{" "}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
             </p>
           </div>
-          <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
+          <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
-              Total Vespertino Acumulado:{" "}
-              <span className={`${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)} ml-1 font-bold`}>
+              Total Vespertino:{" "}
+              <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.vespertino)}
-              </span>
-              <span className="text-gray-600 font-semibold block">
-                Meta Acumulada: {formatNumber(metasPorTurno.vespertino)}
-              </span>
+              </span>{" "}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
             </p>
           </div>
         </div>
       </div>
+      
       {/* Versión para pantallas pequeñas y medianas */}
       <div className="block lg:hidden mt-4">
         <div className="bg-white shadow-md rounded-lg mb-4 p-6">
@@ -295,29 +348,29 @@ const Totales_Tallado_Estacion = () => {
             <span className="font-bold text-gray-700">Nombre:</span>
             <span className="font-bold text-gray-700">Bloq. tallado</span>
           </div>
-          <div className="flex justify-between border-b py-4">
-            <span className="font-bold text-gray-700">Meta:</span>
-            <span className="font-bold text-gray-700">{meta || "No definida"}</span>
-          </div>
+          {/* Se ha eliminado la sección "Meta x hora" ya que ya no se requiere */}
           <div className="py-4">
             <span className="font-bold text-gray-700">Horas:</span>
-            {columnas.map((col, i) => (
-              <div
-                key={i}
-                className={`flex justify-between py-2 px-4 ${
-                  i % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
-                }`}
-              >
-                <span className="font-bold text-gray-700">{col.rango}:</span>
-                <span
-                  className={`font-bold ${
-                    col.valor >= meta ? "text-green-500" : "text-red-500"
+            {columnas.map((col, i) => {
+              const metaParaCol = getMetaParaHora(col.hora, inicioJornada);
+              return (
+                <div
+                  key={i}
+                  className={`flex justify-between py-2 px-4 ${
+                    i % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
                 >
-                  {col.valor}
-                </span>
-              </div>
-            ))}
+                  <span className="font-bold text-gray-700">{col.rango}:</span>
+                  <span
+                    className={`font-bold ${
+                      parseInt(col.valor, 10) >= metaParaCol ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    {col.valor}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <div className="flex justify-center mt-4">
             <Link
@@ -329,37 +382,39 @@ const Totales_Tallado_Estacion = () => {
               </button>
             </Link>
           </div>
-          {/* Totales por turno para versión mobile */}
+          {/* Totales por turno para mobile */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
-              <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <span className="block text-gray-600">Nocturno: </span>
-                  <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasPorTurno.nocturno)}`}>
-                    {formatNumber(totalesPorTurno.nocturno)}
-                  </span>
-                  <span className="text-xs text-gray-500 ml-1">
-                    / Meta: {formatNumber(metasPorTurno.nocturno)}
-                  </span>
+              <h4 className="font-semibold text-green-700 mb-2">
+                Totales por Turno
+              </h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Total Nocturno:{" "}
+                    <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
+                      {formatNumber(totalesPorTurno.nocturno)}
+                    </span>{" "}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
+                  </p>
                 </div>
                 <div>
-                  <span className="block text-gray-600">Matutino: </span>
-                  <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metasPorTurno.matutino)}`}>
-                    {formatNumber(totalesPorTurno.matutino)}
-                  </span>
-                  <span className="text-xs text-gray-500 ml-1">
-                    / Meta: {formatNumber(metasPorTurno.matutino)}
-                  </span>
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Total Matutino:{" "}
+                    <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
+                      {formatNumber(totalesPorTurno.matutino)}
+                    </span>{" "}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
+                  </p>
                 </div>
                 <div>
-                  <span className="block text-gray-600">Vespertino: </span>
-                  <span className={`text-md font-semibold ${getClassName(totalesPorTurno.vespertino, metasPorTurno.vespertino)}`}>
-                    {formatNumber(totalesPorTurno.vespertino)}
-                  </span>
-                  <span className="text-xs text-gray-500 ml-1">
-                    / Meta: {formatNumber(metasPorTurno.vespertino)}
-                  </span>
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Total Vespertino:{" "}
+                    <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
+                      {formatNumber(totalesPorTurno.vespertino)}
+                    </span>{" "}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
+                  </p>
                 </div>
               </div>
             </div>

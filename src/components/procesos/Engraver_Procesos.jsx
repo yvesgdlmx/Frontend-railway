@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
-
 const Engraver_Procesos = () => {
   const [totalHits, setTotalHits] = useState(0);
   const [ultimaHora, setUltimaHora] = useState("");
@@ -15,19 +14,18 @@ const Engraver_Procesos = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Se obtiene la respuesta del endpoint y se suman las metas por cada turno usando la nueva estructura
         const responseMetas = await clienteAxios.get('/metas/metas-engravers');
-        const sumaMetas = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta, 0);
+        const sumaMetaNocturno = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
+        const sumaMetaMatutino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_matutino, 0);
+        const sumaMetaVespertino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
         const responseRegistros = await clienteAxios.get('/engraver/engraver/actualdia');
         const registros = responseRegistros.data.registros;
         const ahora = moment().tz('America/Mexico_City');
-
-        // Definir los rangos de tiempo según si ya inició la nueva jornada o no.
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
-
         if (ahora.hour() >= 22) {
           // Jornada nueva: el turno nocturno inicia hoy a las 22:00 y termina mañana a las 06:00.
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
@@ -49,7 +47,6 @@ const Engraver_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
-
         // Filtrar los registros para cada turno.
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
@@ -59,7 +56,6 @@ const Engraver_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '[)');
         });
-
         const registrosMatutino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -68,7 +64,6 @@ const Engraver_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '[)');
         });
-
         const registrosVespertino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -77,34 +72,27 @@ const Engraver_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
         });
-
         // Calcular los hits de cada turno.
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsMatutino = registrosMatutino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsVespertino = registrosVespertino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
-
         setHitsNocturno(hitsNocturno);
         setHitsMatutino(hitsMatutino);
         setHitsVespertino(hitsVespertino);
-
-        // Calcular el total de hits.
         const total = hitsNocturno + hitsMatutino + hitsVespertino;
         setTotalHits(total);
-
-        // Calcular las metas para cada turno.
+        // Calcular las metas para cada turno usando las sumas obtenidas
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
-        setMetaNocturno(horasNocturno * sumaMetas);
-        setMetaMatutino(horasMatutino * sumaMetas);
-        setMetaVespertino(horasVespertino * sumaMetas);
-
-        // Calcular la meta en vivo a partir del inicio del turno nocturno.
+        setMetaNocturno(horasNocturno * sumaMetaNocturno);
+        setMetaMatutino(horasMatutino * sumaMetaMatutino);
+        setMetaVespertino(horasVespertino * sumaMetaVespertino);
+        // Calcular la meta en vivo basándose en las horas transcurridas desde el inicio del turno nocturno.
         const horasTranscurridas = ahora.isAfter(inicioNocturno)
           ? ahora.diff(inicioNocturno, 'hours', true)
           : 0;
-        setMeta(Math.round(horasTranscurridas) * sumaMetas);
-
+        setMeta(Math.round(horasTranscurridas) * sumaMetaNocturno);
         // Obtener el último registro disponible.
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
@@ -124,7 +112,6 @@ const Engraver_Procesos = () => {
           'America/Mexico_City'
         );
         setUltimaHora(formattedLastHour.format('HH:mm'));
-
         // Calcular la siguiente media hora para determinar el próximo corte.
         const horaFinal = moment(formattedLastHour);
         horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
@@ -136,11 +123,9 @@ const Engraver_Procesos = () => {
     };
     fetchData();
   }, []);
-
   const getClassName = (hits, meta) => {
     return hits >= meta ? "text-green-700" : "text-red-700";
   };
-
   return (
     <div className='bg-white p-4 rounded-xl'>
       {/* Enlace para pantallas grandes */}
@@ -195,5 +180,4 @@ const Engraver_Procesos = () => {
     </div>
   );
 };
-
 export default Engraver_Procesos;

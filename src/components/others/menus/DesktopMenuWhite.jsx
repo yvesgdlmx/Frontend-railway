@@ -69,52 +69,14 @@ const DesktopMenuWhite = () => {
                 </div>
               )}
             </div>
-            <div className="relative" ref={menuRefs.metas}>
-              <button onClick={() => toggleMenu('metas')} className="hover:text-gray-900 focus:outline-none uppercase">
-                Metas
-              </button>
-              {menuVisible === 'metas' && (
-                <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg">
-                  <ul className="py-1 text-slate-700">
-                    <li>
-                      <Link to={'/manuales_metas'} onClick={handleMenuItemClick}>
-                        <p className="block px-4 py-2 hover:bg-gray-100">Manuales</p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to={'/tallado_metas'} onClick={handleMenuItemClick}>
-                        <p className="block px-4 py-2 hover:bg-gray-100">Bloqueo de tallado</p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to={'/generado_metas'} onClick={handleMenuItemClick}>
-                        <p className="block px-4 py-2 hover:bg-gray-100">Generadores</p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to={'/pulido_metas'} onClick={handleMenuItemClick}>
-                        <p className="block px-4 py-2 hover:bg-gray-100">Pulido</p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to={'/engraver_metas'} onClick={handleMenuItemClick}>
-                        <p className="block px-4 py-2 hover:bg-gray-100">Engraver</p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to={'/terminado_metas'} onClick={handleMenuItemClick}>
-                        <p className="block px-4 py-2 hover:bg-gray-100">Bloqueo de terminado</p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to={'/biselado_metas'} onClick={handleMenuItemClick}>
-                        <p className="block px-4 py-2 hover:bg-gray-100">Biselado</p>
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
+          <Link 
+              to="/editar_metas" 
+              onClick={handleMenuItemClick} 
+              className="uppercase hover:text-gray-300"
+              ref={menuRefs.metas}
+            >
+            Metas
+          </Link>
           </>
         )}
         <div className="relative" ref={menuRefs.tableros}>

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
-
 const Pulido_Procesos = () => {
   const [totalHits, setTotalHits] = useState(0);
   const [ultimaHora, setUltimaHora] = useState("");
@@ -15,18 +14,18 @@ const Pulido_Procesos = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Obtenemos las metas desde el endpoint y usamos la nueva estructura
         const responseMetas = await clienteAxios.get('/metas/metas-pulidos');
-        const sumaMetas = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta, 0);
+        const sumaMetaNocturno = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
+        const sumaMetaMatutino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_matutino, 0);
+        const sumaMetaVespertino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
         const responseRegistros = await clienteAxios.get('/pulido/pulido/actualdia');
         const registros = responseRegistros.data.registros;
         const ahora = moment().tz('America/Mexico_City');
-
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
-
         // Si la hora actual es 22:00 o mayor, se inicia la nueva jornada
         if (ahora.hour() >= 22) {
           // Turno nocturno: hoy 22:00 hasta mañana 06:00
@@ -50,7 +49,6 @@ const Pulido_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
-
         // Filtrar registros por turno
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
@@ -60,7 +58,6 @@ const Pulido_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '[)');
         });
-
         const registrosMatutino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -69,7 +66,6 @@ const Pulido_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '[)');
         });
-
         const registrosVespertino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -78,33 +74,27 @@ const Pulido_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
         });
-
         // Calcular hits de cada turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsMatutino = registrosMatutino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsVespertino = registrosVespertino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
-
         setHitsNocturno(hitsNocturno);
         setHitsMatutino(hitsMatutino);
         setHitsVespertino(hitsVespertino);
         setTotalHits(hitsNocturno + hitsMatutino + hitsVespertino);
-
-        // Calcular metas para cada turno
+        // Calcular las metas para cada turno usando las nuevas sumas
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
-
-        setMetaNocturno(horasNocturno * sumaMetas);
-        setMetaMatutino(horasMatutino * sumaMetas);
-        setMetaVespertino(horasVespertino * sumaMetas);
-
-        // Calcular la meta en vivo a partir del inicio del turno nocturno
+        setMetaNocturno(horasNocturno * sumaMetaNocturno);
+        setMetaMatutino(horasMatutino * sumaMetaMatutino);
+        setMetaVespertino(horasVespertino * sumaMetaVespertino);
+        // Calcular la meta en vivo basándose en las horas transcurridas en el turno nocturno
         const horasTranscurridas = ahora.isAfter(inicioNocturno)
           ? ahora.diff(inicioNocturno, 'hours', true)
           : 0;
-        setMeta(Math.round(horasTranscurridas) * sumaMetas);
-
-        // Obtener el último registro disponible
+        setMeta(Math.round(horasTranscurridas) * sumaMetaNocturno);
+        // Obtener el último registro para definir el corte de 30 minutos
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
             `${actual.fecha} ${actual.hour}`,
@@ -113,19 +103,14 @@ const Pulido_Procesos = () => {
           );
           return horaActual.isAfter(
             moment.tz(`${ultimo.fecha} ${ultimo.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City')
-          )
-            ? actual
-            : ultimo;
+          ) ? actual : ultimo;
         }, registros[0]);
-
         const formattedLastHour = moment.tz(
           `${ultimoRegistro.fecha} ${ultimoRegistro.hour}`,
           'YYYY-MM-DD HH:mm:ss',
           'America/Mexico_City'
         );
         setUltimaHora(formattedLastHour.format('HH:mm'));
-
-        // Calcular la siguiente media hora para determinar el corte
         const horaFinal = moment(formattedLastHour);
         horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
         const siguienteHoraDate = moment(horaFinal).add(30, 'minutes');
@@ -136,11 +121,9 @@ const Pulido_Procesos = () => {
     };
     fetchData();
   }, []);
-
   const getClassName = (hits, meta) => {
     return hits >= meta ? "text-green-700" : "text-red-700";
   };
-
   return (
     <div className='bg-white p-4 rounded-xl'>
       {/* Enlace para pantallas grandes */}
@@ -193,5 +176,4 @@ const Pulido_Procesos = () => {
     </div>
   );
 };
-
 export default Pulido_Procesos;

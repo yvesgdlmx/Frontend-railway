@@ -211,9 +211,9 @@ const Totales_HardCoat_Estacion = () => {
                       src="./img/ver.png"
                       alt=""
                       width={25}
-                      className="relative left-10"
+                      className="relative left-8"
                     />
-                    <div className="py-5 px-4 ml-12 border-b min-w-[150px] whitespace-nowrap text-center">
+                    <div className="py-5 px-4 ml-9 min-w-[150px] whitespace-nowrap text-center">
                       Hard Coat
                     </div>
                   </div>

@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import clienteAxios from "../../../config/clienteAxios";
-import Navegacion from "../others/Navegacion";
 import moment from "moment-timezone";
-
 // Se establece la zona horaria por defecto
 moment.tz.setDefault("America/Mexico_City");
-
+// Función para determinar la clave de meta según la hora (en formato "HH:mm")
+// Se define: nocturno de 22:00 a 05:59, matutino de 06:00 a 13:59 y vespertino de 14:00 a 21:59
+const getTurnoMetaKeyForTime = (timeStr) => {
+  const t = moment(timeStr, "HH:mm");
+  const hour = t.hour();
+  if (hour >= 22 || hour < 6) return "meta_nocturno";
+  if (hour >= 6 && hour < 14) return "meta_matutino";
+  if (hour >= 14 && hour < 22) return "meta_vespertino";
+};
 const Totales_Engraver_Tableros = () => {
   // Recarga la página cada 5 minutos para reiniciar la tabla cuando inicie la nueva jornada
   useEffect(() => {
@@ -14,7 +20,6 @@ const Totales_Engraver_Tableros = () => {
     }, 300000);
     return () => clearInterval(interval);
   }, []);
-
   // Estados locales
   const [horasUnicas, setHorasUnicas] = useState([]);
   const [metasPorMaquina, setMetasPorMaquina] = useState({});
@@ -25,16 +30,14 @@ const Totales_Engraver_Tableros = () => {
     vespertino: 0,
     nocturno: 0,
   });
-
-  // Máquinas de interés
+  // Máquinas de interés (normalizadas)
   const ordenCelulas = [
     "270 ENGRVR 1",
     "271 ENGRVR 2",
     "272 ENGRVR 3",
     "273 ENGRVR 4",
-  ];
-
-  // Arreglo de intervalos fijos (en el mismo orden que solicitaste)
+  ].map(n => n.trim().toUpperCase());
+  // Arreglo de intervalos fijos en el orden solicitado
   const fixedHoras = [
     "20:30 - 21:30",
     "19:30 - 20:30",
@@ -59,27 +62,23 @@ const Totales_Engraver_Tableros = () => {
     "23:00 - 00:00",
     "22:00 - 23:00"
   ];
-
-  // Función para obtener el rango del turno: de 22:00 (inicio del turno) a 21:30 del siguiente día
+  // Función para obtener el rango del turno: de 22:00 de un día a 21:30 del día siguiente
   const getShiftRange = () => {
     let shiftStart = moment().tz("America/Mexico_City").startOf("day").add(22, "hours");
-    // Si la hora actual es antes de las 22:00, el turno inició el día anterior
     if (moment().isBefore(shiftStart)) {
       shiftStart.subtract(1, "days");
     }
-    // Fin del turno = 23 horas y 30 minutos después del inicio (es decir, hasta 21:30 del día siguiente)
     const shiftEnd = shiftStart.clone().add(23, "hours").add(30, "minutes");
     return { shiftStart, shiftEnd };
   };
-
-  // Función auxiliar para sumar los hits que caen dentro de un intervalo dado
+  // Función auxiliar para sumar los hits que caen en un intervalo dado
   const hitsEnIntervalo = (registros, inicioIntervalo, finIntervalo) => {
     return registros
       .filter((r) => {
         const horaRegistro = moment(r.hour, "HH:mm:ss");
         const startMoment = moment(inicioIntervalo, "HH:mm");
         const endMoment = moment(finIntervalo, "HH:mm");
-        // Si el intervalo cruza la medianoche (ej., de 23:00 a 00:00)
+        // Si el intervalo cruza la medianoche (ej. de 23:00 a 00:00)
         if (startMoment.isAfter(endMoment)) {
           return horaRegistro.isSameOrAfter(startMoment) || horaRegistro.isBefore(endMoment);
         } else {
@@ -88,30 +87,31 @@ const Totales_Engraver_Tableros = () => {
       })
       .reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
   };
-
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // Obtener las metas de engravers y normalizarlas
+        // Obtener las metas de engravers desde "/metas/metas-engravers" y normalizarlas.
+        // Se espera que cada registro tenga: meta_nocturno, meta_matutino y meta_vespertino.
         const responseMetas = await clienteAxios("/metas/metas-engravers");
         const metas = {};
         if (Array.isArray(responseMetas.data.registros)) {
           responseMetas.data.registros.forEach((meta) => {
-            metas[meta.name.trim().toUpperCase().replace(/\s+/g, " ")] = meta.meta;
+            const key = meta.name.trim().toUpperCase().replace(/\s+/g, " ");
+            metas[key] = {
+              meta_nocturno: parseInt(meta.meta_nocturno, 10),
+              meta_matutino: parseInt(meta.meta_matutino, 10),
+              meta_vespertino: parseInt(meta.meta_vespertino, 10),
+            };
           });
         } else {
           console.error("La respuesta de las metas no contiene un array válido:", responseMetas.data);
         }
         setMetasPorMaquina(metas);
-
-        // Obtener los registros actuales de engravers
+        // Obtener los registros actuales de engravers desde "/engraver/engraver/actualdia"
         const responseRegistros = await clienteAxios("/engraver/engraver/actualdia");
         const dataRegistros = responseRegistros.data.registros || [];
-
-        // Usar el rango del turno de 22:00 a 21:30 del día siguiente
         const { shiftStart, shiftEnd } = getShiftRange();
-
-        // Filtrar registros que se encuentren dentro del turno
+        // Filtrar registros que caen dentro de la jornada (entre shiftStart y shiftEnd)
         const registrosFiltrados = dataRegistros.filter((registro) => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -120,8 +120,7 @@ const Totales_Engraver_Tableros = () => {
           );
           return fechaHoraRegistro.isBetween(shiftStart, shiftEnd, null, "[)");
         });
-
-        // Agrupar los registros por máquina (usando el primer segmento del nombre)
+        // Agrupar registros por máquina (usando el primer segmento del nombre)
         const agrupados = registrosFiltrados.reduce((acc, registro) => {
           const celula = registro.name.split("-")[0].trim().toUpperCase().replace(/\s+/g, " ");
           if (!acc[celula]) acc[celula] = [];
@@ -129,8 +128,7 @@ const Totales_Engraver_Tableros = () => {
           return acc;
         }, {});
         setRegistrosAgrupados(agrupados);
-
-        // Calcular totales acumulados por máquina y recoger las horas únicas
+        // Calcular totales acumulados por máquina y recoger las horas únicas de registro
         const acumulados = {};
         const conjuntoHoras = new Set();
         registrosFiltrados.forEach((registro) => {
@@ -139,9 +137,7 @@ const Totales_Engraver_Tableros = () => {
           acumulados[celula] = (acumulados[celula] || 0) + parseInt(registro.hits || 0, 10);
         });
         setTotalesAcumulados(acumulados);
-
-        // En lugar de usar las horas de registro, se usa el arreglo fixedHoras.
-        // Se filtran aquellos intervalos en los que, sumando los hits de todas las máquinas, el total > 0.
+        // Definir las columnas dinámicas usando fixedHoras: conservar solo aquellos intervalos en los que la suma de hits > 0
         const dynamic = fixedHoras.filter((intervalo) => {
           const [inicio, fin] = intervalo.split(" - ");
           let totalIntervalo = 0;
@@ -150,134 +146,104 @@ const Totales_Engraver_Tableros = () => {
           });
           return totalIntervalo > 0;
         });
-        // Establecemos las columnas dinámicas según fixedHoras, respetando el orden definido.
         setHorasUnicas(dynamic);
-
         // Calcular totales por turno (opcional)
-        calcularTotalesPorTurno(registrosFiltrados, shiftStart);
+        // Se pueden usar para comparaciones internas aunque en esta versión ya no se muestran en la tabla.
+        // En este caso no se renderizará dicha columna.
+        // calcularTotalesPorTurno(registrosFiltrados, shiftStart);
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
     };
-
     cargarDatos();
   }, []);
-
-  const calcularTotalesPorTurno = (registros, shiftStart) => {
-    const totales = { matutino: 0, vespertino: 0, nocturno: 0 };
-    registros.forEach((registro) => {
-      const fechaHoraRegistro = moment.tz(
-        `${registro.fecha} ${registro.hour}`,
-        "YYYY-MM-DD HH:mm:ss",
-        "America/Mexico_City"
-      );
-      if (fechaHoraRegistro.isBetween(shiftStart, moment(shiftStart).add(8, "hours"), null, "[)")) {
-        totales.matutino += parseInt(registro.hits || 0, 10);
-      } else if (
-        fechaHoraRegistro.isBetween(
-          moment(shiftStart).add(8, "hours"),
-          moment(shiftStart).add(15, "hours"),
-          null,
-          "[)"
-        )
-      ) {
-        totales.vespertino += parseInt(registro.hits || 0, 10);
-      } else {
-        totales.nocturno += parseInt(registro.hits || 0, 10);
-      }
-    });
-    setTotalesPorTurno(totales);
+  // Función para obtener la meta acumulada por máquina, sumando para cada intervalo la meta correspondiente
+  // determinada por el turno (según la hora de inicio del intervalo)
+  const getMetaAcumuladaPorCelula = (celula) => {
+    return horasUnicas.reduce((acum, intervalo) => {
+      const [inicio] = intervalo.split(" - ");
+      const turnoKey = getTurnoMetaKeyForTime(inicio.trim());
+      const metaCol = metasPorMaquina[celula] ? metasPorMaquina[celula][turnoKey] : 0;
+      return acum + metaCol;
+    }, 0);
   };
-
-  // Se calcula el total acumulado general y la suma de la meta acumulada para cada máquina.
-  // La "meta acumulada" se obtiene multiplicando la meta definida por la cantidad de columnas (horasUnicas.length)
+  // Totales generales
   const totalAcumuladoGeneral = Object.values(totalesAcumulados).reduce((acc, curr) => acc + curr, 0);
-  const sumaMetaAcumulada = ordenCelulas.reduce(
-    (acc, celula) => acc + ((metasPorMaquina[celula] || 0) * horasUnicas.length),
-    0
-  );
-  const claseTotalGeneral = totalAcumuladoGeneral >= sumaMetaAcumulada ? "text-green-500" : "text-red-500";
-
+  const metaGeneral = ordenCelulas.reduce((acc, celula) => acc + getMetaAcumuladaPorCelula(celula), 0);
+  const claseTotalGeneral = totalAcumuladoGeneral >= metaGeneral ? "text-green-500" : "text-red-500";
   return (
-    <>
-      <div className="w-full px-4">
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="min-w-full bg-white border text-lg font-bold">
-            <thead>
-              <tr className="bg-blue-500 text-white">
-                <th className="py-4 px-6 border-b" style={{ minWidth: "250px" }}>Nombre</th>
-                <th className="py-4 px-6 border-b">Total Acumulado</th>
-                <th className="py-4 px-6 border-b">Meta</th>
-                <th className="py-4 px-6 border-b">Meta Acumulada</th>
-                {horasUnicas.map((hora, index) => (
-                  <th key={index} className="py-4 px-6 border-b whitespace-nowrap">{hora}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="text-center">
-              {ordenCelulas.map((celula, index) => {
-                const registrosCelula = registrosAgrupados[celula] || [];
-                const totalAcumulado = totalesAcumulados[celula] || 0;
-                const meta = metasPorMaquina[celula] || 0;
-                const metaAcumulada = meta * horasUnicas.length;
-                const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
-                const bgColor = index % 2 === 0 ? "bg-gray-200" : "bg-white";
+    <div className="w-full px-4">
+      <div className="lg:block overflow-x-auto">
+        <table className="min-w-full bg-white border text-lg font-bold">
+          <thead>
+            <tr className="bg-blue-500 text-white">
+              <th className="py-4 px-6 border-b" style={{ minWidth: "250px" }}>Nombre</th>
+              <th className="py-4 px-6 border-b whitespace-nowrap">Total Acumulado / meta acumulada</th>
+              {horasUnicas.map((hora, index) => (
+                <th key={index} className="py-4 px-6 border-b whitespace-nowrap">{hora}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="text-center">
+            {ordenCelulas.map((celula, index) => {
+              const registrosCelula = registrosAgrupados[celula] || [];
+              const totalAcumulado = totalesAcumulados[celula] || 0;
+              const metaAcumulada = getMetaAcumuladaPorCelula(celula);
+              const claseTotalAcumulado = totalAcumulado >= metaAcumulada ? "text-green-500" : "text-red-500";
+              const bgColor = index % 2 === 0 ? "bg-gray-200" : "bg-white";
+              return (
+                <tr key={index} className={`font-semibold text-gray-700 ${bgColor}`}>
+                  <td className="py-4 px-6 border-b font-bold" style={{ minWidth: "250px" }}>
+                    {celula}
+                  </td>
+                  <td className="py-4 px-6 border-b font-bold">
+                    <span className={claseTotalAcumulado}>{totalAcumulado}</span> / {metaAcumulada}
+                  </td>
+                  {horasUnicas.map((hora, idx) => {
+                    const [horaInicio, horaFin] = hora.split(" - ");
+                    const totalHits = hitsEnIntervalo(registrosCelula, horaInicio, horaFin);
+                    const turnoKeyCol = getTurnoMetaKeyForTime(horaInicio.trim());
+                    const metaCol = metasPorMaquina[celula] ? metasPorMaquina[celula][turnoKeyCol] : 0;
+                    const claseHitsIndividual = totalHits >= metaCol ? "text-green-500" : "text-red-500";
+                    return (
+                      <td key={idx} className="font-bold py-4 px-6 border-b">
+                        <span className={claseHitsIndividual}>{totalHits}</span> / {metaCol}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+            <tr className="font-semibold bg-green-200 text-gray-700">
+              <td className="py-4 px-6 border-b font-bold" style={{ minWidth: "250px" }}>
+                Totales
+              </td>
+              <td className={`py-4 px-6 border-b font-bold ${claseTotalGeneral}`}>
+                <span className={claseTotalGeneral}>{totalAcumuladoGeneral}</span> / {metaGeneral}
+              </td>
+              {horasUnicas.map((hora, idx) => {
+                const [horaInicio, horaFin] = hora.split(" - ");
+                let totalIntervalo = 0;
+                Object.values(registrosAgrupados).forEach((registros) => {
+                  totalIntervalo += hitsEnIntervalo(registros, horaInicio, horaFin);
+                });
+                const sumaMetas = ordenCelulas.reduce((acc, celula) => {
+                  const turnoKeyCol = getTurnoMetaKeyForTime(horaInicio.trim());
+                  const meta = metasPorMaquina[celula] ? metasPorMaquina[celula][turnoKeyCol] : 0;
+                  return acc + meta;
+                }, 0);
+                const claseIntervalo = totalIntervalo >= sumaMetas ? "text-green-500" : "text-red-500";
                 return (
-                  <tr key={index} className={`font-semibold text-gray-700 ${bgColor}`}>
-                    <td className="py-4 px-6 border-b font-bold" style={{ minWidth: "250px" }}>{celula}</td>
-                    <td className={`py-4 px-6 border-b font-bold ${claseTotalAcumulado}`}>{totalAcumulado}</td>
-                    <td className="py-4 px-6 border-b font-bold">{meta || "No definida"}</td>
-                    <td className="py-4 px-6 border-b font-bold">{metaAcumulada}</td>
-                    {horasUnicas.map((hora, idx) => {
-                      const [horaInicio, horaFin] = hora.split(" - ");
-                      const totalHits = registrosCelula.filter(r => {
-                        const hourMoment = moment(r.hour, "HH:mm:ss");
-                        const startMoment = moment(horaInicio, "HH:mm");
-                        const endMoment = moment(horaFin, "HH:mm");
-                        if (startMoment.isAfter(endMoment)) {
-                          return hourMoment.isSameOrAfter(startMoment) || hourMoment.isBefore(endMoment);
-                        } else {
-                          return hourMoment.isSameOrAfter(startMoment) && hourMoment.isBefore(endMoment);
-                        }
-                      }).reduce((acc, curr) => acc + parseInt(curr.hits || 0, 10), 0);
-                      const claseHitsIndividual = totalHits >= meta ? "text-green-500" : "text-red-500";
-                      return (
-                        <td key={idx} className={`font-bold py-4 px-6 border-b ${claseHitsIndividual}`}>
-                          {totalHits}
-                        </td>
-                      );
-                    })}
-                  </tr>
+                  <td key={idx} className="font-bold py-4 px-6 border-b">
+                    <span className={claseIntervalo}>{totalIntervalo}</span> / {sumaMetas}
+                  </td>
                 );
               })}
-              <tr className="font-semibold bg-green-200 text-gray-700">
-                <td className="py-4 px-6 border-b font-bold" style={{ minWidth: "250px" }}>Totales</td>
-                <td className={`py-4 px-6 border-b font-bold ${claseTotalGeneral}`}>{totalAcumuladoGeneral}</td>
-                <td className="py-4 px-6 border-b font-bold">
-                  {ordenCelulas.reduce((acc, celula) => acc + (metasPorMaquina[celula] || 0), 0) || "No definidas"}
-                </td>
-                <td className="py-4 px-6 border-b font-bold">{sumaMetaAcumulada || "No definidas"}</td>
-                {horasUnicas.map((hora, idx) => {
-                  const [horaInicio, horaFin] = hora.split(" - ");
-                  let totalIntervalo = 0;
-                  Object.values(registrosAgrupados).forEach(registros => {
-                    totalIntervalo += hitsEnIntervalo(registros, horaInicio, horaFin);
-                  });
-                  const sumaMetas = ordenCelulas.reduce((acc, celula) => acc + (metasPorMaquina[celula] || 0), 0);
-                  const claseIntervalo = totalIntervalo >= sumaMetas ? "text-green-500" : "text-red-500";
-                  return (
-                    <td key={idx} className={`font-bold py-4 px-6 border-b ${claseIntervalo}`}>
-                      {totalIntervalo}
-                    </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </>
+    </div>
   );
 };
-
 export default Totales_Engraver_Tableros;

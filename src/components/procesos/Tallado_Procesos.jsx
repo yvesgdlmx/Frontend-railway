@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
-
 const Tallado_Procesos = () => {
   const [totalHits, setTotalHits] = useState(0);
   const [ultimaHora, setUltimaHora] = useState("");
@@ -15,19 +14,22 @@ const Tallado_Procesos = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Obtenemos las metas del endpoint y se asume que la respuesta tiene la nueva estructura.
         const responseMetas = await clienteAxios.get('/metas/metas-tallados');
-        const sumaMetas = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta, 0);
+        // Sumamos las metas por turno de todas las entradas
+        const sumaMetaNocturno = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
+        const sumaMetaMatutino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_matutino, 0);
+        const sumaMetaVespertino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
+        // Obtenemos los registros del tallado para el día actual
         const responseRegistros = await clienteAxios.get('/tallado/tallado/actualdia');
         const registros = responseRegistros.data.registros;
         const ahora = moment().tz('America/Mexico_City');
-
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
-        // Si la hora actual es igual o mayor a las 22:00, se inicia la nueva jornada
         if (ahora.hour() >= 22) {
+          // Nueva jornada:
           // Turno nocturno: hoy 22:00 a mañana 06:00
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours');
@@ -49,8 +51,7 @@ const Tallado_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
-
-        // Filtramos los registros para el turno nocturno
+        // Filtrar los registros para cada turno
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -59,7 +60,6 @@ const Tallado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '[)');
         });
-        // Filtramos los registros para el turno matutino
         const registrosMatutino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -68,7 +68,6 @@ const Tallado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '[)');
         });
-        // Filtramos los registros para el turno vespertino
         const registrosVespertino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -77,36 +76,26 @@ const Tallado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
         });
-
         // Calculamos los hits para cada turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsMatutino = registrosMatutino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsVespertino = registrosVespertino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
-
         setHitsNocturno(hitsNocturno);
         setHitsMatutino(hitsMatutino);
         setHitsVespertino(hitsVespertino);
-
-        // Calculamos el total de hits
         const total = hitsNocturno + hitsMatutino + hitsVespertino;
         setTotalHits(total);
-
-        // Calculamos las metas para cada turno
+        // Cálculo de metas para cada turno (horas del turno multiplicadas por la suma de las metas asignadas)
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
-
-        setMetaNocturno(horasNocturno * sumaMetas);
-        setMetaMatutino(horasMatutino * sumaMetas);
-        setMetaVespertino(horasVespertino * sumaMetas);
-
-        // Calculamos la meta en vivo basándonos en las horas transcurridas desde el inicio del turno nocturno
-        const horasTranscurridas = ahora.isAfter(inicioNocturno)
-          ? ahora.diff(inicioNocturno, 'hours', true)
-          : 0;
-        setMeta(Math.round(horasTranscurridas) * sumaMetas);
-
-        // Obtenemos el último registro disponible
+        setMetaNocturno(horasNocturno * sumaMetaNocturno);
+        setMetaMatutino(horasMatutino * sumaMetaMatutino);
+        setMetaVespertino(horasVespertino * sumaMetaVespertino);
+        // Meta en vivo basada en el turno nocturno (se utiliza la suma de las metas nocturnas)
+        const horasTranscurridas = ahora.isAfter(inicioNocturno) ? ahora.diff(inicioNocturno, 'hours', true) : 0;
+        setMeta(Math.round(horasTranscurridas) * sumaMetaNocturno);
+        // Obtener el último registro para calcular la siguiente media hora
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
             `${actual.fecha} ${actual.hour}`,
@@ -125,8 +114,6 @@ const Tallado_Procesos = () => {
           'America/Mexico_City'
         );
         setUltimaHora(formattedLastHour.format('HH:mm'));
-
-        // Calcular la siguiente media hora para determinar el próximo corte
         const horaFinal = moment(formattedLastHour);
         horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
         const siguienteHoraDate = moment(horaFinal).add(30, 'minutes');
@@ -135,14 +122,11 @@ const Tallado_Procesos = () => {
         console.error("Error al obtener los datos:", error);
       }
     };
-
     fetchData();
   }, []);
-
   const getClassName = (hits, meta) => {
     return hits >= meta ? "text-green-700" : "text-red-700";
   };
-
   return (
     <div className='bg-white p-4 rounded-xl'>
       {/* Enlace para pantallas grandes */}
@@ -161,9 +145,15 @@ const Tallado_Procesos = () => {
       </Link>
       <p className='font-light mb-2'>Mostrando información del área de Tallado.</p>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Trabajos: <span className={meta > totalHits ? "text-red-700" : "text-green-700"}>{formatNumber(totalHits)}</span></p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{formatNumber(meta)}</span></p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span>
+        </p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Trabajos: <span className={meta > totalHits ? "text-red-700" : "text-green-700"}>{formatNumber(totalHits)}</span>
+        </p>
+        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+          Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{formatNumber(meta)}</span>
+        </p>
       </div>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
@@ -179,5 +169,4 @@ const Tallado_Procesos = () => {
     </div>
   );
 };
-
 export default Tallado_Procesos;

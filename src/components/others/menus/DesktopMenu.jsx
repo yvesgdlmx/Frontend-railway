@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-
 const DesktopMenu = ({
   auth,
   menuVisible,
@@ -43,39 +42,15 @@ const DesktopMenu = ({
               </div>
             )}
           </div>
-          <div className="relative" ref={menuRefs.metas}>
-            <button
-              onClick={() => toggleMenu("metas")}
-              className="uppercase hover:text-gray-300"
-            >
-              Metas
-            </button>
-            {menuVisible === "metas" && (
-              <div className="absolute left-0 mt-2 w-56 bg-black bg-opacity-50 backdrop-blur-md border border-gray-700 rounded shadow-lg">
-                <ul>
-                  {[
-                    { to: "/manuales_metas", label: "Manuales" },
-                    { to: "/tallado_metas", label: "Bloqueo de Tallado" },
-                    { to: "/generado_metas", label: "Generadores" },
-                    { to: "/pulido_metas", label: "Pulido" },
-                    { to: "/engraver_metas", label: "Engraver" },
-                    { to: "/terminado_metas", label: "Bloqueo de Terminado" },
-                    { to: "/biselado_metas", label: "Biselado" },
-                  ].map((item, index) => (
-                    <li key={index}>
-                      <Link
-                        to={item.to}
-                        onClick={handleMenuItemClick}
-                        className="block px-4 py-2 uppercase hover:bg-gray-600"
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+          {/* Botón Metas modificado a Link directo */}
+          <Link 
+            to="/editar_metas" 
+            onClick={handleMenuItemClick} 
+            className="uppercase hover:text-gray-300"
+            ref={menuRefs.metas}
+          >
+            Metas
+          </Link>
         </>
       )}
       <div className="relative" ref={menuRefs.tableros}>
@@ -197,18 +172,11 @@ const DesktopMenu = ({
         )}
       </div>
       {auth && auth.id ? (
-        <button
-          onClick={handleLogout}
-          className="uppercase hover:text-gray-300"
-        >
+        <button onClick={handleLogout} className="uppercase hover:text-gray-300">
           Logout
         </button>
       ) : (
-        <Link
-          to="/auth"
-          onClick={handleMenuItemClick}
-          className="uppercase"
-        >
+        <Link to="/auth" onClick={handleMenuItemClick} className="uppercase">
           Login
         </Link>
       )}

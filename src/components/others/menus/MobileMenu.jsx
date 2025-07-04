@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-
 const MobileMenu = ({
   auth,
   isMobileMenuOpen,
@@ -12,14 +11,12 @@ const MobileMenu = ({
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-end transition-opacity duration-300">
       <div className="bg-black bg-opacity-70 backdrop-blur-md w-80 h-full shadow-lg overflow-y-auto transition-transform duration-300 ease-in-out">
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-2xl font-semibold text-white uppercase">
-            Menú
-          </h2>
+          <h2 className="text-2xl font-semibold text-white uppercase">Menú</h2>
           <button onClick={toggleMobileMenu} className="text-gray-300 hover:text-white">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
+            <svg 
+              className="w-6 h-6" 
+              fill="none" 
+              stroke="currentColor" 
               viewBox="0 0 24 24"
             >
               <path
@@ -33,7 +30,7 @@ const MobileMenu = ({
         </div>
         <nav className="px-4 py-2">
           <ul className="space-y-2">
-             {auth && auth.id && (
+            {auth && auth.id && (
               <li>
                 <Link
                   to="/cargar_media"
@@ -54,47 +51,24 @@ const MobileMenu = ({
               </Link>
             </li>
             {auth && auth.id && (
-              <>
-                <li>
-                  <p className="block py-2 px-3 text-white font-semibold uppercase">
-                    Metas
-                  </p>
-                  <ul className="ml-4">
-                    {[
-                      { label: "Manuales", to: "/manuales_metas" },
-                      { label: "Bloqueo de Tallado", to: "/tallado_metas" },
-                      { label: "Generadores", to: "/generado_metas" },
-                      { label: "Pulido", to: "/pulido_metas" },
-                      { label: "Engraver", to: "/engraver_metas" },
-                      { label: "Bloqueo de Terminado", to: "/terminado_metas" },
-                      { label: "Biselado", to: "/biselado_metas" },
-                    ].map((item, index) => (
-                      <li key={index}>
-                        <Link
-                          to={item.to}
-                          onClick={handleMenuItemClick}
-                          className="block py-2 px-3 text-white uppercase hover:bg-gray-600"
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              </>
+              <li>
+                {/* Enlace directo para Metas */}
+                <Link
+                  to="/editar_metas"
+                  onClick={handleMenuItemClick}
+                  className="block py-2 px-3 text-white uppercase hover:bg-gray-600 font-semibold"
+                >
+                  Metas
+                </Link>
+              </li>
             )}
             <li>
-              <p className="block py-2 px-3 text-white font-semibold uppercase">
-                Tableros
-              </p>
+              <p className="block py-2 px-3 text-white font-semibold uppercase">Tableros</p>
               <ul className="ml-4">
                 {[
                   { to: "/tableros_tallado", label: "Tallado" },
                   { to: "/tableros_terminado", label: "Terminado" },
-                  {
-                    to: "/tableros_tallado_terminado",
-                    label: "Tallado y Terminado",
-                  },
+                  { to: "/tableros_tallado_terminado", label: "Tallado y Terminado" },
                 ].map((item, index) => (
                   <li key={index}>
                     <Link
@@ -109,9 +83,7 @@ const MobileMenu = ({
               </ul>
             </li>
             <li>
-              <p className="block py-2 px-3 text-white font-semibold uppercase">
-                Historial
-              </p>
+              <p className="block py-2 px-3 text-white font-semibold uppercase">Historial</p>
               <ul className="ml-4">
                 {[
                   { to: "/historial_por_dia", label: "Historial por Día" },
@@ -130,9 +102,7 @@ const MobileMenu = ({
               </ul>
             </li>
             <li>
-              <p className="block py-2 px-3 text-white font-semibold uppercase">
-                Reportes
-              </p>
+              <p className="block py-2 px-3 text-white font-semibold uppercase">Reportes</p>
               <ul className="ml-4">
                 {[
                   { to: "/reportes", label: "WIP DETALLADO" },

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
-
 const Desbloqueo_Procesos = () => {
   const [totalHits, setTotalHits] = useState(0);
   const [ultimaHora, setUltimaHora] = useState("");
@@ -15,7 +14,6 @@ const Desbloqueo_Procesos = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -25,15 +23,22 @@ const Desbloqueo_Procesos = () => {
         const metasDesbloqueo = responseMetas.data.registros.filter(registro =>
           registro.name.includes('DEBLOCKING')
         );
-        const sumaMetas = metasDesbloqueo.reduce((acc, curr) => acc + curr.meta, 0);
-
+        // Sumar cada uno de los campos usando la nueva estructura
+        const sumaMetaNocturno = metasDesbloqueo.reduce(
+          (acc, curr) => acc + curr.meta_nocturno, 0
+        );
+        const sumaMetaMatutino = metasDesbloqueo.reduce(
+          (acc, curr) => acc + curr.meta_matutino, 0
+        );
+        const sumaMetaVespertino = metasDesbloqueo.reduce(
+          (acc, curr) => acc + curr.meta_vespertino, 0
+        );
         // Se obtienen los registros desde '/manual/manual/actualdia'
         // filtrando los que contengan "DEBLOCKING"
         const responseRegistros = await clienteAxios.get('/manual/manual/actualdia');
         const registros = responseRegistros.data.registros.filter(registro =>
           registro.name.includes('DEBLOCKING')
         );
-
         const ahora = moment().tz('America/Mexico_City');
         // Definir los límites de los turnos según la jornada actual
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
@@ -55,7 +60,6 @@ const Desbloqueo_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
-
         // Filtrar registros para cada turno
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
@@ -81,7 +85,6 @@ const Desbloqueo_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
         });
-
         // Calcular los hits para cada turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsMatutino = registrosMatutino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
@@ -91,21 +94,18 @@ const Desbloqueo_Procesos = () => {
         setHitsVespertino(hitsVespertino);
         const total = hitsNocturno + hitsMatutino + hitsVespertino;
         setTotalHits(total);
-
         // Calcular las metas para cada turno (horas fijas: nocturno y matutino = 8; vespertino = 7)
         const horasNocturno = 8,
           horasMatutino = 8,
           horasVespertino = 7;
-        setMetaNocturno(horasNocturno * sumaMetas);
-        setMetaMatutino(horasMatutino * sumaMetas);
-        setMetaVespertino(horasVespertino * sumaMetas);
-
+        setMetaNocturno(horasNocturno * sumaMetaNocturno);
+        setMetaMatutino(horasMatutino * sumaMetaMatutino);
+        setMetaVespertino(horasVespertino * sumaMetaVespertino);
         // Calcular la meta en vivo en función de las horas transcurridas desde el inicio del turno nocturno
         const horasTranscurridas = ahora.isAfter(inicioNocturno)
           ? ahora.diff(inicioNocturno, 'hours', true)
           : 0;
-        setMeta(Math.round(horasTranscurridas) * sumaMetas);
-
+        setMeta(Math.round(horasTranscurridas) * sumaMetaNocturno);
         // Obtener el último registro para determinar la siguiente ventana de 30 minutos
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
@@ -131,14 +131,11 @@ const Desbloqueo_Procesos = () => {
         console.error("Error al obtener los datos:", error);
       }
     };
-
     fetchData();
   }, []);
-  
   const getClassName = (hits, meta) => {
     return hits >= meta ? "text-green-700" : "text-red-700";
   };
-
   return (
     <div className='bg-white p-4 rounded-xl'>
       {/* Enlace para pantallas grandes */}
@@ -211,5 +208,4 @@ const Desbloqueo_Procesos = () => {
     </div>
   );
 };
-
 export default Desbloqueo_Procesos;
