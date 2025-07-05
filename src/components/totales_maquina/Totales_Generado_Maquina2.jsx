@@ -189,7 +189,7 @@ const Totales_Generado_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción de generadores" />
+      <Heading title="Resumen Generado" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

@@ -161,7 +161,7 @@ const Totales_HardCoat_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción HardCoat" />
+      <Heading title="Resumen HardCoat" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

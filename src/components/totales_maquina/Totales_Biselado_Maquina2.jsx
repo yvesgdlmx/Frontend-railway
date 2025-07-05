@@ -186,7 +186,7 @@ const Totales_Biselado_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción de biselados" />
+      <Heading title="Resumen Biselado" />
       <AreaSelect />
       <TablaSurtidoMaquina 
         columns={allColumns} 

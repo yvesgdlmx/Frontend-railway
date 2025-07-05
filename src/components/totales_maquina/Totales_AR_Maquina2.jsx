@@ -158,7 +158,7 @@ const Totales_AR_Maquina2 = () => {
   
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción AR" />
+      <Heading title="Resumen AR" />
       <AreaSelect />
       <TablaSurtidoMaquina 
         columns={allColumns} 

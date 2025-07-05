@@ -188,7 +188,7 @@ const Totales_Engraver_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción de engravers" />
+      <Heading title="Resumen Engraver" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

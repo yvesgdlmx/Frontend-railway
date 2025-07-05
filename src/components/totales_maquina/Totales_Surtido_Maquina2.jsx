@@ -193,7 +193,7 @@ const Totales_Surtido_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción manual" />
+      <Heading title="Resumen Surtido" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

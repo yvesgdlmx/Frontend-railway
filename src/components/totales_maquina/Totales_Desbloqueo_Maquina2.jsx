@@ -193,7 +193,7 @@ const Totales_Desbloqueo_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción manual (320 DEBLOCKING)" />
+      <Heading title="Resumen Desbloqueo" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

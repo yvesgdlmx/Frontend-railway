@@ -136,7 +136,7 @@ const Totales_Recubrimiento_Maquina2 = () => {
   [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen de producción Recubrimiento" />
+      <Heading title="Resumen Recubrimiento" />
       <AreaSelect />
       <TablaSurtidoMaquina columns={allColumns} finalFilteredData={finalFilteredData} totalsRow={totalsRow} />
     </div>
