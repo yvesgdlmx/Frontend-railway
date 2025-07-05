@@ -187,7 +187,7 @@ const Totales_Terminado_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen Bloqueo de Terminado" />
+      <Heading title="Resumen Bloqueo De Terminado" />
       <AreaSelect />
       <TablaSurtidoMaquina 
         columns={allColumns} 

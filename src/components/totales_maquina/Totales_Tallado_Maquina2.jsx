@@ -196,7 +196,7 @@ const Totales_Tallado_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen Bloqueo de tallado" />
+      <Heading title="Resumen Bloqueo De tallado" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}
