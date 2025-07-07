@@ -13,7 +13,7 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
   return (
     <>
       {/* Vista de escritorio: se muestra a partir del breakpoint "lg" */}
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="hidden lg:block">
         <div className="shadow-md w-max">
           <table className="table-fixed divide-y divide-gray-200 rounded-lg overflow-hidden">
             <thead className="bg-gradient-to-r from-blue-500 to-blue-600">
