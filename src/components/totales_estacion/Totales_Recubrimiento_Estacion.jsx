@@ -162,8 +162,8 @@ const Totales_Recubrimiento_Estacion = () => {
             <tr className="font-semibold text-gray-700">
               <Link to={'/totales_recubrimiento_maquina'} className="link__tabla">
                 <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
-                  <img src="./img/ver.png" alt="" width={25} className="relative left-10"/>
-                  <div className="py-5 px-4 ml-12 border-b min-w-[150px] whitespace-nowrap text-center">
+                  <img src="./img/ver.png" alt="" width={25} className="relative left-6"/>
+                  <div className="py-6 px-4 ml-8 min-w-[150px] whitespace-nowrap text-center">
                     Recubrimiento
                   </div>
                 </div>

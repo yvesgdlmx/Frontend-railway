@@ -271,7 +271,7 @@ const Totales_Produccion_Estacion = () => {
                 <Link to={"/totales_produccion_maquina"} className="link__tabla">
                   <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
                     <img src="./img/ver.png" alt="" width={25} className="relative left-2" />
-                    <div className="py-2 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base">
+                    <div className="py-4 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base">
                       Producción
                     </div>
                   </div>
