@@ -4,24 +4,23 @@ import Layout from './layouts/Layout';
 import ScrollToTop from './components/others/ScrollToTop';
 import { AuthProvider } from '../context/AuthProvider';
 import AuthLayout from './layouts/AuthLayout';
-import Totales_Surtido_Maquina2 from './components/totales_maquina/Totales_Surtido_Maquina2';
-import Totales_Tallado_Maquina2 from './components/totales_maquina/Totales_Tallado_Maquina2';
-import Totales_Generado_Maquina2 from './components/totales_maquina/Totales_Generado_Maquina2';
-import Totales_Pulido_Maquina2 from './components/totales_maquina/Totales_Pulido_Maquina2';
-import Totales_Engraver_Maquina2 from './components/totales_maquina/Totales_Engraver_Maquina2';
-import Totales_AR_Maquina2 from './components/totales_maquina/Totales_AR_Maquina2';
-import Totales_HardCoat_Maquina2 from './components/totales_maquina/Totales_HardCoat_Maquina2';
-import Totales_Recubrimiento_Maquina2 from './components/totales_maquina/Totales_Recubrimiento_Maquina2';
-import Totales_Desbloqueo_Maquina2 from './components/totales_maquina/Totales_Desbloqueo_Maquina2';
-import Totales_Terminado_Maquina2 from './components/totales_maquina/Totales_Terminado_Maquina2';
-import Totales_Biselado_Maquina2 from './components/totales_maquina/Totales_Biselado_Maquina2';
-import Totales_Produccion_Maquina2 from './components/totales_maquina/Totales_Produccion_Maquina2';
-
 
 // Usar React.lazy para cargar componentes de forma asíncrona
 const Login = lazy(() => import('./components/others/Login'));
 const Procesos = lazy(() => import('./paginas/Procesos'));
 const Totales_Estacion = lazy(() => import('./paginas/totales/Totales_Estacion'));
+const Totales_Surtido_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Surtido_Maquina2'));
+const Totales_Tallado_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Tallado_Maquina2'));
+const Totales_Generado_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Generado_Maquina2'));
+const Totales_Pulido_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Pulido_Maquina2'));
+const Totales_Engraver_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Engraver_Maquina2'));
+const Totales_AR_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_AR_Maquina2'));
+const Totales_HardCoat_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_HardCoat_Maquina2'));
+const Totales_Recubrimiento_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Recubrimiento_Maquina2'));
+const Totales_Desbloqueo_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Desbloqueo_Maquina2'));
+const Totales_Terminado_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Terminado_Maquina2'));
+const Totales_Biselado_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Biselado_Maquina2'));
+const Totales_Produccion_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Produccion_Maquina2'));
 const Surtido_Detallado = lazy(() => import('./components/totales_maquina/totales_detallados/Surtido_Detallado'));
 const Historial_Por_Rangos = lazy(() => import('./paginas/historial/Historial_Por_Rangos'));
 const Historial_Por_Dia = lazy(() => import('./paginas/historial/Historial_Por_Dia'));
