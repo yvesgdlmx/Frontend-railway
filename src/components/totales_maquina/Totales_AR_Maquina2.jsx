@@ -61,7 +61,7 @@ const Totales_AR_Maquina2 = () => {
   const [tableData, setTableData] = useState([]);
   
   // Los registros de interés deben comenzar con alguno de los siguientes prefijos:
-  const validPrefixes = ["52 FUSION", "53 1200 D", "55 TLF 1200.1", "56 TLF 1200.2"];
+  const validPrefixes = ["52 FUSION", "53 1200 D", "54 OAC.120", "55 TLF 1200.1", "56 TLF 1200.2"];
   
   // Columnas fijas (Nombre y Total acumulado)
   const fixedColumns = [
@@ -107,11 +107,11 @@ const Totales_AR_Maquina2 = () => {
       try {
         const response = await clienteAxios.get("/manual/manual/actualdia");
         const registros = response.data.registros || [];
-        // Primero filtramos por el campo name: comprobamos si comienza con alguno de los prefijos válidos
-        const registrosFiltradosPorNombre = registros.filter(reg => 
+        // Primero filtramos por el campo name utilizando los prefijos válidos
+        const registrosFiltradosPorNombre = registros.filter(reg =>
           validPrefixes.some(prefix => reg.name.startsWith(prefix))
         );
-        // Filtrar también por fecha (día actual o, de ayer, si la hora de registro es ≥ "22:00")
+        // Filtrar por fecha (día actual o, de ayer, si la hora es ≥ "22:00")
         const currentDateStr = moment().format("YYYY-MM-DD");
         const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
         const registrosFiltrados = registrosFiltradosPorNombre.filter(reg => {
@@ -119,7 +119,7 @@ const Totales_AR_Maquina2 = () => {
           if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
           return false;
         });
-        // Agrupar registros por estación usando extractBaseName (esto producirá "52 FUSION", etc)
+        // Agrupar registros por estación usando extractBaseName (esto producirá "52 FUSION", etc.)
         const agrupados = {};
         registrosFiltrados.forEach(reg => {
           const baseName = extractBaseName(reg.name);
@@ -130,13 +130,38 @@ const Totales_AR_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        // Definir la lista predefinida de máquinas AR
+        const maquinasArea = [
+          "52 FUSION",
+          "53 1200 D",
+          "54 OAC.120",
+          "55 TLF 1200.1",
+          "56 TLF 1200.2"
+        ];
+        // Convertir los registros agrupados a un array
+        const dataAgrupada = Object.values(agrupados);
+        // Recorremos la lista predefinida y, para cada máquina, comprobamos si existe registro;
+        // si no, creamos un objeto con totalAcumulado 0 y se inicializan todas las columnas horarias en 0.
+        const dataConMaquinasFijas = maquinasArea.map(maquina => {
+          const registroExistente = dataAgrupada.find(reg => reg.nombre.toLowerCase() === maquina.toLowerCase());
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            // Creamos un registro por defecto para la máquina que no esté en la API
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach(key => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API del manual:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   
   // Como no hay metas, inyectamos un objeto vacío y dejamos la meta acumulada en blanco.
   // Construimos la data final a partir de tableData

@@ -132,7 +132,7 @@ const Totales_Tallado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-  // Obtener y agrupar registros de la API
+  // Obtener y agrupar registros de la API para tallado
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -157,13 +157,42 @@ const Totales_Tallado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        // Definir la lista predefinida de máquinas para el área de tallado
+        const maquinasArea = [
+          "220 SRFBLK 1",
+          "221 SRFBLK 2",
+          "222 SRFBLK 3",
+          "223 SRFBLK 4",
+          "224 SRFBLK 5",
+          "225 SRFBLK 6",
+          "226 SRFBLK 7"
+        ];
+        // Convertir los datos agrupados a un array
+        const dataAgrupada = Object.values(agrupados);
+        // Completar la data con las máquinas fijas
+        const dataConMaquinasFijas = maquinasArea.map((maquina) => {
+          // Buscar si ya existe registro para la máquina (comparación sin importar mayúsculas/minúsculas)
+          const registroExistente = dataAgrupada.find(
+            (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            // Si no existe, se crea un registro nuevo con totalAcumulado en 0 y cada columna horaria en 0
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach((key) => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de tallado:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Calcular la meta acumulada en función de cada columna (turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {
@@ -196,7 +225,7 @@ const Totales_Tallado_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen Bloqueo De tallado" />
+      <Heading title="Resumen tallado" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

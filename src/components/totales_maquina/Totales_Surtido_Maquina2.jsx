@@ -133,15 +133,17 @@ const Totales_Surtido_Maquina2 = () => {
         const registrosPorNombre = registros.filter((reg) =>
           validPrefixes.some(prefix => reg.name.startsWith(prefix))
         );
-        console.log("Registros manuales filtrados por nombre:", registrosPorNombre);
+        
         const currentDateStr = moment().format("YYYY-MM-DD");
         const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
-        // Posteriormente se filtra por fecha (día actual o, de ayer, si la hora ≥ "22:00")
+        
+        // Filtrar por fecha: día actual o, de ayer, si la hora ≥ "22:00"
         const registrosFiltrados = registrosPorNombre.filter((reg) => {
           if (reg.fecha === currentDateStr) return true;
           if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
           return false;
         });
+        
         // Agrupar registros usando extractBaseName (esto nos dará "19 LENS LOG" o "20 LENS LOG")
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
@@ -153,14 +155,41 @@ const Totales_Surtido_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        console.log("Datos agrupados:", Object.values(agrupados));
-        setTableData(Object.values(agrupados));
+        // Lista predefinida de máquinas para este área
+        const maquinasArea = [
+          "19 LENS LOG",
+          "20 LENS LOG"
+          // Puedes agregar más nombres, en el orden deseado, si fuera necesario
+        ];
+        // Obtenemos los registros agrupados en un array
+        const dataAgrupada = Object.values(agrupados);
+        // Recorremos la lista predefinida y, si no existe registro, se crea uno con valores por defecto.
+        const dataConMaquinasFijas = maquinasArea.map((maquina) => {
+          // Buscamos la máquina en los datos agrupados (usando comparación en minúsculas para evitar problemas)
+          const registroExistente = dataAgrupada.find(
+            (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            // Creamos el registro con valores iniciales
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            // Inicializamos cada columna horaria en 0 según hourAccessors
+            hourAccessors.forEach((key) => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        
+        console.log("Datos agrupados con máquinas fijas:", dataConMaquinasFijas);
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de manuales:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Función para calcular la meta acumulada por columna según turno
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {

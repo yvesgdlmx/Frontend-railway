@@ -147,13 +147,42 @@ const Totales_Terminado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        // Definir la lista fija de máquinas terminadas
+        const maquinasArea = [
+          "280 FINBLKR 1",
+          "281 FINBLKR 2",
+          "282 FINBLKR 3",
+          "277 FINBLKR M1",
+          "278 FINBLKR M2",
+          "279 FINBLKR M3",
+          "285 C6 WECO"
+        ];
+        // Convertir el objeto agrupado a un array
+        const dataAgrupada = Object.values(agrupados);
+        // Completar la data con las máquinas fijas:
+        // Si una máquina de la lista no existe en los datos agrupados,
+        // se crea un objeto con totalAcumulado 0 e inicializando todas las columnas horarias en 0.
+        const dataConMaquinasFijas = maquinasArea.map((maquina) => {
+          const registroExistente = dataAgrupada.find(
+            (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach((key) => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de terminados:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Función para calcular la meta acumulada según cada columna (según turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {
@@ -187,7 +216,7 @@ const Totales_Terminado_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen Bloqueo De Terminado" />
+      <Heading title="Resumen terminado" />
       <AreaSelect />
       <TablaSurtidoMaquina 
         columns={allColumns} 

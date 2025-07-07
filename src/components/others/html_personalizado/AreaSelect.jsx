@@ -7,13 +7,13 @@ const AreaSelect = () => {
   const sectionOptions = [
     { value: "totales_surtido_maquina", label: "Surtido" },
     { value: "totales_tallado_maquina", label: "Bloqueo de tallado" },
-    { value: "totales_generado_maquina", label: "Generadores" },
+    { value: "totales_generado_maquina", label: "Generado" },
     { value: "totales_pulido_maquina", label: "Pulido" },
     { value: "totales_engraver_maquina", label: "Engraver" },
     { value: "totales_ar_maquina", label: "AR" },
     { value: "totales_hardcoat_maquina", label: "Hardcoat" },
     { value: "totales_recubrimiento_maquina", label: "Recubrimiento" },
-    { value: "totales_desblocking_maquina", label: "Resbloqueo" },
+    { value: "totales_desblocking_maquina", label: "Desbloqueo" },
     { value: "totales_terminado_maquina", label: "Terminado" },
     { value: "totales_biselado_maquina", label: "Biselado" },
     { value: "totales_produccion_maquina", label: "Producción" }

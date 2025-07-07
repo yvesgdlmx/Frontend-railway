@@ -129,13 +129,15 @@ const Totales_Biselado_Maquina2 = () => {
       try {
         const response = await clienteAxios.get("/biselado/biselado/actualdia");
         const registros = response.data.registros || [];
-        const currentDateStr = moment().format("YYYY-MM-DD");
-        const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
+        const currentDateStr = moment(new Date()).format("YYYY-MM-DD");
+        const yesterdayDateStr = moment(new Date()).subtract(1, "days").format("YYYY-MM-DD");
+        // Filtrar registros según la fecha y hora
         const registrosFiltrados = registros.filter((reg) => {
           if (reg.fecha === currentDateStr) return true;
           if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
           return false;
         });
+        // Agrupar registros por la máquina (usando el nombre base)
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
           const baseName = extractBaseName(reg.name);
@@ -146,13 +148,41 @@ const Totales_Biselado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        // Convierte el objeto agrupado en un array
+        const dataAgrupada = Object.values(agrupados);
+        // Lista de máquinas de la zona (las que deseas mostrar, incluso sin registros)
+        const maquinasArea = [
+          "228 DOUBLER 2", "229 DOUBLER 3", "230 DOUBLER 4", "231 DOUBLER 5", "232 DOUBLER 6", "298 DOUBLER",
+          "299 BISPHERA", "300 EDGER 1", "301 EDGER 2", "302 EDGER 3", "303 EDGER 4", "304 EDGER 5",
+          "305 EDGER 6", "306 EDGER 7", "307 EDGER 8", "308 EDGER 9", "309 EDGER 10", "310 EDGER 11",
+          "311 EDGER 12", "313 EDGER 13", "314 EDGER 14", "316 EDGER 15", "317 EDGER 16", "327 EDGER 17",
+          "328 EDGER 18", "329 EDGER 19", "330 EDGER 20", "331 EDGER 21", "332 EDGER 22", "333 EDGER 23",
+          "334 EDGER 24", "335 EDGER TRZ", "336 EDGER 25", "337 EDGER 26", "338 EDGER 28", "347 EDGER 27",
+          "312 RAZR", "318 HSE 1", "319 HSE 2"
+        ];
+        // Completa la data agrupada con las máquinas fijas.
+        // Se hace una búsqueda case-insensitive para verificar si ya existe el registro.
+        const dataConMaquinasFijas = maquinasArea.map((maquina) => {
+          const registroExistente = dataAgrupada.find(
+            (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach((key) => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de biselados:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Función para calcular la meta acumulada según cada columna (según turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {

@@ -91,36 +91,58 @@ const Totales_Recubrimiento_Maquina2 = () => {
       try {
         const response = await clienteAxios.get("/manual/manual/actualdia");
         const registros = response.data.registros || [];
+        
         // Filtrar registros cuyo name comience con alguno de los prefijos válidos
         const registrosFiltradosPorNombre = registros.filter(reg =>
           validPrefixes.some(prefix => reg.name && reg.name.startsWith(prefix))
         );
-        // Filtrar también por fecha (día actual o, de ayer si la hora es ≥ "22:00")
+        // Filtrar también por fecha (día actual o, de ayer, si la hora es ≥ "22:00")
         const currentDate = moment().format("YYYY-MM-DD");
-        const yesterday = moment().subtract(1,"days").format("YYYY-MM-DD");
+        const yesterday = moment().subtract(1, "days").format("YYYY-MM-DD");
         const registrosFiltrados = registrosFiltradosPorNombre.filter(reg => {
-          if(reg.fecha === currentDate) return true;
-          if(reg.fecha === yesterday && reg.hour.slice(0,5) >= "22:00") return true;
+          if (reg.fecha === currentDate) return true;
+          if (reg.fecha === yesterday && reg.hour.slice(0, 5) >= "22:00") return true;
           return false;
         });
-        // Agrupar registros usando extractBaseName
+        // Agrupar registros usando extractBaseName (esto producirá por ejemplo "60 AR ENTRADA")
         const agrupados = {};
         registrosFiltrados.forEach(reg => {
           const baseName = extractBaseName(reg.name);
-          if(!agrupados[baseName]){
+          if (!agrupados[baseName]) {
             agrupados[baseName] = { nombre: baseName, totalAcumulado: 0 };
           }
           agrupados[baseName].totalAcumulado += Number(reg.hits);
-          const key = `hour_${reg.hour.slice(0,5)}`;
+          const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
-      } catch(error) {
+        // Definir la lista predefinida de máquinas Recubrimiento
+        const maquinasArea = ["60 AR ENTRADA", "61 AR SALIDA"];
+        // Convertir el objeto agrupado a un array
+        const dataAgrupada = Object.values(agrupados);
+        // Completar la data con las máquinas fijas (para aquellas que no tengan registros)
+        const dataConMaquinasFijas = maquinasArea.map(maquina => {
+          const registroExistente = dataAgrupada.find(
+            reg => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            // Iniciar un objeto para la máquina sin registros,
+            // con totalAcumulado 0 y cada columna horaria inicializada en 0
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach(key => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
+      } catch (error) {
         console.error("Error en fetch de Recubrimiento:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   const finalFilteredData = useMemo(() => 
     tableData.map(row => ({ ...row, metas: {}, metaAcumulada: "" })),
   [tableData]);

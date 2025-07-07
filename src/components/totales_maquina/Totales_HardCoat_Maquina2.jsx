@@ -106,17 +106,17 @@ const Totales_HardCoat_Maquina2 = () => {
   });
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map(col => col.accessor);
-  // Fetch de los registros del endpoint "/manual/manual/actualdia" (no hay metas)
+  // Obtener y agrupar los registros desde "/manual/manual/actualdia"
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/manual/manual/actualdia");
         const registros = response.data.registros || [];
-        // Filtrar registros por el campo name usando startsWith
+        // Filtrar registros por nombre según los prefijos válidos
         const registrosFiltradosPorNombre = registros.filter(reg =>
           validPrefixes.some(prefix => reg.name && reg.name.startsWith(prefix))
         );
-        // Filtrado adicional por fecha: se usan registros del día actual o (de ayer) si la hora ≥ "22:00"
+        // Filtrar registros por fecha (día actual o, de ayer, cuando la hora ≥ "22:00")
         const currentDateStr = moment().format("YYYY-MM-DD");
         const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
         const registrosFiltrados = registrosFiltradosPorNombre.filter(reg => {
@@ -124,7 +124,7 @@ const Totales_HardCoat_Maquina2 = () => {
           if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
           return false;
         });
-        // Agrupar los registros usando extractBaseName para obtener, por ejemplo, "46 MR3.4", etc.
+        // Agrupar los registros usando extractBaseName (por ejemplo, "46 MR3.4", etc.)
         const agrupados = {};
         registrosFiltrados.forEach(reg => {
           const baseName = extractBaseName(reg.name);
@@ -135,13 +135,42 @@ const Totales_HardCoat_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        // Lista fija de máquinas HardCoat
+        const maquinasArea = [
+          "46 MR3.4",
+          "48 MR3.1",
+          "49 MR3.2",
+          "50 MR3.3",
+          "91 VELOCITY 1",
+          "92 VELOCITY 2"
+        ];
+        // Convertir el objeto agrupado a un array
+        const dataAgrupada = Object.values(agrupados);
+        // Completar la data con las máquinas fijas.
+        // Para cada máquina de la lista predefinida se busca si ya existe un registro agrupado;
+        // en caso negativo se crea un nuevo objeto con totalAcumulado en 0 y
+        // se inicializan todas las columnas horarias (usando hourAccessors) en 0.
+        const dataConMaquinasFijas = maquinasArea.map(maquina => {
+          const registroExistente = dataAgrupada.find(
+            reg => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach(key => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al obtener los registros de HardCoat:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Al no manejar metas, inyectamos un objeto vacío en "metas" y dejamos "metaAcumulada" vacío.
   const finalFilteredData = useMemo(() => {
     return tableData.map(row => ({ ...row, metas: {}, metaAcumulada: "" }));

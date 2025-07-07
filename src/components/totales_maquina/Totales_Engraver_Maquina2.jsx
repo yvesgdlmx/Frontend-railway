@@ -149,13 +149,39 @@ const Totales_Engraver_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        // Definir la lista predefinida de máquinas para los engravers
+        const maquinasArea = [
+          "270 ENGRVR 1",
+          "271 ENGRVR 2",
+          "272 ENGRVR 3",
+          "273 ENGRVR 4"
+        ];
+        // Convertir el objeto agrupado a un array
+        const dataAgrupada = Object.values(agrupados);
+        // Completar la data con las máquinas fijas:
+        // Recorremos la lista de máquinas y verificamos si existe registro;
+        // de lo contrario, se crea un objeto con valores por defecto.
+        const dataConMaquinasFijas = maquinasArea.map((maquina) => {
+          const registroExistente = dataAgrupada.find(
+            (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach((key) => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de engravers:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Función para calcular la meta acumulada según cada columna (según turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {
@@ -188,7 +214,7 @@ const Totales_Engraver_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen Engraver" />
+      <Heading title="Resumen engraver" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

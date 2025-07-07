@@ -126,6 +126,7 @@ const Totales_Generado_Maquina2 = () => {
   }, []);
   // Obtener y agrupar registros de la API:
   // Se consulta el endpoint "/generadores/generadores/actualdia".
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -133,12 +134,14 @@ const Totales_Generado_Maquina2 = () => {
         const registros = response.data.registros || [];
         const currentDateStr = moment(new Date()).format("YYYY-MM-DD");
         const yesterdayDateStr = moment(new Date()).subtract(1, "days").format("YYYY-MM-DD");
-        // Filtrar registros: día actual y, de ayer, aquellos con hora ≥ "22:00"
+        
+        // Filtrar según fechas
         const registrosFiltrados = registros.filter((reg) => {
           if (reg.fecha === currentDateStr) return true;
           if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
           return false;
         });
+        
         // Agrupar registros por estación (usando el nombre base)
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
@@ -150,13 +153,37 @@ const Totales_Generado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        
+        const dataAgrupada = Object.values(agrupados);
+        
+        // Definir la lista de máquinas para el área
+        const maquinasArea = [
+          "241 GENERATOR 1", "242 GENERATOR 2", "250 GENERATOR 3", "245 ORBIT 1 LA", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA", "247 SCHNIDER 1", "248 SCHNIDER 2"
+        ];
+        
+        // Completamos la data con las máquinas fijas
+        const dataConMaquinasFijas = maquinasArea.map((maquina) => {
+          const registroExistente = dataAgrupada.find(
+            (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach((key) => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de generadores:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Función para calcular la meta acumulada según cada columna (según turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {
@@ -189,7 +216,7 @@ const Totales_Generado_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen Generado" />
+      <Heading title="Resumen generado" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}

@@ -149,13 +149,48 @@ const Totales_Pulido_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        setTableData(Object.values(agrupados));
+        // Definir la lista predefinida de máquinas para pulidos
+        const maquinasArea = [
+          "255 POLISHR 1",
+          "256 POLISHR 2",
+          "257 POLISHR 3",
+          "258 POLISHR 4",
+          "259 POLISHR 5",
+          "260 POLISHR 6",
+          "261 POLISHR 7",
+          "262 POLISHR 8",
+          "265 POLISHR 12",
+          "266 MULTIFLEX 1",
+          "267 MULTIFLEX 2",
+          "268 MULTIFLEX 3",
+          "269 MULTIFLEX 4",
+          "254 IFLEX SRVR"
+        ];
+        const dataAgrupada = Object.values(agrupados);
+        // Completar la data con las máquinas fijas
+        const dataConMaquinasFijas = maquinasArea.map((maquina) => {
+          // Buscamos si ya existe un registro para la máquina (usando comparación sin importar mayúsculas/minúsculas)
+          const registroExistente = dataAgrupada.find(
+            (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
+          );
+          if (registroExistente) {
+            return registroExistente;
+          } else {
+            // Si no existe, se crea el registro con valores por defecto
+            const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
+            hourAccessors.forEach((key) => {
+              nuevoRegistro[key] = 0;
+            });
+            return nuevoRegistro;
+          }
+        });
+        setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de pulidos:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [hourAccessors]);
   // Función para calcular la meta acumulada según cada columna (según turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {
@@ -188,7 +223,7 @@ const Totales_Pulido_Maquina2 = () => {
   }, [allColumns, finalFilteredData]);
   return (
     <div className="p-4">
-      <Heading title="Resumen Pulido" />
+      <Heading title="Resumen pulido" />
       <AreaSelect />
       <TablaSurtidoMaquina
         columns={allColumns}
