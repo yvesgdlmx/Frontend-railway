@@ -94,7 +94,7 @@ const Tallado_Procesos = () => {
         setMetaVespertino(horasVespertino * sumaMetaVespertino);
         // Meta en vivo basada en el turno nocturno (se utiliza la suma de las metas nocturnas)
         const horasTranscurridas = ahora.isAfter(inicioNocturno) ? ahora.diff(inicioNocturno, 'hours', true) : 0;
-        setMeta(Math.round(horasTranscurridas) * sumaMetaNocturno);
+        setMeta(Math.floor(horasTranscurridas) * sumaMetaNocturno);
         // Obtener el último registro para calcular la siguiente media hora
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(

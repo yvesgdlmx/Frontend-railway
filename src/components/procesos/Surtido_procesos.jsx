@@ -101,7 +101,7 @@ const Surtido_procesos = () => {
       // Para la "meta en vivo" (durante el turno nocturno), se calcula en base a las horas transcurridas desde el inicio del turno nocturno
       const horasTranscurridas = ahora.isAfter(inicioNocturno) ? ahora.diff(inicioNocturno, 'hours', true) : 0;
       // Se utiliza la suma de las metas del turno nocturno para el cálculo en vivo
-      setMeta(Math.round(horasTranscurridas) * sumaMetaNocturno);
+      setMeta(Math.floor(horasTranscurridas) * sumaMetaNocturno);
       // Obtener el último registro para calcular la siguiente media hora
       const ultimoRegistro = registros.reduce((ultimo, actual) => {
         const horaActual = moment.tz(

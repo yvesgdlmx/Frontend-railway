@@ -97,7 +97,7 @@ const Generado_Procesos = () => {
         const horasTranscurridas = ahora.isAfter(inicioNocturno)
           ? ahora.diff(inicioNocturno, 'hours', true)
           : 0;
-        setMeta(Math.round(horasTranscurridas) * sumaMetaNocturno);
+        setMeta(Math.floor(horasTranscurridas) * sumaMetaNocturno);
         // Obtener el último registro disponible
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
