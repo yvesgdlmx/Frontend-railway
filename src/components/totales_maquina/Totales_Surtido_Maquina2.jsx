@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar estaciones
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -124,6 +125,8 @@ const Totales_Surtido_Maquina2 = () => {
     fetchMetas();
   }, []);
   // Obtener y agrupar registros (endpoint "/manual/manual/actualdia")
+  const surtidoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Surtido");
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -155,12 +158,7 @@ const Totales_Surtido_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        // Lista predefinida de máquinas para este área
-        const maquinasArea = [
-          "19 LENS LOG",
-          "20 LENS LOG"
-          // Puedes agregar más nombres, en el orden deseado, si fuera necesario
-        ];
+        const maquinasArea = surtidoSection ? surtidoSection.nombres : [];
         // Obtenemos los registros agrupados en un array
         const dataAgrupada = Object.values(agrupados);
         // Recorremos la lista predefinida y, si no existe registro, se crea uno con valores por defecto.

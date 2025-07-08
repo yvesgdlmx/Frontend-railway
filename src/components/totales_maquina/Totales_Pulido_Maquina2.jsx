@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar estaciones
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -124,6 +125,8 @@ const Totales_Pulido_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
+
+  const pulidoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Pulido");
   // Obtener y agrupar registros desde el endpoint "/pulido/pulido/actualdia"
   useEffect(() => {
     const fetchData = async () => {
@@ -150,22 +153,8 @@ const Totales_Pulido_Maquina2 = () => {
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
         // Definir la lista predefinida de máquinas para pulidos
-        const maquinasArea = [
-          "255 POLISHR 1",
-          "256 POLISHR 2",
-          "257 POLISHR 3",
-          "258 POLISHR 4",
-          "259 POLISHR 5",
-          "260 POLISHR 6",
-          "261 POLISHR 7",
-          "262 POLISHR 8",
-          "265 POLISHR 12",
-          "266 MULTIFLEX 1",
-          "267 MULTIFLEX 2",
-          "268 MULTIFLEX 3",
-          "269 MULTIFLEX 4",
-          "254 IFLEX SRVR"
-        ];
+        const maquinasArea = pulidoSection ? pulidoSection.nombres : [];
+        
         const dataAgrupada = Object.values(agrupados);
         // Completar la data con las máquinas fijas
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {

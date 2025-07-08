@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar estaciones
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -124,6 +125,8 @@ const Totales_Terminado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
+
+  const terminadoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Bloqueo de terminado");
   // Obtener y agrupar registros desde "/terminado/terminado/actualdia"
   useEffect(() => {
     const fetchData = async () => {
@@ -147,16 +150,7 @@ const Totales_Terminado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        // Definir la lista fija de máquinas terminadas
-        const maquinasArea = [
-          "280 FINBLKR 1",
-          "281 FINBLKR 2",
-          "282 FINBLKR 3",
-          "277 FINBLKR M1",
-          "278 FINBLKR M2",
-          "279 FINBLKR M3",
-          "285 C6 WECO"
-        ];
+        const maquinasArea = terminadoSection ? terminadoSection.nombres : [];
         // Convertir el objeto agrupado a un array
         const dataAgrupada = Object.values(agrupados);
         // Completar la data con las máquinas fijas:

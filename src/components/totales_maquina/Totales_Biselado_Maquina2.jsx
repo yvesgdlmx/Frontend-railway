@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar estaciones
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -123,6 +124,7 @@ const Totales_Biselado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
+  const biseladoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Biselado");
   // Obtener y agrupar registros desde el endpoint "/biselado/biselado/actualdia"
   useEffect(() => {
     const fetchData = async () => {
@@ -151,16 +153,7 @@ const Totales_Biselado_Maquina2 = () => {
         // Convierte el objeto agrupado en un array
         const dataAgrupada = Object.values(agrupados);
         // Lista de máquinas de la zona (las que deseas mostrar, incluso sin registros)
-        const maquinasArea = [
-          "228 DOUBLER 2", "229 DOUBLER 3", "230 DOUBLER 4", "231 DOUBLER 5", "232 DOUBLER 6", "298 DOUBLER",
-          "299 BISPHERA", "300 EDGER 1", "301 EDGER 2", "302 EDGER 3", "303 EDGER 4", "304 EDGER 5",
-          "305 EDGER 6", "306 EDGER 7", "307 EDGER 8", "308 EDGER 9", "309 EDGER 10", "310 EDGER 11",
-          "311 EDGER 12", "313 EDGER 13", "314 EDGER 14", "316 EDGER 15", "317 EDGER 16", "327 EDGER 17",
-          "328 EDGER 18", "329 EDGER 19", "330 EDGER 20", "331 EDGER 21", "332 EDGER 22", "333 EDGER 23",
-          "334 EDGER 24", "335 EDGER TRZ", "336 EDGER 25", "337 EDGER 26", "338 EDGER 28", "347 EDGER 27",
-          "312 RAZR", "318 HSE 1", "319 HSE 2"
-        ];
-        // Completa la data agrupada con las máquinas fijas.
+        const maquinasArea = biseladoSection ? biseladoSection.nombres : [];
         // Se hace una búsqueda case-insensitive para verificar si ya existe el registro.
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
           const registroExistente = dataAgrupada.find(

@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar máquinas
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -124,9 +125,9 @@ const Totales_Generado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-  // Obtener y agrupar registros de la API:
+
+  const generadoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Generado");
   // Se consulta el endpoint "/generadores/generadores/actualdia".
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -156,10 +157,7 @@ const Totales_Generado_Maquina2 = () => {
         
         const dataAgrupada = Object.values(agrupados);
         
-        // Definir la lista de máquinas para el área
-        const maquinasArea = [
-          "241 GENERATOR 1", "242 GENERATOR 2", "250 GENERATOR 3", "245 ORBIT 1 LA", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA", "247 SCHNIDER 1", "248 SCHNIDER 2"
-        ];
+        const maquinasArea = generadoSection ? generadoSection.nombres : [];
         
         // Completamos la data con las máquinas fijas
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {

@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separando por guion)
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -85,6 +86,8 @@ const Totales_Recubrimiento_Maquina2 = () => {
   
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map(col => col.accessor);
+
+  const recubrimientoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Recubrimiento");
   // Fetch de los registros del endpoint "/manual/manual/actualdia"
   useEffect(() => {
     const fetchData = async () => {
@@ -116,7 +119,7 @@ const Totales_Recubrimiento_Maquina2 = () => {
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
         // Definir la lista predefinida de máquinas Recubrimiento
-        const maquinasArea = ["60 AR ENTRADA", "61 AR SALIDA"];
+        const maquinasArea = recubrimientoSection ? recubrimientoSection.nombres : [];
         // Convertir el objeto agrupado a un array
         const dataAgrupada = Object.values(agrupados);
         // Completar la data con las máquinas fijas (para aquellas que no tengan registros)

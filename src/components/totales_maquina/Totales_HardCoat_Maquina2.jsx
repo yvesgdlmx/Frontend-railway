@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Extrae el nombre base (se asume que está separado por guion)
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Suma una hora a un string en formato "HH:MM"
@@ -106,6 +107,8 @@ const Totales_HardCoat_Maquina2 = () => {
   });
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map(col => col.accessor);
+
+  const hardcoatSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Hardcoat");
   // Obtener y agrupar los registros desde "/manual/manual/actualdia"
   useEffect(() => {
     const fetchData = async () => {
@@ -136,14 +139,7 @@ const Totales_HardCoat_Maquina2 = () => {
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
         // Lista fija de máquinas HardCoat
-        const maquinasArea = [
-          "46 MR3.4",
-          "48 MR3.1",
-          "49 MR3.2",
-          "50 MR3.3",
-          "91 VELOCITY 1",
-          "92 VELOCITY 2"
-        ];
+        const maquinasArea = hardcoatSection ? hardcoatSection.nombres : [];
         // Convertir el objeto agrupado a un array
         const dataAgrupada = Object.values(agrupados);
         // Completar la data con las máquinas fijas.

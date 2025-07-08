@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar estaciones
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -124,6 +125,7 @@ const Totales_Engraver_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
+  const engraverSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Engraver");
   // Obtener y agrupar registros desde el endpoint "/engraver/engraver/actualdia"
   useEffect(() => {
     const fetchData = async () => {
@@ -149,13 +151,7 @@ const Totales_Engraver_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        // Definir la lista predefinida de máquinas para los engravers
-        const maquinasArea = [
-          "270 ENGRVR 1",
-          "271 ENGRVR 2",
-          "272 ENGRVR 3",
-          "273 ENGRVR 4"
-        ];
+        const maquinasArea = engraverSection ? engraverSection.nombres : [];
         // Convertir el objeto agrupado a un array
         const dataAgrupada = Object.values(agrupados);
         // Completar la data con las máquinas fijas:

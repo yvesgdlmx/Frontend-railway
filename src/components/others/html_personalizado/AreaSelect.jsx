@@ -14,7 +14,7 @@ const AreaSelect = () => {
     { value: "totales_hardcoat_maquina", label: "Hardcoat" },
     { value: "totales_recubrimiento_maquina", label: "Recubrimiento" },
     { value: "totales_desblocking_maquina", label: "Desbloqueo" },
-    { value: "totales_terminado_maquina", label: "Terminado" },
+    { value: "totales_terminado_maquina", label: "Bloqueo de terminado" },
     { value: "totales_biselado_maquina", label: "Biselado" },
     { value: "totales_produccion_maquina", label: "Producción" }
   ];

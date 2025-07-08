@@ -4,6 +4,7 @@ import Heading from "../others/Heading";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
 import AreaSelect from "../others/html_personalizado/AreaSelect";
+import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar máquinas
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
@@ -132,6 +133,8 @@ const Totales_Tallado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
+
+  const talladoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Bloqueo de tallado");
   // Obtener y agrupar registros de la API para tallado
   useEffect(() => {
     const fetchData = async () => {
@@ -158,16 +161,7 @@ const Totales_Tallado_Maquina2 = () => {
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
         // Definir la lista predefinida de máquinas para el área de tallado
-        const maquinasArea = [
-          "220 SRFBLK 1",
-          "221 SRFBLK 2",
-          "222 SRFBLK 3",
-          "223 SRFBLK 4",
-          "224 SRFBLK 5",
-          "225 SRFBLK 6",
-          "226 SRFBLK 7"
-        ];
-        // Convertir los datos agrupados a un array
+        const maquinasArea = talladoSection ? talladoSection.nombres : [];
         const dataAgrupada = Object.values(agrupados);
         // Completar la data con las máquinas fijas
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
