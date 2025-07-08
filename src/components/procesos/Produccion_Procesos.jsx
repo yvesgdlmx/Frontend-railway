@@ -101,8 +101,8 @@ const Produccion_Procesos = () => {
         if (ahora.isAfter(inicioNocturno)) {
           horasTranscurridas = ahora.diff(inicioNocturno, 'hours', true);
         }
-        // Reemplazamos Math.round por Math.floor para contabilizar solo las horas completas.
-        setMeta(Math.floor(horasTranscurridas) * metaPorHora);
+        // Ahora, como metaBaseNocturno ya está definido, úsalo directamente
+        setMeta(Math.floor(horasTranscurridas) * metaBaseNocturno);
         // 7. Obtener el último registro para determinar el corte de la siguiente media hora
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
