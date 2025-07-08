@@ -132,7 +132,6 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                             className="px-6 py-4 text-sm"
                             title={`Meta del turno: ${meta}`}
                           >
-                            <div className="font-bold">hits</div>
                             <div>
                               <span className={valorColor}>{valor}</span>
                             </div>
@@ -208,7 +207,6 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                         className="px-6 py-4 text-sm border-b border-gray-200"
                         title={`Meta del turno: ${metaTotal}`}
                       >
-                        <div className="font-bold">hits</div>
                         <div>
                           <span className={valorColor}>{valor}</span>
                         </div>
