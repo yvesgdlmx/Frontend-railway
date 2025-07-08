@@ -47,7 +47,7 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
       meta_vespertino: { hits: 0, meta: 0 },
     }
   );
-  // Función para renderizar las celdas de turnos (hits / meta)
+  // Función para renderizar las celdas de turnos (no se modifica, son las columnas extras para nocturno, matutino y vespertino)
   const renderTurnosCells = (row) => {
     const rowTurnos = getTotalsByTurn(row, columns);
     return ["meta_nocturno", "meta_matutino", "meta_vespertino"].map((turno) => {
@@ -63,16 +63,13 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
       );
     });
   };
-  // Función para renderizar las celdas de totales generales de turnos
+  // Función para renderizar las celdas de totales generales de turnos (para nocturno, matutino y vespertino)
   const renderTotalTurnosCells = () =>
     ["meta_nocturno", "meta_matutino", "meta_vespertino"].map((turno) => {
       const { hits, meta } = totalTurnos[turno];
       const valorColor = hits >= meta ? "text-green-700" : "text-red-700";
       return (
-        <td
-          key={turno}
-          className="px-6 py-4 text-sm border-b border-gray-200"
-        >
+        <td key={turno} className="px-6 py-4 text-sm border-b border-gray-200">
           <div className="font-bold">hits / meta</div>
           <div>
             <span className={valorColor}>{hits}</span> / {meta}
@@ -110,7 +107,7 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200 font-semibold text-gray-500">
+            <tbody className="bg-white divide-y divide-gray-200 font-semibold text-gray-500 text-center">
               {finalFilteredData.map((row, idx) => {
                 return (
                   <tr
@@ -122,6 +119,7 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                     {columns.map((col) => {
                       let cell = null;
                       if (col.accessor.startsWith("hour_")) {
+                        // Para las columnas de horas, mostramos solo hits y en el hover se muestra la meta
                         const timeStr = col.accessor.replace("hour_", "");
                         const turno = getTurnWithTime(timeStr);
                         const meta = row.metas ? Number(row.metas[turno] || 0) : 0;
@@ -129,10 +127,14 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                         const valorColor =
                           valor >= meta ? "text-green-700" : "text-red-700";
                         cell = (
-                          <td key={col.accessor} className="px-6 py-4 text-sm">
-                            <div className="font-bold">hits / meta</div>
+                          <td
+                            key={col.accessor}
+                            className="px-6 py-4 text-sm"
+                            title={`Meta del turno: ${meta}`}
+                          >
+                            <div className="font-bold">hits</div>
                             <div>
-                              <span className={valorColor}>{valor}</span> / {meta}
+                              <span className={valorColor}>{valor}</span>
                             </div>
                           </td>
                         );
@@ -152,17 +154,14 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                       } else {
                         cell = (
                           <td key={col.accessor} className="px-6 py-4 text-sm">
-                            {row[col.accessor] !== undefined
-                              ? row[col.accessor]
-                              : "-"}
+                            {row[col.accessor] !== undefined ? row[col.accessor] : "-"}
                           </td>
                         );
                       }
                       return (
                         <React.Fragment key={col.accessor}>
                           {cell}
-                          {col.accessor === "totalAcumulado" &&
-                            renderTurnosCells(row)}
+                          {col.accessor === "totalAcumulado" && renderTurnosCells(row)}
                         </React.Fragment>
                       );
                     })}
@@ -193,6 +192,7 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                       </td>
                     );
                   } else if (col.accessor.startsWith("hour_")) {
+                    // Para las columnas de hora en la fila de totales: solo se muestran los hits y se agrega el title con la meta total
                     const timeStr = col.accessor.replace("hour_", "");
                     const turno = getTurnWithTime(timeStr);
                     const metaTotal = finalFilteredData.reduce((acc, row) => {
@@ -206,10 +206,11 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                       <td
                         key={col.accessor}
                         className="px-6 py-4 text-sm border-b border-gray-200"
+                        title={`Meta del turno: ${metaTotal}`}
                       >
-                        <div className="font-bold">hits / meta</div>
+                        <div className="font-bold">hits</div>
                         <div>
-                          <span className={valorColor}>{valor}</span> / {metaTotal}
+                          <span className={valorColor}>{valor}</span>
                         </div>
                       </td>
                     );
@@ -219,17 +220,14 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                         key={col.accessor}
                         className="px-6 py-4 text-sm border-b border-gray-200"
                       >
-                        {totalsRow[col.accessor] !== undefined
-                          ? totalsRow[col.accessor]
-                          : "-"}
+                        {totalsRow[col.accessor] !== undefined ? totalsRow[col.accessor] : "-"}
                       </td>
                     );
                   }
                   return (
                     <React.Fragment key={col.accessor}>
                       {cell}
-                      {col.accessor === "totalAcumulado" &&
-                        renderTotalTurnosCells()}
+                      {col.accessor === "totalAcumulado" && renderTotalTurnosCells()}
                     </React.Fragment>
                   );
                 })}

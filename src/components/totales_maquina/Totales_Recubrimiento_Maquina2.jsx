@@ -145,7 +145,7 @@ const Totales_Recubrimiento_Maquina2 = () => {
       }
     };
     fetchData();
-  }, [hourAccessors]);
+  }, []);
   const finalFilteredData = useMemo(() => 
     tableData.map(row => ({ ...row, metas: {}, metaAcumulada: "" })),
   [tableData]);

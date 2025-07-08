@@ -166,7 +166,7 @@ const Totales_HardCoat_Maquina2 = () => {
       }
     };
     fetchData();
-  }, [hourAccessors]);
+  }, []);
   // Al no manejar metas, inyectamos un objeto vacío en "metas" y dejamos "metaAcumulada" vacío.
   const finalFilteredData = useMemo(() => {
     return tableData.map(row => ({ ...row, metas: {}, metaAcumulada: "" }));

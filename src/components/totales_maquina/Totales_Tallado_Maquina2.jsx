@@ -186,7 +186,7 @@ const Totales_Tallado_Maquina2 = () => {
       }
     };
     fetchData();
-  }, [hourAccessors]);
+  }, []);
   // Calcular la meta acumulada en función de cada columna (turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {

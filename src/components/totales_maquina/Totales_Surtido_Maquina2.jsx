@@ -187,7 +187,7 @@ const Totales_Surtido_Maquina2 = () => {
       }
     };
     fetchData();
-  }, [hourAccessors]);
+  }, []);
   // Función para calcular la meta acumulada por columna según turno
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {

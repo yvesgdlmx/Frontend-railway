@@ -156,7 +156,7 @@ const Totales_AR_Maquina2 = () => {
       }
     };
     fetchData();
-  }, [hourAccessors]);
+  }, []);
   
   // Como no hay metas, inyectamos un objeto vacío y dejamos la meta acumulada en blanco.
   // Construimos la data final a partir de tableData
