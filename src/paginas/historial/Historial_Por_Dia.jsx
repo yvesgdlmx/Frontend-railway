@@ -95,42 +95,34 @@ const Historial_Por_Dia = () => {
         const responseMetasEngravers = await clienteAxios.get("/metas/metas-engravers");
         const responseMetasTerminados = await clienteAxios.get("/metas/metas-terminados");
         const responseMetasBiselados = await clienteAxios.get("/metas/metas-biselados");
-        const metasTallados = responseMetasTallados.data.registros.reduce((acc, curr) => {
-          acc[curr.name.trim()] = curr.meta;
-          return acc;
-        }, {});
-        const metasManuales = responseMetasManuales.data.registros.reduce((acc, curr) => {
-          acc[curr.name.trim()] = curr.meta;
-          return acc;
-        }, {});
-        const metasGeneradores = responseMetasGeneradores.data.registros.reduce((acc, curr) => {
-          acc[curr.name.trim()] = curr.meta;
-          return acc;
-        }, {});
-        const metasPulidos = responseMetasPulidos.data.registros.reduce((acc, curr) => {
-          acc[curr.name.trim()] = curr.meta;
-          return acc;
-        }, {});
-        const metasEngravers = responseMetasEngravers.data.registros.reduce((acc, curr) => {
-          acc[curr.name.trim()] = curr.meta;
-          return acc;
-        }, {});
-        const metasTerminados = responseMetasTerminados.data.registros.reduce((acc, curr) => {
-          acc[curr.name.trim()] = curr.meta;
-          return acc;
-        }, {});
-        const metasBiselados = responseMetasBiselados.data.registros.reduce((acc, curr) => {
-          acc[curr.name.trim()] = curr.meta;
-          return acc;
-        }, {});
+        // Función para transformar cada registro a la forma adecuada
+        const transformarRegistros = (registros) => {
+          return registros.reduce((acc, curr) => {
+            acc[curr.name.trim()] = {
+              meta_nocturno: curr.meta_nocturno,
+              meta_matutino: curr.meta_matutino,
+              meta_vespertino: curr.meta_vespertino,
+            };
+            return acc;
+          }, {});
+        };
+        // Transforma cada respuesta
+        const metasTallados = transformarRegistros(responseMetasTallados.data.registros);
+        const metasManuales = transformarRegistros(responseMetasManuales.data.registros);
+        const metasGeneradores = transformarRegistros(responseMetasGeneradores.data.registros);
+        const metasPulidos = transformarRegistros(responseMetasPulidos.data.registros);
+        const metasEngravers = transformarRegistros(responseMetasEngravers.data.registros);
+        const metasTerminados = transformarRegistros(responseMetasTerminados.data.registros);
+        const metasBiselados = transformarRegistros(responseMetasBiselados.data.registros);
+        // Fusionamos los objetos de metas; en caso de conflicto se sobrescribirá.
         setMetas({
           ...metasTallados,
+          ...metasManuales,
           ...metasGeneradores,
           ...metasPulidos,
           ...metasEngravers,
           ...metasTerminados,
           ...metasBiselados,
-          ...metasManuales,
         });
       } catch (error) {
         console.error("Error al obtener las metas:", error);
@@ -153,8 +145,10 @@ const Historial_Por_Dia = () => {
   const finJornada = selectedDate.clone().set({ hour: 21, minute: 59, second: 59 });
   const displayRange = `Rango de fecha: ${inicioJornada.format("YYYY-MM-DD HH:mm")} - ${finJornada.format("YYYY-MM-DD HH:mm")}`;
   return (
-    <div className="p-8 py-0 bg-gray-100 min-h-screen">
-      <Heading title={'Historial produccion por dia'} />
+    <div className="py-0 bg-gray-100 min-h-screen">
+      <div className="mt-4 md:mt-0">
+        <Heading title={'Historial produccion por dia'} />
+      </div>
       {/* Selectores */}
       <div className="mb-6 flex flex-wrap gap-4 justify-center">
         <div className="w-80">
@@ -193,7 +187,7 @@ const Historial_Por_Dia = () => {
       )}
       {!loading && !error && data && data.registros.length > 0 && (
         <>
-          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="hidden md:grid grid-cols-1 xl:grid-cols-2 gap-6">
             {seccionesAgrupadas.map(({ seccion, nombres, items }) => {
               if (items.length === 0) return null;
               return (
