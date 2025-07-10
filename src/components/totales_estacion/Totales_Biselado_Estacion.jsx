@@ -318,12 +318,6 @@ const Totales_Biselado_Estacion = () => {
             <span className="font-bold text-gray-700">Nombre:</span>
             <span className="font-bold text-gray-700">Biselado</span>
           </div>
-          <div className="flex justify-between border-b py-4">
-            <span className="font-bold text-gray-700">Meta total:</span>
-            <span className="font-bold text-gray-700">
-              {metasPorHora.nocturno + metasPorHora.matutino + metasPorHora.vespertino || "No definida"}
-            </span>
-          </div>
           <div className="py-4">
             <span className="font-bold text-gray-700">Horas:</span>
             {columnas.map((col, idx) => {

@@ -333,12 +333,6 @@ const Totales_Surtido_Estacion = () => {
             <span className="font-bold text-gray-700">Nombre:</span>
             <span className="font-bold text-gray-700">Surtido</span>
           </div>
-          <div className="flex justify-between border-b py-4">
-            <span className="font-bold text-gray-700">Meta x hora:</span>
-            <span className="font-bold text-gray-700">
-              Nocturno: {metasPorHora.nocturno} | Matutino: {metasPorHora.matutino} | Vespertino: {metasPorHora.vespertino}
-            </span>
-          </div>
           <div className="py-4">
             <span className="font-bold text-gray-700">Horas:</span>
             {columnas.map((col, i) => {
