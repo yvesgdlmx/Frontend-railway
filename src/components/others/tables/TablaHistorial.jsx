@@ -92,7 +92,7 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
   return (
     <div className={cardClasses}>
       <div className="flex-grow">
-        <h2 className="text-xl font-semibold p-4 bg-slate-200 text-gray-500 text-center">
+        <h2 className="text-xl font-bold p-4 text-gray-500 text-center">
           {seccion}
         </h2>
         <table className="min-w-full divide-y divide-gray-200 text-center">
@@ -130,17 +130,17 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
                     {item.name}
                   </td>
                   <td className={`font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13px] ${getClassName(item.hits, metaJornada)}`}>
-                    {formatNumber(item.hits)} / {formatNumber(metaJornada)}
+                    {formatNumber(item.hits)}<span className="text-gray-500"> / {formatNumber(metaJornada)}</span> 
                     <br />
                     <span className="text-[12.5px] text-gray-500">hits / meta</span>
                   </td>
-                  <td className="font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13.5px] text-gray-900">
+                  <td className="font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13.5px] text-gray-500">
                     {formatNumber(metaNocturnoTurno)}
                   </td>
-                  <td className="font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13.5px] text-gray-900">
+                  <td className="font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13.5px] text-gray-500">
                     {formatNumber(metaMatutinoTurno)}
                   </td>
-                  <td className="font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13.5px] text-gray-900">
+                  <td className="font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13.5px] text-gray-500">
                     {formatNumber(metaVespertinoTurno)}
                   </td>
                 </tr>
