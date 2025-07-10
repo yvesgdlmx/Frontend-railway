@@ -69,7 +69,7 @@ const ReporteTrabajosNuevos = () => {
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg hidden md:table">
           <thead>
-            <tr className="bg-blue-600 text-white">
+            <tr className="bg-blue-500 text-white">
               <th className="py-3 px-5 text-left font-semibold">Fecha y Hora</th>
               <th className="py-3 px-5 text-left font-semibold border">Total New Jobs</th>
               <th className="py-3 px-5 text-left font-semibold border">Ink Jobs</th>
@@ -117,7 +117,7 @@ const ReporteTrabajosNuevos = () => {
         <div className="md:hidden space-y-4">
           {registrosOrdenados.map((registro) => (
             <div key={registro.id} className="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-md">
-              <div className="bg-blue-600 text-white p-4">
+              <div className="bg-blue-500 text-white p-4">
                 <div className="font-semibold text-lg">{registro.fecha}</div>
                 <div className="text-sm text-white">{registro.hora}</div>
               </div>
