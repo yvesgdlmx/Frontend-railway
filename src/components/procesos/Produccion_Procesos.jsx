@@ -146,7 +146,7 @@ const Produccion_Procesos = () => {
           <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
         </div>
       </Link>
-      <p className='font-light mb-2'>Mostrando información del área de biselado.</p>
+      <p className='font-light mb-2'>Mostrando información del área de producción.</p>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span>
