@@ -17,8 +17,7 @@ const Biselado_Procesos = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Se obtienen las metas desde '/metas/metas-biselados'
-        // y se suman los valores por turno usando la nueva estructura
+        // 1. Se obtienen las metas desde '/metas/metas-biselados'
         const responseMetas = await clienteAxios.get('/metas/metas-biselados');
         const sumaMetaNocturno = responseMetas.data.registros.reduce(
           (acc, curr) => acc + curr.meta_nocturno, 0
@@ -29,12 +28,11 @@ const Biselado_Procesos = () => {
         const sumaMetaVespertino = responseMetas.data.registros.reduce(
           (acc, curr) => acc + curr.meta_vespertino, 0
         );
-        
-        // Se obtienen los registros desde '/biselado/biselado/actualdia'
+        // 2. Se obtienen los registros desde '/biselado/biselado/actualdia'
         const responseRegistros = await clienteAxios.get('/biselado/biselado/actualdia');
         const registros = responseRegistros.data.registros;
         const ahora = moment().tz('America/Mexico_City');
-        // Definir intervalos de turno según si ya inició la nueva jornada (a partir de las 22:00)
+        // 3. Definir intervalos de turno según si ya inició la nueva jornada (a partir de las 22:00)
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
           // Nueva jornada: turno nocturno de hoy 22:00 a mañana 06:00
@@ -54,7 +52,7 @@ const Biselado_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
-        // Filtrar registros correspondientes a cada turno
+        // 4. Filtrar registros correspondientes a cada turno
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -79,7 +77,7 @@ const Biselado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
         });
-        // Calcular hits para cada turno
+        // 5. Calcular hits para cada turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsMatutino = registrosMatutino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsVespertino = registrosVespertino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
@@ -89,19 +87,35 @@ const Biselado_Procesos = () => {
         // Hits totales
         const total = hitsNocturno + hitsMatutino + hitsVespertino;
         setTotalHits(total);
-        // Calcular metas para cada turno:
+        // 6. Calcular metas totales para cada turno usando horas fijas
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
-        setMetaNocturno(horasNocturno * sumaMetaNocturno);
-        setMetaMatutino(horasMatutino * sumaMetaMatutino);
-        setMetaVespertino(horasVespertino * sumaMetaVespertino);
-        // Calcular "meta en vivo" basado en las horas transcurridas desde el inicio del turno nocturno
-        const horasTranscurridas = ahora.isAfter(inicioNocturno)
-          ? ahora.diff(inicioNocturno, 'hours', true)
-          : 0;
-        setMeta(Math.floor(horasTranscurridas) * sumaMetaNocturno);
-        // Obtener el último registro y calcular la siguiente ventana de 30 minutos
+        const metaTotalNocturno = horasNocturno * sumaMetaNocturno;
+        const metaTotalMatutino = horasMatutino * sumaMetaMatutino;
+        const metaTotalVespertino = horasVespertino * sumaMetaVespertino;
+        setMetaNocturno(metaTotalNocturno);
+        setMetaMatutino(metaTotalMatutino);
+        setMetaVespertino(metaTotalVespertino);
+        // 7. Calcular "meta en vivo" acumulada basándose en el turno en el que se encuentre "ahora"
+        let metaAcumulada = 0;
+        if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
+          // Durante el turno nocturno, usar las horas transcurridas desde el inicio
+          const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
+          metaAcumulada = Math.floor(horasTranscurridasNocturno) * sumaMetaNocturno;
+        } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
+          // Si estamos en el turno matutino, se suma la meta completa del nocturno y la parcial del matutino
+          metaAcumulada = metaTotalNocturno;
+          const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
+          metaAcumulada += Math.floor(horasTranscurridasMatutino) * sumaMetaMatutino;
+        } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
+          // Durante el vespertino se acumulan los dos turnos previos y la parcial del vespertino
+          metaAcumulada = metaTotalNocturno + metaTotalMatutino;
+          const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
+          metaAcumulada += Math.floor(horasTranscurridasVespertino) * sumaMetaVespertino;
+        }
+        setMeta(metaAcumulada);
+        // 8. Obtener el último registro y calcular la siguiente ventana de 30 minutos
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
             `${actual.fecha} ${actual.hour}`,
@@ -112,6 +126,7 @@ const Biselado_Procesos = () => {
             moment.tz(`${ultimo.fecha} ${ultimo.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City')
           ) ? actual : ultimo;
         }, registros[0]);
+        
         const formattedLastHour = moment.tz(
           `${ultimoRegistro.fecha} ${ultimoRegistro.hour}`,
           'YYYY-MM-DD HH:mm:ss',

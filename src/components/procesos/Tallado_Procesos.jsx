@@ -17,16 +17,22 @@ const Tallado_Procesos = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Obtenemos las metas del endpoint y se asume que la respuesta tiene la nueva estructura.
+        // 1. Se obtienen las metas del endpoint usando la nueva estructura
         const responseMetas = await clienteAxios.get('/metas/metas-tallados');
-        // Sumamos las metas por turno de todas las entradas
-        const sumaMetaNocturno = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
-        const sumaMetaMatutino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_matutino, 0);
-        const sumaMetaVespertino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
-        // Obtenemos los registros del tallado para el día actual
+        const sumaMetaNocturno = responseMetas.data.registros.reduce(
+          (acc, curr) => acc + curr.meta_nocturno, 0
+        );
+        const sumaMetaMatutino = responseMetas.data.registros.reduce(
+          (acc, curr) => acc + curr.meta_matutino, 0
+        );
+        const sumaMetaVespertino = responseMetas.data.registros.reduce(
+          (acc, curr) => acc + curr.meta_vespertino, 0
+        );
+        // 2. Se obtienen los registros del tallado para el día actual
         const responseRegistros = await clienteAxios.get('/tallado/tallado/actualdia');
         const registros = responseRegistros.data.registros;
         const ahora = moment().tz('America/Mexico_City');
+        // 3. Definir los intervalos de turno según la jornada
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
           // Nueva jornada:
@@ -51,7 +57,7 @@ const Tallado_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
-        // Filtrar los registros para cada turno
+        // 4. Filtrar los registros para cada turno
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -76,30 +82,48 @@ const Tallado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
         });
-        // Calculamos los hits para cada turno
+        // 5. Calcular los hits para cada turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsMatutino = registrosMatutino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsVespertino = registrosVespertino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         setHitsNocturno(hitsNocturno);
         setHitsMatutino(hitsMatutino);
         setHitsVespertino(hitsVespertino);
-        const total = hitsNocturno + hitsMatutino + hitsVespertino;
-        setTotalHits(total);
-        // Cálculo de metas para cada turno (horas del turno multiplicadas por la suma de las metas asignadas)
+        setTotalHits(hitsNocturno + hitsMatutino + hitsVespertino);
+        // 6. Calcular las metas totales para cada turno
+        //    (horas fijas: nocturno y matutino = 8; vespertino = 7)
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
-        setMetaNocturno(horasNocturno * sumaMetaNocturno);
-        setMetaMatutino(horasMatutino * sumaMetaMatutino);
-        setMetaVespertino(horasVespertino * sumaMetaVespertino);
-        // Meta en vivo basada en el turno nocturno (se utiliza la suma de las metas nocturnas)
-        const horasTranscurridas = ahora.isAfter(inicioNocturno) ? ahora.diff(inicioNocturno, 'hours', true) : 0;
-        setMeta(Math.floor(horasTranscurridas) * sumaMetaNocturno);
-        // Obtener el último registro para calcular la siguiente media hora
+        const metaTotalNocturno = horasNocturno * sumaMetaNocturno;
+        const metaTotalMatutino = horasMatutino * sumaMetaMatutino;
+        const metaTotalVespertino = horasVespertino * sumaMetaVespertino;
+        setMetaNocturno(metaTotalNocturno);
+        setMetaMatutino(metaTotalMatutino);
+        setMetaVespertino(metaTotalVespertino);
+        // 7. Calcular la meta en vivo de forma acumulativa según el turno activo:
+        //    - Si se encuentra en el turno nocturno: se usa la cantidad de horas transcurridas * sumaMetaNocturno.
+        //    - En el turno matutino: se suma toda la meta del turno nocturno y se añade la parte proporcional del matutino.
+        //    - En el turno vespertino: se suman los dos turnos completos y se añade la parte proporcional del vespertino.
+        let metaAcumulada = 0;
+        if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
+          const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
+          metaAcumulada = Math.floor(horasTranscurridasNocturno) * sumaMetaNocturno;
+        } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
+          metaAcumulada = metaTotalNocturno;
+          const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
+          metaAcumulada += Math.floor(horasTranscurridasMatutino) * sumaMetaMatutino;
+        } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
+          metaAcumulada = metaTotalNocturno + metaTotalMatutino;
+          const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
+          metaAcumulada += Math.floor(horasTranscurridasVespertino) * sumaMetaVespertino;
+        }
+        setMeta(metaAcumulada);
+        // 8. Obtener el último registro para definir la siguiente ventana de 30 minutos
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
-            `${actual.fecha} ${actual.hour}`,
-            'YYYY-MM-DD HH:mm:ss',
+            `${actual.fecha} ${actual.hour}`, 
+            'YYYY-MM-DD HH:mm:ss', 
             'America/Mexico_City'
           );
           return horaActual.isAfter(
@@ -109,8 +133,8 @@ const Tallado_Procesos = () => {
             : ultimo;
         }, registros[0]);
         const formattedLastHour = moment.tz(
-          `${ultimoRegistro.fecha} ${ultimoRegistro.hour}`,
-          'YYYY-MM-DD HH:mm:ss',
+          `${ultimoRegistro.fecha} ${ultimoRegistro.hour}`, 
+          'YYYY-MM-DD HH:mm:ss', 
           'America/Mexico_City'
         );
         setUltimaHora(formattedLastHour.format('HH:mm'));

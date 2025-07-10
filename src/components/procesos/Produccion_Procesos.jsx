@@ -21,23 +21,24 @@ const Produccion_Procesos = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. Obtener la meta por hora para producción desde '/metas/metas-manuales'
-        // Se busca el registro que tenga el nombre "32 JOB COMPLETE"
+        // 1. Obtención de metas desde '/metas/metas-manuales'
         const responseMetas = await clienteAxios.get('/metas/metas-manuales');
         const metaRegistro = responseMetas.data.registros.find(registro => registro.name === '32 JOB COMPLETE');
-        // Usamos los campos de la nueva estructura
+        // Extraemos las metas base para cada turno
         const metaBaseNocturno = metaRegistro ? metaRegistro.meta_nocturno : 0;
         const metaBaseMatutino = metaRegistro ? metaRegistro.meta_matutino : 0;
         const metaBaseVespertino = metaRegistro ? metaRegistro.meta_vespertino : 0;
-        // Definimos la meta base (por hora) para producción, usando el valor nocturno (puedes ajustarlo según tu lógica)
+        // Se asigna la meta base (por hora) según el turno nocturno (esto lo seguimos usando para otros cálculos o visualización)
         setMetaPorHora(metaBaseNocturno);
         // Definir las metas totales para cada turno según horas fijas: 8 para nocturno y matutino, 7 para vespertino
-        setMetaNocturno(8 * metaBaseNocturno);
-        setMetaMatutino(8 * metaBaseMatutino);
-        setMetaVespertino(7 * metaBaseVespertino);
+        const metaTotalNocturno = 8 * metaBaseNocturno;
+        const metaTotalMatutino = 8 * metaBaseMatutino;
+        const metaTotalVespertino = 7 * metaBaseVespertino;
+        setMetaNocturno(metaTotalNocturno);
+        setMetaMatutino(metaTotalMatutino);
+        setMetaVespertino(metaTotalVespertino);
         // 2. Obtener los registros de producción desde '/manual/manual/actualdia'
         const responseRegistros = await clienteAxios.get('/manual/manual/actualdia');
-        // Filtrar los registros que contengan "JOB COMPLETE"
         const registros = responseRegistros.data.registros.filter(registro =>
           registro.name.includes('JOB COMPLETE')
         );
@@ -45,10 +46,8 @@ const Produccion_Procesos = () => {
         // 3. Definir intervalos horarios de acuerdo a la jornada
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
-          // Nueva jornada: turno nocturno de hoy 22:00 a mañana 06:00 
-          // y los turnos matutino y vespertino corresponden al día siguiente.
+          // Jornada: turno nocturno de hoy 22:00 a mañana 06:00 
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
-          // En este caso se agregan 29 minutos al final para definir el corte
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(29, 'minutes');
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
           finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
@@ -63,7 +62,7 @@ const Produccion_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
-        // 4. Filtrar los registros según cada turno
+        // 4. Filtrar registros por turno
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
@@ -96,13 +95,24 @@ const Produccion_Procesos = () => {
         setHitsMatutino(sumaHitsMatutino);
         setHitsVespertino(sumaHitsVespertino);
         setTotalHits(sumaHitsNocturno + sumaHitsMatutino + sumaHitsVespertino);
-        // 6. Calcular la meta en vivo a partir del inicio del turno nocturno.
-        let horasTranscurridas = 0;
-        if (ahora.isAfter(inicioNocturno)) {
-          horasTranscurridas = ahora.diff(inicioNocturno, 'hours', true);
+        // 6. Calcular la meta en vivo acumulada según cada turno.
+        let metaAcumulada = 0;
+        if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
+          // Estamos en el turno nocturno
+          const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
+          metaAcumulada = Math.floor(horasTranscurridasNocturno) * metaBaseNocturno;
+        } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
+          // El turno nocturno ya se completó y estamos en el matutino
+          metaAcumulada = metaTotalNocturno; // meta completada del nocturno
+          const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
+          metaAcumulada += Math.floor(horasTranscurridasMatutino) * metaBaseMatutino;
+        } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
+          // Los turnos nocturno y matutino completados, y estamos en el vespertino
+          metaAcumulada = metaTotalNocturno + metaTotalMatutino;
+          const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
+          metaAcumulada += Math.floor(horasTranscurridasVespertino) * metaBaseVespertino;
         }
-        // Ahora, como metaBaseNocturno ya está definido, úsalo directamente
-        setMeta(Math.floor(horasTranscurridas) * metaBaseNocturno);
+        setMeta(metaAcumulada);
         // 7. Obtener el último registro para determinar el corte de la siguiente media hora
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
