@@ -55,7 +55,7 @@ const Tallado_Procesos = () => {
           finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(29, 'minutes');
           // Turno vespertino: hoy 14:30 a hoy 21:30
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
-          finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
+          finVespertino = ahora.clone().startOf('day').add(22, 'hours');
         }
         // 4. Filtrar los registros para cada turno
         const registrosNocturno = registros.filter(registro => {

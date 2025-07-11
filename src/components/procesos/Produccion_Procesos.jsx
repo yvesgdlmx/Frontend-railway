@@ -60,7 +60,7 @@ const Produccion_Procesos = () => {
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
           finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(29, 'minutes');
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
-          finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
+          finVespertino = ahora.clone().startOf('day').add(22, 'hours');
         }
         // 4. Filtrar registros por turno
         const registrosNocturno = registros.filter(registro => {
