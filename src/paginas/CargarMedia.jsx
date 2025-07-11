@@ -159,7 +159,7 @@ const CargarMedia = () => {
             </button>
             {media.nombre.match(/\.(jpg|jpeg|png|gif)$/i) ? (
               <img
-                src={`${backendUrl}/uploads/${media.nombre}`}
+                src={media.url || `${backendUrl}/uploads/${media.nombre}`}
                 alt={media.descripcion}
                 className="w-full h-48 object-cover rounded-md mb-4"
               />
