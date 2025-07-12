@@ -150,6 +150,13 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                             </div>
                           </td>
                         );
+                      } else if (col.Cell) {
+                        // Si la columna tiene definida la función Cell, úsala para renderizar el contenido.
+                        cell = (
+                          <td key={col.accessor} className="px-6 py-4 text-sm">
+                            {col.Cell({ cell: { value: row[col.accessor] } })}
+                          </td>
+                        );
                       } else {
                         cell = (
                           <td key={col.accessor} className="px-6 py-4 text-sm">
@@ -213,14 +220,25 @@ const TablaSurtidoMaquina = ({ columns, finalFilteredData, totalsRow }) => {
                       </td>
                     );
                   } else {
-                    cell = (
-                      <td
-                        key={col.accessor}
-                        className="px-6 py-4 text-sm border-b border-gray-200"
-                      >
-                        {totalsRow[col.accessor] !== undefined ? totalsRow[col.accessor] : "-"}
-                      </td>
-                    );
+                    // Aquí también se revisa si se definió un Cell para columnas que no sean "nombre" o columnas horarias
+                    if (col.Cell) {
+                      cell = (
+                        <td key={col.accessor} className="px-6 py-4 text-sm">
+                          {col.Cell({ cell: { value: totalsRow[col.accessor] } })}
+                        </td>
+                      );
+                    } else {
+                      cell = (
+                        <td
+                          key={col.accessor}
+                          className="px-6 py-4 text-sm border-b border-gray-200"
+                        >
+                          {totalsRow[col.accessor] !== undefined
+                            ? totalsRow[col.accessor]
+                            : "-"}
+                        </td>
+                      );
+                    }
                   }
                   return (
                     <React.Fragment key={col.accessor}>

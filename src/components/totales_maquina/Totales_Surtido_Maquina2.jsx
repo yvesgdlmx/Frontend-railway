@@ -64,14 +64,26 @@ const Totales_Surtido_Maquina2 = () => {
   // Los registros de interés deben comenzar con "19 LENS LOG" o "20 LENS LOG"
   const validPrefixes = ["19 LENS LOG", "20 LENS LOG"];
   // Columnas fijas (Nombre y Total acumulado)
+  // Se modifica la columna "Nombre" para que muestre el valor modificado al renderizar
   const fixedColumns = [
-    { header: "Nombre", accessor: "nombre" },
+    {
+      header: "Nombre",
+      accessor: "nombre",
+      Cell: ({ cell: { value } }) => {
+        const displayMapping = {
+          "19 LENS LOG": "19 LENS LOG SF",
+          "20 LENS LOG": "20 LENS LOG FIN"
+        };
+        return displayMapping[value] || value;
+      },
+    },
     { header: "Total acumulado", accessor: "totalAcumulado" }
   ];
   // Generar e invertir las columnas de cada turno (para mostrarlas de derecha a izquierda)
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
+  
   // Reordenar columnas en el orden deseado: en LTR => vespertino, matutino, nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
   // Filtrar intervalos ya cumplidos.
@@ -84,7 +96,10 @@ const Totales_Surtido_Maquina2 = () => {
     let intervalEnd;
     if (turno === "meta_nocturno") {
       if (h >= 22) {
-        intervalEnd = moment().subtract(1, "day").set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
+        intervalEnd = moment()
+          .subtract(1, "day")
+          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
+          .add(1, "hour");
       } else {
         intervalEnd = moment().set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
       }
@@ -126,7 +141,6 @@ const Totales_Surtido_Maquina2 = () => {
   }, []);
   // Obtener y agrupar registros (endpoint "/manual/manual/actualdia")
   const surtidoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Surtido");
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -136,17 +150,14 @@ const Totales_Surtido_Maquina2 = () => {
         const registrosPorNombre = registros.filter((reg) =>
           validPrefixes.some(prefix => reg.name.startsWith(prefix))
         );
-        
         const currentDateStr = moment().format("YYYY-MM-DD");
         const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
-        
         // Filtrar por fecha: día actual o, de ayer, si la hora ≥ "22:00"
         const registrosFiltrados = registrosPorNombre.filter((reg) => {
           if (reg.fecha === currentDateStr) return true;
           if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
           return false;
         });
-        
         // Agrupar registros usando extractBaseName (esto nos dará "19 LENS LOG" o "20 LENS LOG")
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
@@ -179,7 +190,6 @@ const Totales_Surtido_Maquina2 = () => {
             return nuevoRegistro;
           }
         });
-        
         console.log("Datos agrupados con máquinas fijas:", dataConMaquinasFijas);
         setTableData(dataConMaquinasFijas);
       } catch (error) {
