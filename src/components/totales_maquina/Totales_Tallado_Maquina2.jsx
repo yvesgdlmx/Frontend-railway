@@ -72,47 +72,37 @@ const Totales_Tallado_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  // Reordenar las columnas para que, al leer de derecha a izquierda,
-  // aparezca primero el turno nocturno, luego el matutino y por último el vespertino.
-  // En un entorno LTR la concatenación es: vespertino, matutino, nocturno.
+  // Reordenar las columnas para que, en un entorno LTR, la concatenación sea:
+  // vespertino, matutino y luego nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar los intervalos que ya se han cumplido.
-  // NOTA: Para el nocturno, los intervalos con hora de inicio ≥22 pertenecen al día anterior.
+  // Definir los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y finaliza a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar los intervalos que ya se han cumplido dentro de la jornada actual.
+  // Para cada columna se crea un objeto moment a partir de journeyStart.
+  // Si la hora es menor a 22, se suma un día (ya que pertenece al día siguiente dentro de la misma jornada).
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
     const startStr = col.accessor.replace("hour_", "");
     const [h, m] = startStr.split(":").map(Number);
     const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      // Para el nocturno se tienen dos casos:
-      // • Si la hora es ≥22, corresponde al turno de ayer.
-      // • Si es <6, corresponde al turno de hoy.
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment()
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      }
-    } else {
-      // Para matutino y vespertino se usa la fecha actual.
-      intervalEnd = moment()
-        .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-        .add(1, "hour");
+    let colMoment = moment(journeyStart);
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
-    // Se muestra el intervalo solo si el momento actual es igual o posterior al instante final.
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(colMoment).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  // Combinar las columnas fijas con los intervalos ya filtrados
+  // Combinar las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
-  // Extraer solo los accesors de las columnas horarias filtradas (para calcular la meta acumulada)
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
-  // Obtener las metas de tallado
+  // Obtener las metas de tallado desde el endpoint "/metas/metas-tallados".
   useEffect(() => {
     const fetchMetas = async () => {
       try {
@@ -133,23 +123,24 @@ const Totales_Tallado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-
-  const talladoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Bloqueo de tallado");
-  // Obtener y agrupar registros de la API para tallado
+  const talladoSection = seccionesOrdenadas.find(
+    (seccion) => seccion.seccion === "Bloqueo de tallado"
+  );
+  // Obtener y agrupar registros desde el endpoint "/tallado/tallado/actualdia"
+  // Se filtran los registros utilizando como filtro los límites de jornada.
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/tallado/tallado/actualdia");
         const registros = response.data.registros || [];
-        const currentDateStr = moment(new Date()).format("YYYY-MM-DD");
-        const yesterdayDateStr = moment(new Date()).subtract(1, "days").format("YYYY-MM-DD");
-        // Filtrar registros: día actual y, de ayer, aquellos con hora ≥ "22:00"
+        // Filtrar registros utilizando los límites de jornada.
+        // Se crea un objeto moment combinando reg.fecha y los primeros 5 dígitos de reg.hour ("HH:MM")
+        // y se conservan solo aquellos cuyo timestamp esté entre journeyStart y journeyEnd.
         const registrosFiltrados = registros.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
-        // Agrupar registros por máquina (usando el nombre base)
+        // Agrupar registros por máquina (usando extractBaseName)
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
           const baseName = extractBaseName(reg.name);
@@ -163,16 +154,14 @@ const Totales_Tallado_Maquina2 = () => {
         // Definir la lista predefinida de máquinas para el área de tallado
         const maquinasArea = talladoSection ? talladoSection.nombres : [];
         const dataAgrupada = Object.values(agrupados);
-        // Completar la data con las máquinas fijas
+        // Completar la data con las máquinas fijas: se asegura que cada máquina de la lista se incluya.
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
-          // Buscar si ya existe registro para la máquina (comparación sin importar mayúsculas/minúsculas)
           const registroExistente = dataAgrupada.find(
             (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
           );
           if (registroExistente) {
             return registroExistente;
           } else {
-            // Si no existe, se crea un registro nuevo con totalAcumulado en 0 y cada columna horaria en 0
             const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
             hourAccessors.forEach((key) => {
               nuevoRegistro[key] = 0;
@@ -187,7 +176,7 @@ const Totales_Tallado_Maquina2 = () => {
     };
     fetchData();
   }, []);
-  // Calcular la meta acumulada en función de cada columna (turno)
+  // Función para calcular la meta acumulada según cada columna (según turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {
       const timeStr = key.replace("hour_", "");

@@ -74,37 +74,32 @@ const Totales_Engraver_Maquina2 = () => {
   // aparezca primero el turno nocturno, luego el matutino y por último el vespertino.
   // En un entorno LTR la concatenación es: vespertino, matutino, nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar los intervalos que ya se han cumplido.
-  // NOTA: Para el nocturno, los intervalos con hora de inicio ≥22 pertenecen al día anterior.
+  // Definir los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y finaliza a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar los intervalos que ya se han cumplido dentro de la jornada actual.
+  // Para cada columna se construye el momento a partir de journeyStart; si la hora es menor a 22 se suma un día.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
-    const startStr = col.accessor.replace("hour_", "");
-    const [h, m] = startStr.split(":").map(Number);
-    const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment()
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment()
-        .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-        .add(1, "hour");
+    const timeStr = col.accessor.replace("hour_", "");
+    const [h, m] = timeStr.split(":").map(Number);
+    let colMoment = moment(journeyStart);
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(colMoment).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  // Combinar las columnas fijas con los intervalos ya filtrados
+  // Combinar las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
-  // Obtener las metas de engravers desde el endpoint correspondiente
+  // Obtener las metas de engravers desde el endpoint correspondiente.
   useEffect(() => {
     const fetchMetas = async () => {
       try {
@@ -125,20 +120,24 @@ const Totales_Engraver_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-  const engraverSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Engraver");
+  const engraverSection = seccionesOrdenadas.find(
+    (seccion) => seccion.seccion === "Engraver"
+  );
   // Obtener y agrupar registros desde el endpoint "/engraver/engraver/actualdia"
+  // Se filtran los registros utilizando los límites de la jornada en lugar de comparar fechas simples.
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/engraver/engraver/actualdia");
         const registros = response.data.registros || [];
-        const currentDateStr = moment(new Date()).format("YYYY-MM-DD");
-        const yesterdayDateStr = moment(new Date()).subtract(1, "days").format("YYYY-MM-DD");
-        // Filtrar registros: día actual y, de ayer, aquellos con hora ≥ "22:00"
+        // Filtrar registros mediante la combinación de reg.fecha y reg.hour (usando los primeros 5 dígitos "HH:MM")
+        // y conservar solo aquellos cuyo timestamp se encuentre entre journeyStart y journeyEnd.
         const registrosFiltrados = registros.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(
+            `${reg.fecha} ${reg.hour.slice(0, 5)}`,
+            "YYYY-MM-DD HH:mm"
+          );
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
         // Agrupar registros por estación (usando el nombre base)
         const agrupados = {};
@@ -152,11 +151,8 @@ const Totales_Engraver_Maquina2 = () => {
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
         const maquinasArea = engraverSection ? engraverSection.nombres : [];
-        // Convertir el objeto agrupado a un array
         const dataAgrupada = Object.values(agrupados);
-        // Completar la data con las máquinas fijas:
-        // Recorremos la lista de máquinas y verificamos si existe registro;
-        // de lo contrario, se crea un objeto con valores por defecto.
+        // Completar la data: para cada máquina en la lista (incluso sin registros) se asegura tener valores predeterminados.
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
           const registroExistente = dataAgrupada.find(
             (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
@@ -191,7 +187,9 @@ const Totales_Engraver_Maquina2 = () => {
     return tableData.map((row) => {
       const metas = metasMapping[row.nombre] || {};
       const metaAcumulada =
-        Object.keys(metas).length > 0 ? computeMetaAcumulada(metas, hourAccessors) : "";
+        Object.keys(metas).length > 0
+          ? computeMetaAcumulada(metas, hourAccessors)
+          : "";
       return { ...row, metaAcumulada, metas };
     });
   }, [tableData, metasMapping, hourAccessors]);

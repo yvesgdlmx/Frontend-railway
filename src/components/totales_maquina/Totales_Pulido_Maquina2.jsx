@@ -70,38 +70,39 @@ const Totales_Pulido_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  // Reordenar las columnas para que, al leer de derecha a izquierda,
-  // aparezca primero el turno nocturno, luego el matutino y por último el vespertino.
-  // En un entorno LTR la concatenación es: vespertino, matutino, nocturno.
+  // Reordenamos las columnas para que, al leer de derecha a izquierda,
+  // la concatenación sea: vespertino, matutino, nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar los intervalos que ya se han cumplido.
-  // NOTA: Para el nocturno, los intervalos con hora de inicio ≥22 pertenecen al día anterior.
+  // Determinamos la hora actual y el inicio de la jornada (a las 22:00).
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    // Si es antes de las 22:00, la jornada actual empezó ayer a las 22:00.
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar los intervalos (columnas) que ya se han cumplido dentro de la jornada actual.
+  // Cada columna se muestra solo si se completó su intervalo (1 hora después de su inicio).
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
-    const startStr = col.accessor.replace("hour_", "");
-    const [h, m] = startStr.split(":").map(Number);
-    const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment()
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment()
-        .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-        .add(1, "hour");
+    const timeStr = col.accessor.replace("hour_", "");
+    const [h, m] = timeStr.split(":").map(Number);
+    
+    // Se arma el momento de la columna usando el "journeyStart".
+    // Si la hora es menor a 22, corresponde al día siguiente en la misma jornada.
+    let colMoment = moment(journeyStart);
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    
+    // Se suma 1 hora para obtener el final del intervalo.
+    const intervalEnd = moment(colMoment).add(1, "hour");
+    
+    // Solo se muestra la columna si la hora actual ya alcanzó o superó el fin del intervalo.
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  // Combinar las columnas fijas con los intervalos ya filtrados
+  // Combinar las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
   // Obtener las metas de pulidos desde el endpoint correspondiente.
@@ -125,7 +126,6 @@ const Totales_Pulido_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-
   const pulidoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Pulido");
   // Obtener y agrupar registros desde el endpoint "/pulido/pulido/actualdia"
   useEffect(() => {
@@ -133,13 +133,14 @@ const Totales_Pulido_Maquina2 = () => {
       try {
         const response = await clienteAxios.get("/pulido/pulido/actualdia");
         const registros = response.data.registros || [];
-        const currentDateStr = moment(new Date()).format("YYYY-MM-DD");
-        const yesterdayDateStr = moment(new Date()).subtract(1, "days").format("YYYY-MM-DD");
-        // Filtrar registros: día actual y, de ayer, aquellos con hora ≥ "22:00"
+        // Filtrar los registros según la jornada actual definida entre journeyStart y journeyEnd.
+        // Para cada registro, combinamos reg.fecha y reg.hour (formateando solo HH:mm) para crear el momento.
         const registrosFiltrados = registros.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(
+            `${reg.fecha} ${reg.hour.slice(0, 5)}`,
+            "YYYY-MM-DD HH:mm"
+          );
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
         // Agrupar registros por estación (usando el nombre base)
         const agrupados = {};
@@ -154,18 +155,17 @@ const Totales_Pulido_Maquina2 = () => {
         });
         // Definir la lista predefinida de máquinas para pulidos
         const maquinasArea = pulidoSection ? pulidoSection.nombres : [];
-        
         const dataAgrupada = Object.values(agrupados);
         // Completar la data con las máquinas fijas
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
-          // Buscamos si ya existe un registro para la máquina (usando comparación sin importar mayúsculas/minúsculas)
+          // Buscamos si ya existe un registro para la máquina (comparación sin distinguir mayúsculas/minúsculas)
           const registroExistente = dataAgrupada.find(
             (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
           );
           if (registroExistente) {
             return registroExistente;
           } else {
-            // Si no existe, se crea el registro con valores por defecto
+            // Si no existe, se crea un registro con valores por defecto
             const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
             hourAccessors.forEach((key) => {
               nuevoRegistro[key] = 0;

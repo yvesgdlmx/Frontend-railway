@@ -70,38 +70,34 @@ const Totales_Generado_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  // Reordenar las columnas para que, al leer de derecha a izquierda,
-  // aparezca primero el turno nocturno, luego el matutino y por último el vespertino.
-  // En un entorno LTR la concatenación es: vespertino, matutino, nocturno.
+  // Reordenar las columnas para que, en un entorno LTR, la concatenación sea:
+  // vespertino, matutino y luego nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar los intervalos que ya se han cumplido.
-  // NOTA: Para el nocturno, los intervalos con hora de inicio ≥22 pertenecen al día anterior.
+  // Definir los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y finaliza a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar los intervalos que ya se han cumplido dentro de la jornada actual.
+  // Para cada columna, se construye un objeto moment a partir de journeyStart;
+  // si la hora es menor a 22 se suma un día, puesto que pertenece al día siguiente.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
-    const startStr = col.accessor.replace("hour_", "");
-    const [h, m] = startStr.split(":").map(Number);
-    const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment()
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment()
-        .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-        .add(1, "hour");
+    const timeStr = col.accessor.replace("hour_", "");
+    const [h, m] = timeStr.split(":").map(Number);
+    const turno = getTurnWithTime(timeStr);
+    let colMoment = moment(journeyStart);
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(colMoment).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  // Combinar las columnas fijas con los intervalos ya filtrados
+  // Combinar las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
   // Obtener las metas de generadores desde el endpoint correspondiente.
@@ -125,25 +121,23 @@ const Totales_Generado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-
-  const generadoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Generado");
-  // Se consulta el endpoint "/generadores/generadores/actualdia".
+  const generadoSection = seccionesOrdenadas.find(
+    (seccion) => seccion.seccion === "Generado"
+  );
+  // Obtener y agrupar registros desde el endpoint "/generadores/generadores/actualdia"
+  // Se filtran los registros utilizando los límites de la jornada.
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/generadores/generadores/actualdia");
         const registros = response.data.registros || [];
-        const currentDateStr = moment(new Date()).format("YYYY-MM-DD");
-        const yesterdayDateStr = moment(new Date()).subtract(1, "days").format("YYYY-MM-DD");
-        
-        // Filtrar según fechas
+        // Construir un objeto moment para cada registro usando reg.fecha y reg.hour (los primeros 5 caracteres "HH:MM")
+        // y filtrar solo aquellos registros cuyo timestamp esté entre journeyStart y journeyEnd.
         const registrosFiltrados = registros.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
-        
-        // Agrupar registros por estación (usando el nombre base)
+        // Agrupar registros por máquina (usando extractBaseName)
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
           const baseName = extractBaseName(reg.name);
@@ -154,12 +148,8 @@ const Totales_Generado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        
         const dataAgrupada = Object.values(agrupados);
-        
         const maquinasArea = generadoSection ? generadoSection.nombres : [];
-        
-        // Completamos la data con las máquinas fijas
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
           const registroExistente = dataAgrupada.find(
             (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
@@ -174,7 +164,6 @@ const Totales_Generado_Maquina2 = () => {
             return nuevoRegistro;
           }
         });
-        
         setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de generadores:", error);

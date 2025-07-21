@@ -61,7 +61,7 @@ const generateNocturnoColumns = () => {
 const Totales_Biselado_Maquina2 = () => {
   const [tableData, setTableData] = useState([]);
   const [metasMapping, setMetasMapping] = useState({});
-  // Columnas fijas (Nombre y Total acumulado)
+  // Declaramos las columnas fijas (Nombre y Total acumulado)
   const fixedColumns = [
     { header: "Nombre", accessor: "nombre" },
     { header: "Total acumulado", accessor: "totalAcumulado" }
@@ -71,39 +71,36 @@ const Totales_Biselado_Maquina2 = () => {
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
   // Reordenar las columnas para que, de derecha a izquierda,
-  // aparezca primero el turno nocturno, luego el matutino y por último el vespertino.
+  // aparezca primero el turno nocturno, luego el matutino y finalmente el vespertino.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar intervalos ya cumplidos.
+  // Definición de los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y finaliza a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    // Si la hora actual es antes de las 22:00, la jornada actual inició ayer a las 22:00.
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar las columnas horarias que ya se han cumplido en la jornada actual.
+  // Para cada columna, se construye su fecha/hora a partir de journeyStart.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
-    const startStr = col.accessor.replace("hour_", "");
-    const [h, m] = startStr.split(":").map(Number);
-    const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment()
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment()
-        .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-        .add(1, "hour");
+    const timeStr = col.accessor.replace("hour_", "");
+    const [h, m] = timeStr.split(":").map(Number);
+    let colMoment = moment(journeyStart);
+    // Si la hora es menor a 22, corresponde al día siguiente dentro de la jornada.
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(colMoment).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  
-  // Combinar columnas fijas con las filtradas
+  // Combinar las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
-  // Obtener las metas de biselados desde el endpoint correspondiente
+  // Obtener las metas de biselados desde el endpoint correspondiente.
   useEffect(() => {
     const fetchMetas = async () => {
       try {
@@ -124,22 +121,25 @@ const Totales_Biselado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-  const biseladoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Biselado");
+  const biseladoSection = seccionesOrdenadas.find(
+    (seccion) => seccion.seccion === "Biselado"
+  );
   // Obtener y agrupar registros desde el endpoint "/biselado/biselado/actualdia"
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/biselado/biselado/actualdia");
         const registros = response.data.registros || [];
-        const currentDateStr = moment(new Date()).format("YYYY-MM-DD");
-        const yesterdayDateStr = moment(new Date()).subtract(1, "days").format("YYYY-MM-DD");
-        // Filtrar registros según la fecha y hora
+        // Filtrar registros usando los límites de la jornada actual.
+        // Se combina reg.fecha y reg.hour (usando los primeros 5 dígitos "HH:MM") para formar un momento.
         const registrosFiltrados = registros.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(
+            `${reg.fecha} ${reg.hour.slice(0, 5)}`,
+            "YYYY-MM-DD HH:mm"
+          );
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
-        // Agrupar registros por la máquina (usando el nombre base)
+        // Agrupar los registros por máquina (usando el nombre base)
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
           const baseName = extractBaseName(reg.name);
@@ -150,11 +150,11 @@ const Totales_Biselado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        // Convierte el objeto agrupado en un array
+        // Convertir el objeto agrupado en un array.
         const dataAgrupada = Object.values(agrupados);
-        // Lista de máquinas de la zona (las que deseas mostrar, incluso sin registros)
+        // Lista de máquinas según la zona (se muestran incluso sin registros)
         const maquinasArea = biseladoSection ? biseladoSection.nombres : [];
-        // Se hace una búsqueda case-insensitive para verificar si ya existe el registro.
+        // Se realiza una búsqueda sin distinguir mayúsculas/minúsculas.
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
           const registroExistente = dataAgrupada.find(
             (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
@@ -184,17 +184,18 @@ const Totales_Biselado_Maquina2 = () => {
       return total + Number(metas[turno] || 0);
     }, 0);
   };
-  // Construir datos finales inyectando "metas" y "metaAcumulada"
+  // Construir los datos finales inyectando "metas" y "metaAcumulada"
   const finalFilteredData = useMemo(() => {
     return tableData.map((row) => {
       const metas = metasMapping[row.nombre] || {};
-      const metaAcumulada = Object.keys(metas).length > 0 
-         ? computeMetaAcumulada(metas, hourAccessors)
-         : "";
+      const metaAcumulada =
+        Object.keys(metas).length > 0
+          ? computeMetaAcumulada(metas, hourAccessors)
+          : "";
       return { ...row, metaAcumulada, metas };
     });
   }, [tableData, metasMapping, hourAccessors]);
-  // Calcular fila de totales por columna
+  // Calcular la fila de totales por cada columna
   const totalsRow = useMemo(() => {
     return allColumns.reduce((acc, col) => {
       if (col.accessor === "nombre") {

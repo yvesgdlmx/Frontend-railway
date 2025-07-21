@@ -71,28 +71,32 @@ const Totales_Desbloqueo_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  // Reordenar columnas en el orden deseado: en LTR => vespertino, matutino, nocturno.
+  // Reordenar columnas en el orden deseado: en un entorno LTR => vespertino, matutino, nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar intervalos ya cumplidos.
+  // Definir los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y finaliza a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    // Si la hora actual es anterior a las 22:00, se asume que la jornada inició ayer a las 22:00.
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar las columnas horarias que ya se han cumplido en la jornada actual.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
-    const startStr = col.accessor.replace("hour_", "");
-    const [h, m] = startStr.split(":").map(Number);
-    const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment().subtract(1, "day").set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
-      } else {
-        intervalEnd = moment().set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment().set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
+    const timeStr = col.accessor.replace("hour_", "");
+    const [h, m] = timeStr.split(":").map(Number);
+    let colMoment = moment(journeyStart);
+    // Si la hora es menor a 22, corresponde al día siguiente de la jornada.
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(colMoment).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  // Combinamos las columnas fijas con las de intervalos ya filtrados
+  // Combinamos las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
   // Obtener las metas (endpoint "metas/metas-manuales"), filtrando por registros cuyo name comience con "320 DEBLOCKING"
@@ -134,15 +138,15 @@ const Totales_Desbloqueo_Maquina2 = () => {
           validPrefixes.some(prefix => reg.name.startsWith(prefix))
         );
         console.log("Registros manuales filtrados por nombre:", registrosPorNombre);
-        const currentDateStr = moment().format("YYYY-MM-DD");
-        const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
-        // Posteriormente se filtra por fecha (día actual o, de ayer, si la hora ≥ "22:00")
+        
+        // Filtrar registros usando los límites de la jornada actual.
+        // Se combinan reg.fecha y los primeros 5 dígitos de reg.hour ("HH:MM") para formar un objeto Moment.
         const registrosFiltrados = registrosPorNombre.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
-        // Agrupar registros utilizando extractBaseName (esto nos dará "320 DEBLOCKING")
+        
+        // Agrupar registros utilizando extractBaseName (esto dará como resultado "320 DEBLOCKING")
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
           const baseName = extractBaseName(reg.name);
@@ -174,7 +178,9 @@ const Totales_Desbloqueo_Maquina2 = () => {
     return tableData.map((row) => {
       const metas = metasMapping[row.nombre] || {};
       const metaAcumulada =
-        Object.keys(metas).length > 0 ? computeMetaAcumulada(metas, hourAccessors) : "";
+        Object.keys(metas).length > 0
+          ? computeMetaAcumulada(metas, hourAccessors)
+          : "";
       return { ...row, metaAcumulada, metas };
     });
   }, [tableData, metasMapping, hourAccessors]);

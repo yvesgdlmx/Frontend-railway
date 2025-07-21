@@ -71,28 +71,33 @@ const Totales_Produccion_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  // Reordenar columnas en el orden deseado: en LTR => vespertino, matutino, nocturno.
+  // Reordenar las columnas: en un entorno LTR => vespertino, matutino, nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar intervalos ya cumplidos.
+  // Definir los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y finaliza a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar los intervalos que ya se han cumplido dentro de la jornada actual.
+  // Para cada columna, se construye un objeto moment a partir de journeyStart;
+  // si la hora es menor a 22 se suma un día (corresponde al día siguiente dentro de la misma jornada).
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
     const startStr = col.accessor.replace("hour_", "");
     const [h, m] = startStr.split(":").map(Number);
     const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment().subtract(1, "day").set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
-      } else {
-        intervalEnd = moment().set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment().set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
+    let colMoment = moment(journeyStart);
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(colMoment).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  // Combinamos las columnas fijas con las de intervalos ya filtrados
+  // Combinar las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
   // Obtener las metas (endpoint "metas/metas-manuales"), filtrando por registros cuyo name comience con "32 JOB COMPLETE"
@@ -101,7 +106,6 @@ const Totales_Produccion_Maquina2 = () => {
       try {
         const response = await clienteAxios.get("metas/metas-manuales");
         const registrosMetas = response.data.registros || [];
-        // Filtrar para registros cuyo nombre comienza con "32 JOB COMPLETE"
         const registrosFiltrados = registrosMetas.filter((reg) =>
           validPrefixes.some(prefix => reg.name.startsWith(prefix))
         );
@@ -123,26 +127,27 @@ const Totales_Produccion_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-  // Obtener y agrupar registros (endpoint "/manual/manual/actualdia")
+  // Obtener y agrupar registros desde el endpoint "/manual/manual/actualdia"
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/manual/manual/actualdia");
         const registros = response.data.registros || [];
-        // Filtrar por registros cuyo name comience con "32 JOB COMPLETE"
+        // Filtrar solo los registros cuyo name comience con "32 JOB COMPLETE"
         const registrosPorNombre = registros.filter((reg) =>
           validPrefixes.some(prefix => reg.name.startsWith(prefix))
         );
         console.log("Registros manuales filtrados por nombre:", registrosPorNombre);
-        const currentDateStr = moment().format("YYYY-MM-DD");
-        const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
-        // Posteriormente se filtra por fecha (día actual o, de ayer, si la hora ≥ "22:00")
+        
+        // Filtrar registros usando los límites de la jornada:
+        // Se crea un objeto moment combinando reg.fecha y los primeros 5 dígitos de reg.hour ("HH:MM")
+        // y se mantienen solo aquellos registros cuyo timestamp esté entre journeyStart y journeyEnd.
         const registrosFiltrados = registrosPorNombre.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
-        // Agrupar registros usando extractBaseName (esto nos dará "32 JOB COMPLETE")
+        
+        // Agrupar registros usando extractBaseName (esto dará "32 JOB COMPLETE")
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
           const baseName = extractBaseName(reg.name);
@@ -161,7 +166,7 @@ const Totales_Produccion_Maquina2 = () => {
     };
     fetchData();
   }, []);
-  // Función para calcular la meta acumulada por columna según turno
+  // Función para calcular la meta acumulada según cada columna (según turno)
   const computeMetaAcumulada = (metas, columnKeys) => {
     return columnKeys.reduce((total, key) => {
       const timeStr = key.replace("hour_", "");

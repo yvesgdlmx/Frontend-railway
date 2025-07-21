@@ -60,7 +60,7 @@ const generateNocturnoColumns = () => {
 };
 const Totales_HardCoat_Maquina2 = () => {
   const [tableData, setTableData] = useState([]);
-  // Los registros de interés serán aquellos cuyo name comience con alguno de estos prefijos:
+  // Registros de interés: aquellos cuyo name comienza con alguno de estos prefijos.
   const validPrefixes = [
     "46 MR3.4",
     "48 MR3.1",
@@ -69,7 +69,7 @@ const Totales_HardCoat_Maquina2 = () => {
     "91 VELOCITY 1",
     "92 VELOCITY 2"
   ];
-  // Definición de las columnas fijas y las columnas horarias
+  // Columnas fijas y columnas horarias.
   const fixedColumns = [
     { header: "Nombre", accessor: "nombre" },
     { header: "Total acumulado", accessor: "totalAcumulado" }
@@ -77,57 +77,56 @@ const Totales_HardCoat_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  // El orden para entorno LTR es: vespertino, matutino, nocturno
+  // Orden para entorno LTR: vespertino, matutino y luego nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar las columnas cuyo intervalo ya concluyó
+  // Se definen los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y termina a las 22:00 del día siguiente.
   const currentTime = moment();
-  const filteredHourColumns = hourColumns.filter(col => {
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtra las columnas horarias: incluimos solo aquellas cuyo intervalo completo de 1 hora ya concluyó,
+  // utilizando los límites de jornada.
+  const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
     const startStr = col.accessor.replace("hour_", "");
     const [h, m] = startStr.split(":").map(Number);
-    const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment()
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment()
-        .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-        .add(1, "hour");
+    let intervalStart = moment(journeyStart);
+    // Si la hora es menor a 22, significa que corresponde al día siguiente dentro de la misma jornada.
+    if (h < 22) {
+      intervalStart.add(1, "day");
     }
+    intervalStart.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(intervalStart).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
   const allColumns = [...fixedColumns, ...filteredHourColumns];
-  const hourAccessors = filteredHourColumns.map(col => col.accessor);
-
-  const hardcoatSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Hardcoat");
-  // Obtener y agrupar los registros desde "/manual/manual/actualdia"
+  const hourAccessors = filteredHourColumns.map((col) => col.accessor);
+  const hardcoatSection = seccionesOrdenadas.find(
+    (seccion) => seccion.seccion === "Hardcoat"
+  );
+  // Se obtiene y agrupan los registros desde el endpoint "/manual/manual/actualdia",
+  // filtrando los registros cuyo timestamp (combinación de reg.fecha y reg.hour) esté entre journeyStart y journeyEnd.
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/manual/manual/actualdia");
         const registros = response.data.registros || [];
-        // Filtrar registros por nombre según los prefijos válidos
+        // Filtrar registros por nombre usando los prefijos válidos.
         const registrosFiltradosPorNombre = registros.filter(reg =>
           validPrefixes.some(prefix => reg.name && reg.name.startsWith(prefix))
         );
-        // Filtrar registros por fecha (día actual o, de ayer, cuando la hora ≥ "22:00")
-        const currentDateStr = moment().format("YYYY-MM-DD");
-        const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
+        // Filtrar registros usando los límites de jornada.
         const registrosFiltrados = registrosFiltradosPorNombre.filter(reg => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(
+            `${reg.fecha} ${reg.hour.slice(0, 5)}`,
+            "YYYY-MM-DD HH:mm"
+          );
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
-        // Agrupar los registros usando extractBaseName (por ejemplo, "46 MR3.4", etc.)
+        // Agrupar los registros por máquina usando extractBaseName.
         const agrupados = {};
         registrosFiltrados.forEach(reg => {
           const baseName = extractBaseName(reg.name);
@@ -138,14 +137,10 @@ const Totales_HardCoat_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        // Lista fija de máquinas HardCoat
-        const maquinasArea = hardcoatSection ? hardcoatSection.nombres : [];
-        // Convertir el objeto agrupado a un array
         const dataAgrupada = Object.values(agrupados);
-        // Completar la data con las máquinas fijas.
-        // Para cada máquina de la lista predefinida se busca si ya existe un registro agrupado;
-        // en caso negativo se crea un nuevo objeto con totalAcumulado en 0 y
-        // se inicializan todas las columnas horarias (usando hourAccessors) en 0.
+        // Lista fija de máquinas HardCoat.
+        const maquinasArea = hardcoatSection ? hardcoatSection.nombres : [];
+        // Completa la data para incluir todas las máquinas de la lista predefinida.
         const dataConMaquinasFijas = maquinasArea.map(maquina => {
           const registroExistente = dataAgrupada.find(
             reg => reg.nombre.toLowerCase() === maquina.toLowerCase()
@@ -167,19 +162,18 @@ const Totales_HardCoat_Maquina2 = () => {
     };
     fetchData();
   }, []);
-  // Al no manejar metas, inyectamos un objeto vacío en "metas" y dejamos "metaAcumulada" vacío.
+  // Al no manejar metas, inyecta un objeto vacío en "metas" y deja "metaAcumulada" en blanco.
   const finalFilteredData = useMemo(() => {
     return tableData.map(row => ({ ...row, metas: {}, metaAcumulada: "" }));
   }, [tableData]);
-  // Calcular la fila de totales para cada columna
+  // Calcula la fila de totales por columna.
   const totalsRow = useMemo(() => {
     return allColumns.reduce((acc, col) => {
       if (col.accessor === "nombre") {
         acc[col.accessor] = "Totales";
       } else {
-        acc[col.accessor] = finalFilteredData.reduce((sum, row) => {
-          return sum + Number(row[col.accessor] || 0);
-        }, 0);
+        acc[col.accessor] = finalFilteredData.reduce((sum, row) =>
+          sum + Number(row[col.accessor] || 0), 0);
       }
       return acc;
     }, {});

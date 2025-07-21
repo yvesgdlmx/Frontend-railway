@@ -61,6 +61,8 @@ const generateNocturnoColumns = () => {
 const Totales_Terminado_Maquina2 = () => {
   const [tableData, setTableData] = useState([]);
   const [metasMapping, setMetasMapping] = useState({});
+  // Los registros de interés deben comenzar con "32 JOB COMPLETE"
+  const validPrefixes = ["32 JOB COMPLETE"];
   // Columnas fijas (Nombre y Total acumulado)
   const fixedColumns = [
     { header: "Nombre", accessor: "nombre" },
@@ -70,41 +72,35 @@ const Totales_Terminado_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  // Reordenar las columnas para que, de derecha a izquierda, aparezca primero el nocturno, luego el matutino y por último el vespertino.
-  // En un entorno LTR la concatenación es: vespertino, matutino, nocturno.
+  // Reordenar las columnas para que, en un entorno LTR, la concatenación sea: vespertino, matutino, nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar los intervalos que ya se han cumplido.
-  // NOTA: Para el nocturno, intervalos con hora de inicio ≥22 pertenecen al día anterior.
+  // Definir los límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y finaliza a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar los intervalos que ya se han cumplido dentro de la jornada actual.
+  // Para cada columna se crea un objeto moment a partir de journeyStart; si la hora es menor a 22 se suma un día.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
     const startStr = col.accessor.replace("hour_", "");
     const [h, m] = startStr.split(":").map(Number);
     const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment()
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment()
-        .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-        .add(1, "hour");
+    let colMoment = moment(journeyStart);
+    if (h < 22) {
+      colMoment.add(1, "day");
     }
+    colMoment.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(colMoment).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  
-  // Combinar las columnas fijas con las de intervalos ya filtrados
+  // Combinar las columnas fijas con las columnas horarias filtradas.
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
-  // Obtener las metas de terminados desde el endpoint correspondiente
+  // Obtener las metas de terminados desde el endpoint "/metas/metas-terminados"
   useEffect(() => {
     const fetchMetas = async () => {
       try {
@@ -125,21 +121,23 @@ const Totales_Terminado_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-
-  const terminadoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Bloqueo de terminado");
-  // Obtener y agrupar registros desde "/terminado/terminado/actualdia"
+  const terminadoSection = seccionesOrdenadas.find(
+    (seccion) => seccion.seccion === "Bloqueo de terminado"
+  );
+  // Obtener y agrupar registros desde el endpoint "/terminado/terminado/actualdia"
+  // Se filtran los registros utilizando los límites de jornada.
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get("/terminado/terminado/actualdia");
         const registros = response.data.registros || [];
-        const currentDateStr = moment().format("YYYY-MM-DD");
-        const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
+        // Crear un objeto moment por cada registro a partir de reg.fecha y los primeros 5 caracteres de reg.hour ("HH:MM")
+        // y filtrar aquellos registros cuyo timestamp se encuentre entre journeyStart y journeyEnd.
         const registrosFiltrados = registros.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
+        // Agrupar registros por máquina usando extractBaseName
         const agrupados = {};
         registrosFiltrados.forEach((reg) => {
           const baseName = extractBaseName(reg.name);
@@ -150,12 +148,9 @@ const Totales_Terminado_Maquina2 = () => {
           const key = `hour_${reg.hour.slice(0, 5)}`;
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
-        const maquinasArea = terminadoSection ? terminadoSection.nombres : [];
-        // Convertir el objeto agrupado a un array
         const dataAgrupada = Object.values(agrupados);
-        // Completar la data con las máquinas fijas:
-        // Si una máquina de la lista no existe en los datos agrupados,
-        // se crea un objeto con totalAcumulado 0 e inicializando todas las columnas horarias en 0.
+        const maquinasArea = terminadoSection ? terminadoSection.nombres : [];
+        // Completar la data con las máquinas fijas: si una máquina no tiene registros se crea su objeto con todos los valores en 0.
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
           const registroExistente = dataAgrupada.find(
             (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
@@ -189,9 +184,8 @@ const Totales_Terminado_Maquina2 = () => {
   const finalFilteredData = useMemo(() => {
     return tableData.map((row) => {
       const metas = metasMapping[row.nombre] || {};
-      const metaAcumulada = Object.keys(metas).length > 0 
-         ? computeMetaAcumulada(metas, hourAccessors)
-         : "";
+      const metaAcumulada =
+        Object.keys(metas).length > 0 ? computeMetaAcumulada(metas, hourAccessors) : "";
       return { ...row, metaAcumulada, metas };
     });
   }, [tableData, metasMapping, hourAccessors]);
@@ -212,10 +206,10 @@ const Totales_Terminado_Maquina2 = () => {
     <div className="p-4">
       <Heading title="Resumen terminado" />
       <AreaSelect />
-      <TablaSurtidoMaquina 
-        columns={allColumns} 
-        finalFilteredData={finalFilteredData} 
-        totalsRow={totalsRow} 
+      <TablaSurtidoMaquina
+        columns={allColumns}
+        finalFilteredData={finalFilteredData}
+        totalsRow={totalsRow}
       />
     </div>
   );

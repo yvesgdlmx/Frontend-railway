@@ -83,48 +83,46 @@ const Totales_Surtido_Maquina2 = () => {
   const matutinoColumns = generateMatutinoColumns().reverse();
   const vespertinoColumns = generateVespertinoColumns().reverse();
   const nocturnoColumns = generateNocturnoColumns().reverse();
-  
   // Reordenar columnas en el orden deseado: en LTR => vespertino, matutino, nocturno.
   const hourColumns = [...vespertinoColumns, ...matutinoColumns, ...nocturnoColumns];
-  // Filtrar intervalos ya cumplidos.
+  // Definir límites de la jornada:
+  // La jornada inicia a las 22:00 de un día y termina a las 22:00 del día siguiente.
   const currentTime = moment();
+  let journeyStart = moment().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
+  if (currentTime.isBefore(journeyStart)) {
+    journeyStart.subtract(1, "day");
+  }
+  const journeyEnd = moment(journeyStart).add(1, "day");
+  // Filtrar columnas horarias. Solo se incluyen aquellas columnas cuyo intervalo (1 hora) ya concluyó.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
     const startStr = col.accessor.replace("hour_", "");
     const [h, m] = startStr.split(":").map(Number);
-    const turno = getTurnWithTime(startStr);
-    let intervalEnd;
-    if (turno === "meta_nocturno") {
-      if (h >= 22) {
-        intervalEnd = moment()
-          .subtract(1, "day")
-          .set({ hour: h, minute: m, second: 0, millisecond: 0 })
-          .add(1, "hour");
-      } else {
-        intervalEnd = moment().set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
-      }
-    } else {
-      intervalEnd = moment().set({ hour: h, minute: m, second: 0, millisecond: 0 }).add(1, "hour");
+    let intervalStart = moment(journeyStart);
+    // Si la hora es menor a 22, se asume que corresponde al día siguiente dentro de la misma jornada.
+    if (h < 22) {
+      intervalStart.add(1, "day");
     }
+    intervalStart.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    const intervalEnd = moment(intervalStart).add(1, "hour");
     return currentTime.isSameOrAfter(intervalEnd);
   });
-  // Combinamos las columnas fijas con las de intervalos ya filtrados
+  // Combinamos las columnas fijas con las horarias filtradas
   const allColumns = [...fixedColumns, ...filteredHourColumns];
   const hourAccessors = filteredHourColumns.map((col) => col.accessor);
-  // Obtener las metas (endpoint "metas/metas-manuales"), filtrando por registros cuyo name comience con los prefijos válidos
+  // Obtener las metas (endpoint "metas/metas-manuales")
+  // Se filtran los registros cuyo name comience con "19 LENS LOG" o "20 LENS LOG"
   useEffect(() => {
     const fetchMetas = async () => {
       try {
         const response = await clienteAxios.get("metas/metas-manuales");
         const registrosMetas = response.data.registros || [];
-        // Filtrar usando startsWith para ver si el name comienza con "19 LENS LOG" o "20 LENS LOG"
         const registrosFiltrados = registrosMetas.filter((reg) =>
           validPrefixes.some(prefix => reg.name.startsWith(prefix))
         );
-        console.log("Metas filtradas:", registrosFiltrados);
         const mapping = {};
         registrosFiltrados.forEach((reg) => {
-          // Al extraer el nombre base, se obtendrá "19 LENS LOG" o "20 LENS LOG"
+          // Al extraer el nombre base, se obtiene "19 LENS LOG" o "20 LENS LOG"
           const base = extractBaseName(reg.name);
           mapping[base] = {
             meta_nocturno: reg.meta_nocturno,
@@ -139,7 +137,8 @@ const Totales_Surtido_Maquina2 = () => {
     };
     fetchMetas();
   }, []);
-  // Obtener y agrupar registros (endpoint "/manual/manual/actualdia")
+  // Obtener y agrupar registros del endpoint "/manual/manual/actualdia"
+  // Se utiliza el objeto moment para filtrar registros con timestamp entre journeyStart y journeyEnd.
   const surtidoSection = seccionesOrdenadas.find((seccion) => seccion.seccion === "Surtido");
   useEffect(() => {
     const fetchData = async () => {
@@ -148,15 +147,12 @@ const Totales_Surtido_Maquina2 = () => {
         const registros = response.data.registros || [];
         // Filtrar por registros cuyo name comience con los prefijos válidos
         const registrosPorNombre = registros.filter((reg) =>
-          validPrefixes.some(prefix => reg.name.startsWith(prefix))
+          validPrefixes.some(prefix => reg.name && reg.name.startsWith(prefix))
         );
-        const currentDateStr = moment().format("YYYY-MM-DD");
-        const yesterdayDateStr = moment().subtract(1, "days").format("YYYY-MM-DD");
-        // Filtrar por fecha: día actual o, de ayer, si la hora ≥ "22:00"
+        // Filtrar registros empleando los límites de la jornada
         const registrosFiltrados = registrosPorNombre.filter((reg) => {
-          if (reg.fecha === currentDateStr) return true;
-          if (reg.fecha === yesterdayDateStr && reg.hour.slice(0, 5) >= "22:00") return true;
-          return false;
+          const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
+          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
         });
         // Agrupar registros usando extractBaseName (esto nos dará "19 LENS LOG" o "20 LENS LOG")
         const agrupados = {};
@@ -170,27 +166,22 @@ const Totales_Surtido_Maquina2 = () => {
           agrupados[baseName][key] = (agrupados[baseName][key] || 0) + Number(reg.hits);
         });
         const maquinasArea = surtidoSection ? surtidoSection.nombres : [];
-        // Obtenemos los registros agrupados en un array
         const dataAgrupada = Object.values(agrupados);
-        // Recorremos la lista predefinida y, si no existe registro, se crea uno con valores por defecto.
+        // Completar la data con las máquinas predefinidas (inicializando en 0 si no hay registro)
         const dataConMaquinasFijas = maquinasArea.map((maquina) => {
-          // Buscamos la máquina en los datos agrupados (usando comparación en minúsculas para evitar problemas)
           const registroExistente = dataAgrupada.find(
             (reg) => reg.nombre.toLowerCase() === maquina.toLowerCase()
           );
           if (registroExistente) {
             return registroExistente;
           } else {
-            // Creamos el registro con valores iniciales
             const nuevoRegistro = { nombre: maquina, totalAcumulado: 0 };
-            // Inicializamos cada columna horaria en 0 según hourAccessors
             hourAccessors.forEach((key) => {
               nuevoRegistro[key] = 0;
             });
             return nuevoRegistro;
           }
         });
-        console.log("Datos agrupados con máquinas fijas:", dataConMaquinasFijas);
         setTableData(dataConMaquinasFijas);
       } catch (error) {
         console.error("Error al consultar la API de manuales:", error);
