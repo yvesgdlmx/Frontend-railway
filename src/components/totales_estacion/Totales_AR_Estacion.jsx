@@ -371,12 +371,68 @@ const Totales_AR_Estacion = () => {
             {columnas.map((col, idx) => (
               <div
                 key={idx}
-                className={`flex justify-between py-2 px-4 ${
+                className={`flex flex-col py-2 px-4 ${
                   idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                 }`}
               >
-                <span className="font-bold text-gray-700">{col.rango}:</span>
-                <span className="font-bold">{col.valor}</span>
+                {/* Fila principal: muestra rango y valor; se le agrega onClick para activar la nota */}
+                <div
+                  className="flex justify-between items-center cursor-pointer"
+                  onClick={() => toggleNota(col.hora)}
+                >
+                  <span className="font-bold text-gray-700">{col.rango}:</span>
+                  <span className="font-bold">{col.valor}</span>
+                </div>
+                {/* Si la nota está activa para esta hora, se muestra el recuadro para capturar o editar la nota */}
+                {notaActiva === col.hora && (
+                  <div
+                    className="mt-2 bg-gray-100 p-2 rounded shadow-md"
+                    onClick={(e) => e.stopPropagation()}  // Evita que se propague el click
+                  >
+                    <textarea
+                      className="w-full h-16 p-1 border mb-2 text-xs"
+                      value={editingNota}
+                      onChange={(e) => setEditingNota(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        disabled={!!notas[col.hora]?.nota}
+                        className={`py-1 px-3 rounded text-xs ${
+                          notas[col.hora]?.nota
+                            ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                            : "bg-green-500 text-white hover:bg-green-600"
+                        }`}
+                        onClick={(e) => {
+                          if (!notas[col.hora]?.nota) {
+                            e.stopPropagation();
+                            handleGuardarNota(col.hora);
+                          }
+                        }}
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditarNota(col.hora);
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNotaActiva(null);
+                        }}
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

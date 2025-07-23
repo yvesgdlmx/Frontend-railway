@@ -470,50 +470,114 @@ const Totales_Desbloqueo_Estacion = () => {
             {columnas.map((col, idx) => {
               const metaCol = getMetaParaHora(col.hora, inicioJornada);
               return (
-                <div key={idx} className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}>
-                  <span className="font-bold text-gray-700">{col.rango}:</span>
-                  <span className={`font-bold ${parseInt(col.valor, 10) >= metaCol ? "text-green-500" : "text-red-500"}`}>
-                    {col.valor}
-                  </span>
+                <div
+                  key={idx}
+                  className={`flex flex-col py-2 px-4 ${
+                    idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
+                  }`}
+                >
+                  {/* Fila principal: se muestra el rango y el valor; al hacer clic se activa el panel de notas */}
+                  <div
+                    className="flex justify-between items-center cursor-pointer"
+                    onClick={() => toggleNota(col.hora)}
+                  >
+                    <span className="font-bold text-gray-700">{col.rango}:</span>
+                    <span
+                      className={`font-bold ${
+                        parseInt(col.valor, 10) >= metaCol
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {col.valor}
+                    </span>
+                  </div>
+                  {/* Panel de notas: se inserta en el flujo y empuja hacia abajo el contenido */}
+                  {notaActiva === col.hora && (
+                    <div
+                      className="mt-2 bg-gray-100 p-4 border rounded shadow-md w-full text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <textarea
+                        className="w-full h-16 p-1 border mb-2 text-xs"
+                        value={editingNota}
+                        onChange={(e) => setEditingNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          disabled={!!notas[col.hora]?.nota}
+                          className={`py-1 px-3 rounded text-xs ${
+                            notas[col.hora]?.nota
+                              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                              : "bg-green-500 text-white hover:bg-green-600"
+                          }`}
+                          onClick={(e) => {
+                            if (!notas[col.hora]?.nota) {
+                              e.stopPropagation();
+                              handleGuardarNota(col.hora);
+                            }
+                          }}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditarNota(col.hora);
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNotaActiva(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
           <div className="flex justify-center mt-4">
-            <Link to={"/totales_desblocking_maquina"} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
-              <button className="text-white font-bold uppercase">Ver Detalles</button>
+            <Link
+              to={"/totales_desblocking_maquina"}
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+            >
+              <button className="text-white font-bold uppercase">
+                Ver Detalles
+              </button>
             </Link>
           </div>
-          {/* Totales por turno en Mobile */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
-              <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
+              <h4 className="font-semibold text-green-700 mb-2">
+                Totales por Turno
+              </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <span className="block text-gray-600">Nocturno: </span>
-                  <span className={`font-semibold text-md ${getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}`}>
+                  <span className="font-semibold text-md text-gray-700">
                     {formatNumber(totalesPorTurno.nocturno)}
-                  </span>
-                  <span className="text-xs text-gray-500 ml-1">
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
                   </span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Matutino: </span>
-                  <span className={`font-semibold text-md ${getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}`}>
+                  <span className="font-semibold text-md text-gray-700">
                     {formatNumber(totalesPorTurno.matutino)}
-                  </span>
-                  <span className="text-xs text-gray-500 ml-1">
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
                   </span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Vespertino: </span>
-                  <span className={`text-md font-semibold ${getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}`}>
+                  <span className="font-semibold text-md text-gray-700">
                     {formatNumber(totalesPorTurno.vespertino)}
-                  </span>
-                  <span className="text-xs text-gray-500 ml-1">
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
                   </span>
                 </div>
               </div>

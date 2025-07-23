@@ -456,16 +456,30 @@ const Totales_Pulido_Estacion = () => {
               return (
                 <div
                   key={idx}
-                  className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}
-                  onClick={() => toggleNota(col.hora)}
+                  className={`relative flex flex-col py-2 px-4 ${
+                    idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
+                  }`}
                 >
-                  <span className="font-bold text-gray-700">{col.rango}:</span>
-                  <span className={`font-bold ${parseInt(col.valor, 10) >= metaCol ? "text-green-500" : "text-red-500"}`}>
-                    {col.valor}
-                  </span>
+                  {/* Fila principal: muestra el rango y el valor; clic para abrir notas */}
+                  <div
+                    className="flex justify-between items-center cursor-pointer"
+                    onClick={() => toggleNota(col.hora)}
+                  >
+                    <span className="font-bold text-gray-700">{col.rango}:</span>
+                    <span
+                      className={`font-bold ${
+                        parseInt(col.valor, 10) >= metaCol
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {col.valor}
+                    </span>
+                  </div>
+                  {/* Panel de notas: se muestra si la nota para esta hora está activa */}
                   {notaActiva === col.hora && (
                     <div
-                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      className="mt-2 bg-gray-100 p-2 rounded shadow-md"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <textarea
@@ -517,14 +531,21 @@ const Totales_Pulido_Estacion = () => {
             })}
           </div>
           <div className="flex justify-center mt-4">
-            <Link to={"/totales_pulido_maquina"} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
-              <button className="text-white font-bold uppercase">Ver Detalles</button>
+            <Link
+              to={"/totales_pulido_maquina"}
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+            >
+              <button className="text-white font-bold uppercase">
+                Ver Detalles
+              </button>
             </Link>
           </div>
           {/* Totales por turno (Mobile) */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
-              <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
+              <h4 className="font-semibold text-green-700 mb-2">
+                Totales por Turno
+              </h4>
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <p className="text-gray-600 text-sm md:text-base">
@@ -532,7 +553,8 @@ const Totales_Pulido_Estacion = () => {
                     <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
                       {formatNumber(totalesPorTurno.nocturno)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
+                    {metasPorHora.nocturno}
                   </p>
                 </div>
                 <div>
@@ -541,7 +563,8 @@ const Totales_Pulido_Estacion = () => {
                     <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
                       {formatNumber(totalesPorTurno.matutino)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
+                    {metasPorHora.matutino}
                   </p>
                 </div>
                 <div>
@@ -550,7 +573,8 @@ const Totales_Pulido_Estacion = () => {
                     <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
                       {formatNumber(totalesPorTurno.vespertino)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
+                    {metasPorHora.vespertino}
                   </p>
                 </div>
               </div>
