@@ -9,13 +9,13 @@ const Totales_Biselado_Estacion = () => {
   const biseladoRef = useRef(null);
   // Estados para los registros (hits)
   const [registros, setRegistros] = useState([]);
-  // Estado para las metas por hora (por turno) que se obtienen del endpoint
+  // Estado para las metas por hora (por turno)
   const [metasPorHora, setMetasPorHora] = useState({
     nocturno: 0,
     matutino: 0,
     vespertino: 0,
   });
-  // Estado para las metas acumuladas por turno (calculadas: nocturno y matutino 8 horas, vespertino 7 horas)
+  // Estado para las metas acumuladas por turno
   const [metasTotalesPorTurno, setMetasTotalesPorTurno] = useState({
     nocturno: 0,
     matutino: 0,
@@ -27,6 +27,13 @@ const Totales_Biselado_Estacion = () => {
     vespertino: 0,
     nocturno: 0,
   });
+  // Estados para la funcionalidad de notas
+  // "notas" guarda un objeto donde cada clave es la hora y su valor es { id, nota }
+  const [notas, setNotas] = useState({});
+  // "notaActiva" almacena la hora del bucket en el que se hizo clic
+  const [notaActiva, setNotaActiva] = useState(null);
+  // "editingNota" almacena el texto que se va a editar o guardar
+  const [editingNota, setEditingNota] = useState("");
   // Arreglo fijo de buckets (horas) en el orden deseado
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
@@ -48,8 +55,7 @@ const Totales_Biselado_Estacion = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Se espera que el endpoint retorne para cada registro las propiedades:
-        // meta_nocturno, meta_matutino y meta_vespertino
+        // Se obtienen las metas desde "/metas/metas-biselados"
         const responseMetas = await clienteAxios("/metas/metas-biselados");
         const registrosMetas = responseMetas.data.registros;
         let sumaNocturno = 0, sumaMatutino = 0, sumaVespertino = 0;
@@ -58,19 +64,17 @@ const Totales_Biselado_Estacion = () => {
           sumaMatutino += item.meta_matutino;
           sumaVespertino += item.meta_vespertino;
         });
-        // Asignar la meta por hora para cada turno
         setMetasPorHora({
           nocturno: sumaNocturno,
           matutino: sumaMatutino,
           vespertino: sumaVespertino,
         });
-        // Calcular la meta acumulada según la cantidad de horas asignada por turno
         setMetasTotalesPorTurno({
           nocturno: sumaNocturno * 8,
           matutino: sumaMatutino * 8,
           vespertino: sumaVespertino * 7,
         });
-        // Obtener registros (hits) para la jornada actual
+        // Obtener registros (hits) para la jornada actual desde "/biselado/biselado/actualdia"
         const responseRegistros = await clienteAxios("/biselado/biselado/actualdia");
         const registrosApi = responseRegistros.data.registros;
         const ahora = moment();
@@ -89,6 +93,8 @@ const Totales_Biselado_Estacion = () => {
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
+        // Cargar las notas para la sección "biselado"
+        cargarNotas();
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
@@ -159,20 +165,20 @@ const Totales_Biselado_Estacion = () => {
     const horaFin = moment(horaInicio, "HH:mm").add(1, "hour").format("HH:mm");
     return `${horaInicioFormateada} - ${horaFin}`;
   };
-  // Función que obtiene el instante inicial de un bucket dado, a partir de "HH:mm" y el inicio de la jornada
+  // Función que obtiene el instante inicial de un bucket a partir de "HH:mm" y el inicio de la jornada
   const getBucketMoment = (horaStr, inicioJornada) => {
     const [h, m] = horaStr.split(":").map(Number);
     let bucket = inicioJornada.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
     if (h < 22) {
-      bucket.add(1, "day"); // si es menor a 22 pertenece al día siguiente
+      bucket.add(1, "day");
     }
     return bucket;
   };
   /*  
     Función que devuelve el valor a mostrar para cada bucket:
-      - Si en hitsPorHora existe un valor para esa hora se retorna.
-      - Si no existe y el bucket ya cerró (margen de 5 minutos) se retorna 0.
-      - Sino se retorna "" para no mostrar esa columna.
+    - Si en hitsPorHora existe un valor para esa hora se retorna.
+    - Si no existe y el bucket ya cerró (con un margen de 5 minutos), se retorna 0.
+    - Sino se retorna "" para no mostrar esa columna.
   */
   const getDisplayValue = (horaStr) => {
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
@@ -186,7 +192,7 @@ const Totales_Biselado_Estacion = () => {
     const margen = 5; // minutos de margen
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
-  // Construir columnas a partir del arreglo fijo usando getDisplayValue
+  // Construir columnas a partir del arreglo fijo
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
@@ -194,7 +200,7 @@ const Totales_Biselado_Estacion = () => {
       valor: getDisplayValue(hora),
     }))
     .filter((col) => col.valor !== "");
-  // Función que, dado un bucket, retorna la meta por hora para el turno correspondiente
+  // Función que, dado un bucket, retorna la meta por hora que corresponde al turno
   const getMetaParaHora = (horaStr, inicioJornada) => {
     const bucketMoment = getBucketMoment(horaStr, inicioJornada);
     if (
@@ -226,13 +232,85 @@ const Totales_Biselado_Estacion = () => {
       return metasPorHora.vespertino;
     return 0;
   };
-  // Definir el inicio de la jornada (igual para el cálculo de registros)
+  // Definir el inicio de la jornada (uso global)
   let inicioJornada = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
-  // Función para asignar la clase de color según se cumpla la meta.
-  // En esta versión se compara el total de cada turno con la meta acumulada.
+  // Función para asignar la clase de color según se cumpla la meta acumulada
   const getClassName = (total, metaAcumulada) =>
     total >= metaAcumulada ? "text-green-500" : "text-red-500";
+  // –––––––––––––– FUNCIONALIDAD DE NOTAS ––––––––––––––
+  // Mostrar u ocultar el recuadro de nota al hacer clic en un bucket
+  const toggleNota = (hora) => {
+    if (notaActiva === hora) {
+      setNotaActiva(null);
+    } else {
+      setNotaActiva(hora);
+      setEditingNota(notas[hora]?.nota || "");
+    }
+  };
+  // Función para guardar la nota (POST) usando la sección "biselado"
+  const handleGuardarNota = async (hora) => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const payload = {
+        fecha: today,
+        hora,
+        seccion: "biselado", // Se utiliza la sección "biselado"
+        nota: editingNota,
+      };
+      const response = await clienteAxios.post("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al guardar la nota:", error);
+    }
+  };
+  // Función para editar la nota (PUT) usando el id de la nota existente
+  const handleEditarNota = async (hora) => {
+    try {
+      const notaActual = notas[hora];
+      if (!notaActual || !notaActual.id) {
+        console.error("No se encontró la nota con id para la hora:", hora);
+        return;
+      }
+      const payload = {
+        id: notaActual.id,
+        nota: editingNota,
+      };
+      const response = await clienteAxios.put("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al editar la nota:", error);
+    }
+  };
+  // Función para cargar las notas (GET) de la sección "biselado" para el día actual
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas", {
+        params: { seccion: "biselado", fecha: today },
+      });
+      const notasMap = {};
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
+  };
+  // –––––––––––––– RENDERIZACIÓN DEL COMPONENTE ––––––––––––––
   return (
     <div className="max-w-screen-xl rounded-lg">
       {/* Versión para pantallas grandes */}
@@ -240,7 +318,7 @@ const Totales_Biselado_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              {/* Primer TH permanece vacío, tal como en el original */}
+              {/* Primer TH vacío */}
               <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
                 <th
@@ -254,7 +332,7 @@ const Totales_Biselado_Estacion = () => {
           </thead>
           <tbody className="text-center bg-white">
             <tr className="font-semibold text-gray-700">
-              {/* Primera celda con el enlace con ícono y nombre "Biselado" (sin leyenda de meta por hora) */}
+              {/* Primera celda: enlace con ícono y nombre "Biselado" */}
               <td className="py-3 px-4 border-b min-w-[150px] whitespace-nowrap text-center">
                 <Link to={"/totales_biselado_maquina"} className="link__tabla">
                   <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
@@ -268,19 +346,69 @@ const Totales_Biselado_Estacion = () => {
                 return (
                   <td
                     key={i}
-                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base"
+                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white relative cursor-pointer"
+                    onClick={() => toggleNota(col.hora)}
                   >
                     <span className={getClassName(col.valor, metaCol)}>
                       {col.valor}
                     </span>
+                    {/* Mostrar recuadro de nota si el bucket está activo */}
+                    {notaActiva === col.hora && (
+                      <div
+                        className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <textarea
+                          className="w-full h-16 p-1 border mb-2 text-xs"
+                          value={editingNota}
+                          onChange={(e) => setEditingNota(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            disabled={!!notas[col.hora]?.nota}
+                            className={`py-1 px-3 rounded text-xs ${
+                              notas[col.hora]?.nota
+                                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                                : "bg-green-500 text-white hover:bg-green-600"
+                            }`}
+                            onClick={(e) => {
+                              if (!notas[col.hora]?.nota) {
+                                e.stopPropagation();
+                                handleGuardarNota(col.hora);
+                              }
+                            }}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNota(col.hora);
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNotaActiva(null);
+                            }}
+                          >
+                            Cerrar
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 );
               })}
             </tr>
           </tbody>
         </table>
-        {/* Sección de totales para pantallas grandes.
-            Aquí se compara cada total con la meta acumulada de ese turno */}
+        {/* Sección de totales para pantallas grandes */}
         <div className="flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4 gap-6">
           <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
@@ -342,8 +470,7 @@ const Totales_Biselado_Estacion = () => {
               <button className="text-white font-bold uppercase">Ver Detalles</button>
             </Link>
           </div>
-          {/* Totales por turno para pantallas pequeñas/medianas.
-              Se compara cada total con la meta acumulada */}
+          {/* Totales para versión mobile */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
               <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>

@@ -7,9 +7,9 @@ moment.tz.setDefault("America/Mexico_City");
 const Totales_Generado_Estacion = () => {
   const location = useLocation();
   const generadoRef = useRef(null);
-  // Estados para los registros (hits)
+  // Estados para registros (hits)
   const [registros, setRegistros] = useState([]);
-  // Estados para la meta por hora y la meta acumulada por turno
+  // Estados para las metas por hora y metas acumuladas por turno
   const [metasPorHora, setMetasPorHora] = useState({
     nocturno: 0,
     matutino: 0,
@@ -26,6 +26,10 @@ const Totales_Generado_Estacion = () => {
     matutino: 0,
     vespertino: 0,
   });
+  // Estados para la funcionalidad de notas: se guarda un objeto cuya clave es la hora y su valor es { id, nota }
+  const [notas, setNotas] = useState({});
+  const [notaActiva, setNotaActiva] = useState(null); // Almacena la hora de la celda en la que se hizo click para mostrar el recuadro de nota
+  const [editingNota, setEditingNota] = useState("");
   // Orden de buckets (horas)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
@@ -43,7 +47,7 @@ const Totales_Generado_Estacion = () => {
       }, 100);
     }
   }, [location]);
-  // Calcula el rango de horas de cada bucket (1 hora)
+  // Calcula el rango de horas (bucket de 1 hora)
   const calcularRangoHoras = (hora) => {
     let fin;
     if (hora === "23:00") {
@@ -57,25 +61,20 @@ const Totales_Generado_Estacion = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Obtener la meta de generadores. Se espera recibir meta_nocturno, meta_matutino y meta_vespertino.
+        // Obtener la meta de generadores
         const responseMetas = await clienteAxios("/metas/metas-generadores");
         const registrosMetas = responseMetas.data.registros;
-        let sumaNocturno = 0,
-          sumaMatutino = 0,
-          sumaVespertino = 0;
+        let sumaNocturno = 0, sumaMatutino = 0, sumaVespertino = 0;
         registrosMetas.forEach((item) => {
           sumaNocturno += item.meta_nocturno;
           sumaMatutino += item.meta_matutino;
           sumaVespertino += item.meta_vespertino;
         });
-        // Establecer meta por hora para cada turno
         setMetasPorHora({
           nocturno: sumaNocturno,
           matutino: sumaMatutino,
           vespertino: sumaVespertino,
         });
-        // Calcular meta acumulada por turno:
-        // Nocturno: 8 horas, Matutino: 8 horas, Vespertino: 7 horas
         setMetasTotalesPorTurno({
           nocturno: sumaNocturno * 8,
           matutino: sumaMatutino * 8,
@@ -101,13 +100,15 @@ const Totales_Generado_Estacion = () => {
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
+        // Cargar las notas para la sección "generado"
+        cargarNotas();
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
     };
     obtenerDatos();
   }, []);
-  // Calcular totales de hits por turno usando la lógica de la jornada
+  // Función para calcular totales de hits por turno
   const calcularTotalesPorTurno = (registros, inicioJornada) => {
     const totales = { nocturno: 0, matutino: 0, vespertino: 0 };
     registros.forEach((registro) => {
@@ -115,7 +116,7 @@ const Totales_Generado_Estacion = () => {
         `${registro.fecha} ${registro.hour}`,
         "YYYY-MM-DD HH:mm:ss"
       );
-      // Turno Nocturno: de inicioJornada a inicioJornada + 8 horas
+      // Turno Nocturno: de inicioJornada hasta inicioJornada + 8 horas
       if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone(),
@@ -126,7 +127,7 @@ const Totales_Generado_Estacion = () => {
       ) {
         totales.nocturno += registro.hits;
       }
-      // Turno Matutino: de inicioJornada + 8 horas + 30 min a inicioJornada + 16 horas
+      // Turno Matutino: de inicioJornada + 8h 30min hasta inicioJornada + 16h
       else if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(8, "hours").add(30, "minutes"),
@@ -137,7 +138,7 @@ const Totales_Generado_Estacion = () => {
       ) {
         totales.matutino += registro.hits;
       }
-      // Turno Vespertino: de inicioJornada + 16 horas + 30 min a inicioJornada + 23 horas + 30 min
+      // Turno Vespertino: de inicioJornada + 16h 30min hasta inicioJornada + 23h 30min
       else if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(16, "hours").add(30, "minutes"),
@@ -151,7 +152,7 @@ const Totales_Generado_Estacion = () => {
     });
     setTotalesPorTurno(totales);
   };
-  // Agrupar hits por hora (bucket)
+  // Función para agrupar hits por hora (bucket)
   const agruparHitsPorHora = () => {
     const hits = {};
     registros.forEach((registro) => {
@@ -165,21 +166,19 @@ const Totales_Generado_Estacion = () => {
     return hits;
   };
   const hitsPorHora = agruparHitsPorHora();
-  // Función para obtener el objeto moment correspondiente al inicio del bucket
+  // Función para obtener el objeto moment correspondiente al bucket dado la hora y el inicio de la jornada
   const getBucketMoment = (horaStr, inicioJornada) => {
     const [h, m] = horaStr.split(":").map(Number);
     let bucket = inicioJornada.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
-    // Si la hora es menor a 22, el bucket corresponde al día siguiente
     if (h < 22) {
       bucket.add(1, "day");
     }
     return bucket;
   };
-  /* 
-    Función que devuelve el valor a mostrar para cada bucket:
-    - Si existe un valor registrado en hitsPorHora, lo retorna.
-    - Si no existe, se verifica si el bucket ya cerró (con un margen de 5 minutos).
-      Si ya cerró retorna 0, de lo contrario retorna cadena vacía.
+  /* Función que devuelve el valor a mostrar en cada bucket:
+     - Si existe un valor registrado en hitsPorHora se retorna.
+     - Si no existe, se verifica si el bucket ya cerró (con margen de 5 min)
+       y se retorna 0; de lo contrario, cadena vacía.
   */
   const getDisplayValue = (horaStr) => {
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
@@ -191,43 +190,123 @@ const Totales_Generado_Estacion = () => {
     const margen = 5; // minutos
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
-  // Armar columnas a partir del orden fijo, filtrando aquellas sin valor (cadena vacía)
+  // Armar columnas (buckets) a partir del orden fijo, filtrando las que retornen ""
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
       rango: calcularRangoHoras(hora),
-      valor: getDisplayValue(hora)
+      valor: getDisplayValue(hora),
     }))
     .filter((col) => col.valor !== "");
-  // Función para asignar clase según si se cumple la meta
+  // Función para asignar clase (color) según si se cumple la meta
   const getClassName = (hits, meta) =>
-    hits >= meta ? "text-green-500" : "text-red-500";
+    parseInt(hits, 10) >= meta ? "text-green-500" : "text-red-500";
   // Definir el inicio de la jornada
   let inicioJornada = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
-  // Función que dada una hora (bucket) retorna la meta por hora correspondiente según el turno
+  // Función que dada una hora (bucket) retorna la meta por hora correspondiente según turno
   const getMetaParaHora = (horaStr, inicioJornada) => {
     const bucketMoment = getBucketMoment(horaStr, inicioJornada);
-    // Turno Nocturno: de inicioJornada hasta inicioJornada + 8 horas
-    if (bucketMoment.isBetween(inicioJornada.clone(), inicioJornada.clone().add(8, "hours"), null, "[)"))
+    if (
+      bucketMoment.isBetween(
+        inicioJornada.clone(),
+        inicioJornada.clone().add(8, "hours"),
+        null,
+        "[)"
+      )
+    )
       return metasPorHora.nocturno;
-    // Turno Matutino: de inicioJornada + 8h 30min hasta inicioJornada + 16h
-    else if (bucketMoment.isBetween(
-      inicioJornada.clone().add(8, "hours").add(30, "minutes"),
-      inicioJornada.clone().add(16, "hours"),
-      null,
-      "[)"
-    ))
+    else if (
+      bucketMoment.isBetween(
+        inicioJornada.clone().add(8, "hours").add(30, "minutes"),
+        inicioJornada.clone().add(16, "hours"),
+        null,
+        "[)"
+      )
+    )
       return metasPorHora.matutino;
-    // Turno Vespertino: de inicioJornada + 16h 30min hasta inicioJornada + 23h 30min
-    else if (bucketMoment.isBetween(
-      inicioJornada.clone().add(16, "hours").add(30, "minutes"),
-      inicioJornada.clone().add(23, "hours").add(30, "minutes"),
-      null,
-      "[)"
-    ))
+    else if (
+      bucketMoment.isBetween(
+        inicioJornada.clone().add(16, "hours").add(30, "minutes"),
+        inicioJornada.clone().add(23, "hours").add(30, "minutes"),
+        null,
+        "[)"
+      )
+    )
       return metasPorHora.vespertino;
     return 0;
+  };
+  // Función para mostrar/ocultar el recuadro de nota
+  const toggleNota = (hora) => {
+    if (notaActiva === hora) {
+      setNotaActiva(null);
+    } else {
+      setNotaActiva(hora);
+      setEditingNota(notas[hora]?.nota || "");
+    }
+  };
+  // Función para guardar la nota (POST) en la sección "generado"
+  const handleGuardarNota = async (hora) => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const payload = {
+        fecha: today,
+        hora,
+        seccion: "generado", // Se envía con seccion "generado"
+        nota: editingNota,
+      };
+      const response = await clienteAxios.post("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al guardar la nota:", error);
+    }
+  };
+  // Función para editar la nota (PUT) enviando el id y la nueva nota
+  const handleEditarNota = async (hora) => {
+    try {
+      const notaActual = notas[hora];
+      if (!notaActual || !notaActual.id) {
+        console.error("No se encontró la nota con id para la hora:", hora);
+        return;
+      }
+      const payload = {
+        id: notaActual.id,
+        nota: editingNota,
+      };
+      const response = await clienteAxios.put("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al editar la nota:", error);
+    }
+  };
+  // Función para cargar las notas (GET) para la sección "generado"
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas", {
+        params: { seccion: "generado", fecha: today },
+      });
+      // Transformar el array de notas en un objeto con clave de hora: { id, nota }
+      const notasMap = {};
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
   };
   return (
     <div className="max-w-screen-xl rounded-lg">
@@ -236,10 +315,13 @@ const Totales_Generado_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              {/* La primera columna: enlace con ícono y nombre "Generado" */}
+              {/* Primera columna: Enlace, ícono y nombre "Generado" */}
               <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
-                <th key={i} className="py-3 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base">
+                <th
+                  key={i}
+                  className="py-3 px-4 border-b min-w-[150px] whitespace-nowrap text-sm md:text-base"
+                >
                   {col.rango}
                 </th>
               ))}
@@ -260,10 +342,64 @@ const Totales_Generado_Estacion = () => {
               {columnas.map((col, i) => {
                 const metaCol = getMetaParaHora(col.hora, inicioJornada);
                 return (
-                  <td key={i} className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white">
+                  <td
+                    key={i}
+                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white relative"
+                    onClick={() => toggleNota(col.hora)}
+                  >
                     <span className={getClassName(col.valor, metaCol)}>
                       {col.valor}
                     </span>
+                    {notaActiva === col.hora && (
+                      <div
+                        className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <textarea
+                          className="w-full h-16 p-1 border mb-2 text-xs"
+                          value={editingNota}
+                          onChange={(e) => setEditingNota(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          {/* Botón Guardar: se deshabilita si ya existe una nota */}
+                          <button
+                            disabled={!!notas[col.hora]?.nota}
+                            className={`py-1 px-3 rounded text-xs ${
+                              notas[col.hora]?.nota
+                                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                                : "bg-green-500 text-white hover:bg-green-600"
+                            }`}
+                            onClick={(e) => {
+                              if (!notas[col.hora]?.nota) {
+                                e.stopPropagation();
+                                handleGuardarNota(col.hora);
+                              }
+                            }}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNota(col.hora);
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNotaActiva(null);
+                            }}
+                          >
+                            Cerrar
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 );
               })}
@@ -275,28 +411,31 @@ const Totales_Generado_Estacion = () => {
           <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
               Total Nocturno:{" "}
-              <span className={getClassName(totalesPorTurno.nocturno, metasPorHora.nocturno) + " ml-1 font-bold"}>
+              <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.nocturno)}
               </span>{" "}
-              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
+              {metasPorHora.nocturno}
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
               Total Matutino:{" "}
-              <span className={getClassName(totalesPorTurno.matutino, metasPorHora.matutino) + " ml-1 font-bold"}>
+              <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.matutino)}
               </span>{" "}
-              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
+              {metasPorHora.matutino}
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
               Total Vespertino:{" "}
-              <span className={getClassName(totalesPorTurno.vespertino, metasPorHora.vespertino) + " ml-1 font-bold"}>
+              <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.vespertino)}
               </span>{" "}
-              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
+              {metasPorHora.vespertino}
             </p>
           </div>
         </div>
@@ -313,7 +452,10 @@ const Totales_Generado_Estacion = () => {
             {columnas.map((col, idx) => {
               const metaCol = getMetaParaHora(col.hora, inicioJornada);
               return (
-                <div key={idx} className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}>
+                <div
+                  key={idx}
+                  className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}
+                >
                   <span className="font-bold text-gray-700">{col.rango}:</span>
                   <span className={`font-bold ${parseInt(col.valor, 10) >= metaCol ? "text-green-500" : "text-red-500"}`}>
                     {col.valor}
@@ -323,7 +465,10 @@ const Totales_Generado_Estacion = () => {
             })}
           </div>
           <div className="flex justify-center mt-4">
-            <Link to={"/totales_generado_maquina"} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
+            <Link
+              to={"/totales_generado_maquina"}
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+            >
               <button className="text-white font-bold uppercase">Ver Detalles</button>
             </Link>
           </div>
@@ -335,28 +480,31 @@ const Totales_Generado_Estacion = () => {
                 <div>
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Nocturno:{" "}
-                    <span className={getClassName(totalesPorTurno.nocturno, metasPorHora.nocturno)}>
+                    <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
                       {formatNumber(totalesPorTurno.nocturno)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
+                    {metasPorHora.nocturno}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Matutino:{" "}
-                    <span className={getClassName(totalesPorTurno.matutino, metasPorHora.matutino)}>
+                    <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
                       {formatNumber(totalesPorTurno.matutino)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
+                    {metasPorHora.matutino}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Vespertino:{" "}
-                    <span className={getClassName(totalesPorTurno.vespertino, metasPorHora.vespertino)}>
+                    <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
                       {formatNumber(totalesPorTurno.vespertino)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
+                    {metasPorHora.vespertino}
                   </p>
                 </div>
               </div>

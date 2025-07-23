@@ -20,12 +20,18 @@ const Totales_Engraver_Estacion = () => {
     matutino: 0,
     vespertino: 0,
   });
+  
   // Estado para los totales de hits por turno
   const [totalesPorTurno, setTotalesPorTurno] = useState({
     nocturno: 0,
     matutino: 0,
     vespertino: 0,
   });
+  // Estados para el sistema de notas
+  // Se almacena un objeto en el que la clave es la hora y el valor es { id, nota }
+  const [notas, setNotas] = useState({});
+  const [notaActiva, setNotaActiva] = useState(null);
+  const [editingNota, setEditingNota] = useState("");
   // Arreglo fijo con el orden de los buckets (horas)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
@@ -101,6 +107,8 @@ const Totales_Engraver_Estacion = () => {
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
+        // Cargar las notas para la sección "engraver"
+        cargarNotas();
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
@@ -179,9 +187,9 @@ const Totales_Engraver_Estacion = () => {
   };
   /* 
     Función que retorna el valor a mostrar para cada bucket:
-    - Si existe un valor registrado en hitsPorHora, se retorna ese valor.
-    - Si no existe, se verifica si el bucket ya cerró (con un margen de 5 minutos); en ese caso se retorna 0,
-      o bien una cadena vacía si aún no se debe mostrar.
+      - Si existe un valor registrado en hitsPorHora, se retorna ese valor.
+      - Si no existe, se verifica si el bucket ya cerró (con un margen de 5 minutos);
+        en ese caso se retorna 0 o bien una cadena vacía si aún no se debe mostrar.
   */
   const getDisplayValue = (horaStr) => {
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
@@ -193,7 +201,7 @@ const Totales_Engraver_Estacion = () => {
     const margen = 5; // minutos de margen
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
-  // Se arma el arreglo de columnas a partir del orden fijo y se filtran las que no tienen valor definido
+  // Se arma el arreglo de columnas a partir del orden fijo y se filtran las que tengan algún valor definido
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
@@ -203,14 +211,13 @@ const Totales_Engraver_Estacion = () => {
     .filter((col) => col.valor !== "");
   // Función para determinar la clase (color) según se cumpla o no la meta
   const getClassName = (hits, meta) =>
-    hits >= meta ? "text-green-500" : "text-red-500";
+    parseInt(hits, 10) >= meta ? "text-green-500" : "text-red-500";
   // Definir el inicio de la jornada
   let inicioJornada = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
   // Función que, dado un bucket (hora), retorna la meta por hora correspondiente según el turno
   const getMetaParaHora = (horaStr, inicioJornada) => {
     const bucketMoment = getBucketMoment(horaStr, inicioJornada);
-    // Turno Nocturno: de inicioJornada hasta inicioJornada + 8 horas
     if (
       bucketMoment.isBetween(
         inicioJornada.clone(),
@@ -220,7 +227,6 @@ const Totales_Engraver_Estacion = () => {
       )
     )
       return metasPorHora.nocturno;
-    // Turno Matutino: de inicioJornada + 8h 30min hasta inicioJornada + 16h
     else if (
       bucketMoment.isBetween(
         inicioJornada.clone().add(8, "hours").add(30, "minutes"),
@@ -230,7 +236,6 @@ const Totales_Engraver_Estacion = () => {
       )
     )
       return metasPorHora.matutino;
-    // Turno Vespertino: de inicioJornada + 16h 30min hasta inicioJornada + 23h 30min
     else if (
       bucketMoment.isBetween(
         inicioJornada.clone().add(16, "hours").add(30, "minutes"),
@@ -242,6 +247,78 @@ const Totales_Engraver_Estacion = () => {
       return metasPorHora.vespertino;
     return 0;
   };
+  // --- Funciones para el manejo de notas ---
+  // Función para mostrar/ocultar el recuadro de nota en la celda seleccionada
+  const toggleNota = (hora) => {
+    if (notaActiva === hora) {
+      setNotaActiva(null);
+    } else {
+      setNotaActiva(hora);
+      setEditingNota(notas[hora]?.nota || "");
+    }
+  };
+  // Función para guardar una nueva nota (POST) para la sección "engraver"
+  const handleGuardarNota = async (hora) => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const payload = {
+        fecha: today,
+        hora,
+        seccion: "engraver", // Indicamos la sección "engraver"
+        nota: editingNota,
+      };
+      const response = await clienteAxios.post("/notas/notas", payload);
+      setNotas(prev => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al guardar la nota:", error);
+    }
+  };
+  // Función para editar una nota existente (PUT)
+  const handleEditarNota = async (hora) => {
+    try {
+      const notaActual = notas[hora];
+      if (!notaActual || !notaActual.id) {
+        console.error("No se encontró la nota para la hora:", hora);
+        return;
+      }
+      const payload = {
+        id: notaActual.id,
+        nota: editingNota,
+      };
+      const response = await clienteAxios.put("/notas/notas", payload);
+      setNotas(prev => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al editar la nota:", error);
+    }
+  };
+  // Función para cargar las notas existentes (GET) para la sección "engraver"
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas", {
+        params: { seccion: "engraver", fecha: today },
+      });
+      const notasMap = {};
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
+  };
   return (
     <div className="max-w-screen-xl rounded-lg">
       {/* Versión para pantallas grandes */}
@@ -249,7 +326,7 @@ const Totales_Engraver_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              {/* Primera cabecera vacía para que el nombre solo aparezca junto al icono */}
+              {/* Primera cabecera vacía, para que el nombre aparezca junto al ícono */}
               <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
                 <th
@@ -283,11 +360,61 @@ const Totales_Engraver_Estacion = () => {
                 return (
                   <td
                     key={i}
-                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white"
+                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white relative"
+                    onClick={() => toggleNota(col.hora)}
                   >
                     <span className={getClassName(col.valor, metaCol)}>
                       {col.valor}
                     </span>
+                    {notaActiva === col.hora && (
+                      <div
+                        className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <textarea
+                          className="w-full h-16 p-1 border mb-2 text-xs"
+                          value={editingNota}
+                          onChange={(e) => setEditingNota(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            disabled={!!notas[col.hora]?.nota}
+                            className={`py-1 px-3 rounded text-xs ${
+                              notas[col.hora]?.nota
+                                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                                : "bg-green-500 text-white hover:bg-green-600"
+                            }`}
+                            onClick={(e) => {
+                              if (!notas[col.hora]?.nota) {
+                                e.stopPropagation();
+                                handleGuardarNota(col.hora);
+                              }
+                            }}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNota(col.hora);
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNotaActiva(null);
+                            }}
+                          >
+                            Cerrar
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 );
               })}
@@ -340,7 +467,8 @@ const Totales_Engraver_Estacion = () => {
           </div>
         </div>
       </div>
-      {/* Diseño tipo card para pantallas pequeñas/medianas */}
+      
+      {/* Versión para pantallas pequeñas/medianas */}
       <div className="block lg:hidden mt-4">
         <div className="bg-white shadow-md rounded-lg mb-4 p-6">
           <div className="flex justify-between border-b pb-2">
@@ -357,6 +485,7 @@ const Totales_Engraver_Estacion = () => {
                   className={`flex justify-between py-2 px-4 ${
                     idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
+                  onClick={() => toggleNota(col.hora)}
                 >
                   <span className="font-bold text-gray-700">
                     {col.rango}:
@@ -370,6 +499,55 @@ const Totales_Engraver_Estacion = () => {
                   >
                     {col.valor}
                   </span>
+                  {notaActiva === col.hora && (
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <textarea
+                        className="w-full h-16 p-1 border mb-2 text-xs"
+                        value={editingNota}
+                        onChange={(e) => setEditingNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          disabled={!!notas[col.hora]?.nota}
+                          className={`py-1 px-3 rounded text-xs ${
+                            notas[col.hora]?.nota
+                              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                              : "bg-green-500 text-white hover:bg-green-600"
+                          }`}
+                          onClick={(e) => {
+                            if (!notas[col.hora]?.nota) {
+                              e.stopPropagation();
+                              handleGuardarNota(col.hora);
+                            }
+                          }}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditarNota(col.hora);
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNotaActiva(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

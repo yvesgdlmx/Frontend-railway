@@ -13,11 +13,19 @@ const Totales_AR_Estacion = () => {
     vespertino: 0,
     nocturno: 0,
   });
+  // Estados para la funcionalidad de notas: se almacena un objeto donde la clave es la hora
+  // y su valor es { id, nota }
+  const [notas, setNotas] = useState({});
+  const [notaActiva, setNotaActiva] = useState(null);
+  const [editingNota, setEditingNota] = useState("");
   // Arreglo fijo con el orden de los buckets (horas)
   const ordenTurnos = [
-    "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
-    "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:30", // Matutino
-    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00",  // Nocturno
+    "21:30", "20:30", "19:30", "18:30", "17:30",
+    "16:30", "15:30", "14:30", // Vespertino
+    "13:30", "12:30", "11:30", "10:30", "09:30",
+    "08:30", "07:30", "06:30", // Matutino
+    "05:00", "04:00", "03:00", "02:00", "01:00",
+    "00:00", "23:00", "22:00",  // Nocturno
   ];
   // Efecto para hacer scroll si existe hash en la URL
   useEffect(() => {
@@ -30,15 +38,34 @@ const Totales_AR_Estacion = () => {
       }, 100);
     }
   }, [location]);
+  // Cargar las notas para la sección "ar"
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const { data } = await clienteAxios.get(`/notas/notas?fecha=${today}&seccion=ar`);
+      let notasMap = {};
+      
+      // Verificamos si "data" es un array, ya que la API retorna un array de notas
+      if (Array.isArray(data)) {
+        data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", data);
+      }
+      
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
+  };
   // Obtención de registros filtrando la jornada
   useEffect(() => {
     const obtenerRegistros = async () => {
       const { data } = await clienteAxios(`/manual/manual/actualdia`);
-      const registrosAR = data.registros.filter((registro) => {
-        return ["52", "53", "54", "55", "56"].some((num) =>
-          registro.name.includes(num)
-        );
-      });
+      const registrosAR = data.registros.filter((registro) =>
+        ["52", "53", "54", "55", "56"].some((num) => registro.name.includes(num))
+      );
       const ahora = moment();
       let inicioHoy = moment().startOf("day").add(22, "hours"); // 22:00 del día anterior
       let finHoy = moment(inicioHoy).add(1, "days").subtract(30, "minutes"); // 21:30 del día siguiente
@@ -55,6 +82,7 @@ const Totales_AR_Estacion = () => {
       });
       setRegistros(registrosFiltrados);
       calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
+      cargarNotas();
     };
     obtenerRegistros();
   }, []);
@@ -124,18 +152,7 @@ const Totales_AR_Estacion = () => {
     return hits;
   };
   const hitsPorHora = agruparHitsPorHora();
-  // Función para ordenar las horas según ordenTurnos, mostrando solo las que existen en hitsPorHora
-  const ordenarHorasPorTurno = (horas) => {
-    return ordenTurnos.filter((hora) => horas.includes(hora));
-  };
-  const horasOrdenadas = ordenarHorasPorTurno(Object.keys(hitsPorHora));
-  // Función para calcular el rango de horas. Se usará en la cabecera de la tabla.
-  const calcularRangoHoras = (horaInicio) => {
-    const inicio = moment(horaInicio, "HH:mm");
-    const fin = moment(horaInicio, "HH:mm").add(1, "hour");
-    return `${inicio.format("HH:mm")} - ${fin.format("HH:mm")}`;
-  };
-  // Función que retorna el objeto moment del bucket a partir de la hora y el inicio de la jornada.
+  // Función que retorna el objeto moment del bucket a partir de la hora y el inicio de jornada.
   const getBucketMoment = (horaStr, inicioHoy) => {
     const [h, m] = horaStr.split(":").map(Number);
     let bucket = inicioHoy.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
@@ -146,9 +163,9 @@ const Totales_AR_Estacion = () => {
   };
   /*  
       Función que retorna el valor a mostrar para cada bucket:
-      - Si existe un valor en hitsPorHora, se retorna ese valor.
-      - De lo contrario, se calcula el bucket (inicio y fin) y se revisa si ya debió concluir (añadiendo un margen de 5 minutos).
-        Si es así se retorna 0; si no, se retorna una cadena vacía para no mostrar la columna.
+       - Si existe un valor en hitsPorHora se retorna ese valor.
+       - De lo contrario, se calcula el bucket (inicio y fin) y se revisa si ya debió concluir (con margen de 5 minutos).
+         Si es así se retorna 0; de lo contrario, se retorna cadena vacía.
   */
   const getDisplayValue = (horaStr) => {
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
@@ -159,27 +176,85 @@ const Totales_AR_Estacion = () => {
     }
     const bucketInicio = getBucketMoment(horaStr, inicioHoy);
     const bucketFin = bucketInicio.clone().add(1, "hour");
-    const margen = 5; // margen en minutos
+    const margen = 5; // minutos
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
-  // Se arma un arreglo de columnas a partir de ordenTurnos usando getDisplayValue, filtrando las que no tienen valor.
+  // Se arma un arreglo de columnas a partir de ordenTurnos usando getDisplayValue, filtrando las que tienen valor a mostrar
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
-      rango: calcularRangoHoras(hora),
+      rango: (() => {
+        const inicio = moment(hora, "HH:mm");
+        const fin = moment(hora, "HH:mm").add(1, "hour");
+        return `${inicio.format("HH:mm")} - ${fin.format("HH:mm")}`;
+      })(),
       valor: getDisplayValue(hora),
     }))
     .filter((col) => col.valor !== "");
+  // Función para mostrar/ocultar el recuadro de nota
+  const toggleNota = (hora) => {
+    if (notaActiva === hora) {
+      setNotaActiva(null);
+    } else {
+      setNotaActiva(hora);
+      setEditingNota(notas[hora]?.nota || "");
+    }
+  };
+  // Función para guardar la nota (POST) en la sección "ar"
+  const handleGuardarNota = async (hora) => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const payload = {
+        fecha: today,
+        hora,
+        seccion: "ar",
+        nota: editingNota,
+      };
+      const response = await clienteAxios.post("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al guardar la nota:", error);
+    }
+  };
+  // Función para editar la nota (PUT) enviando el id y la nueva nota
+  const handleEditarNota = async (hora) => {
+    try {
+      const notaActual = notas[hora];
+      if (!notaActual || !notaActual.id) {
+        console.error("No se encontró la nota con id para la hora:", hora);
+        return;
+      }
+      const payload = {
+        id: notaActual.id,
+        nota: editingNota,
+      };
+      const response = await clienteAxios.put("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al editar la nota:", error);
+    }
+  };
   return (
     <div className="max-w-screen-xl rounded-lg">
       {/* Versión para pantallas grandes */}
-      <div className="hidden lg:block" ref={arRef}>
+      <div className="hidden lg:block relative" ref={arRef}>
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
               <th className="py-2 px-4 min-w-[150px] whitespace-nowrap"></th>
               {columnas.map((col, i) => (
-                <th key={i} className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap">
+                <th
+                  key={i}
+                  className="py-2 px-4 border-b min-w-[150px] whitespace-nowrap"
+                >
                   {col.rango}
                 </th>
               ))}
@@ -187,18 +262,70 @@ const Totales_AR_Estacion = () => {
           </thead>
           <tbody>
             <tr className="font-semibold text-gray-700">
-              <Link to={"/totales_ar_maquina"} className="link__tabla">
-                <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
-                  <img src="./img/ver.png" alt="" width={25} className="relative left-9" />
-                  <td className="py-6 px-4 ml-9 min-w-[150px] whitespace-nowrap text-center">AR</td>
-                </div>
-              </Link>
+              <td className="py-6 px-4 min-w-[150px] text-center">
+                <Link to={"/totales_ar_maquina"} className="link__tabla">
+                  <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300">
+                    <img src="./img/ver.png" alt="" width={25} className="relative left-3" />
+                    <div className="px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base">AR</div>
+                  </div>
+                </Link>
+              </td>
               {columnas.map((col, i) => (
                 <td
                   key={i}
-                  className="py-2 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-center"
+                  className="py-2 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] text-center relative cursor-pointer"
+                  onClick={() => toggleNota(col.hora)}
                 >
                   <span>{col.valor}</span>
+                  {notaActiva === col.hora && (
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <textarea
+                        className="w-full h-16 p-1 border mb-2 text-xs"
+                        value={editingNota}
+                        onChange={(e) => setEditingNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          disabled={!!notas[col.hora]?.nota}
+                          className={`py-1 px-3 rounded text-xs ${
+                            notas[col.hora]?.nota
+                              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                              : "bg-green-500 text-white hover:bg-green-600"
+                          }`}
+                          onClick={(e) => {
+                            if (!notas[col.hora]?.nota) {
+                              e.stopPropagation();
+                              handleGuardarNota(col.hora);
+                            }
+                          }}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditarNota(col.hora);
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNotaActiva(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </td>
               ))}
             </tr>
@@ -208,20 +335,26 @@ const Totales_AR_Estacion = () => {
         <div className="flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4">
           <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
             <p className="text-gray-600 text-sm md:text-base">
-              Total Nocturno Acumulado: 
-              <span className="ml-1 font-bold text-gray-700">{formatNumber(totalesPorTurno.nocturno)}</span>
+              Total Nocturno Acumulado:
+              <span className="ml-1 font-bold text-gray-700">
+                {formatNumber(totalesPorTurno.nocturno)}
+              </span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg mb-2 md:mb-0 shadow-md">
             <p className="text-gray-600 text-sm md:text-base">
-              Total Matutino Acumulado: 
-              <span className="ml-1 font-bold text-gray-700">{formatNumber(totalesPorTurno.matutino)}</span>
+              Total Matutino Acumulado:
+              <span className="ml-1 font-bold text-gray-700">
+                {formatNumber(totalesPorTurno.matutino)}
+              </span>
             </p>
           </div>
           <div className="bg-white p-2 px-10 rounded-lg shadow-md">
             <p className="text-gray-600 text-sm md:text-base">
-              Total Vespertino Acumulado: 
-              <span className="ml-1 font-bold text-gray-700">{formatNumber(totalesPorTurno.vespertino)}</span>
+              Total Vespertino Acumulado:
+              <span className="ml-1 font-bold text-gray-700">
+                {formatNumber(totalesPorTurno.vespertino)}
+              </span>
             </p>
           </div>
         </div>
@@ -238,7 +371,9 @@ const Totales_AR_Estacion = () => {
             {columnas.map((col, idx) => (
               <div
                 key={idx}
-                className={`flex justify-between py-2 px-4 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}
+                className={`flex justify-between py-2 px-4 ${
+                  idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
+                }`}
               >
                 <span className="font-bold text-gray-700">{col.rango}:</span>
                 <span className="font-bold">{col.valor}</span>
@@ -246,26 +381,37 @@ const Totales_AR_Estacion = () => {
             ))}
           </div>
           <div className="flex justify-center mt-4">
-            <Link to={"/totales_ar_maquina"} className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
-              <button className="text-white font-bold uppercase">Ver Detalles</button>
+            <Link
+              to={"/totales_ar_maquina"}
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+            >
+              <button className="text-white font-bold uppercase">
+                Ver Detalles
+              </button>
             </Link>
           </div>
-          {/* Totales por turno - Versión Mobile */}
+          {/* Totales por Turno - Versión Mobile */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
               <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <span className="block text-gray-600">Nocturno: </span>
-                  <span className="font-semibold text-md text-gray-700">{formatNumber(totalesPorTurno.nocturno)}</span>
+                  <span className="font-semibold text-md text-gray-700">
+                    {formatNumber(totalesPorTurno.nocturno)}
+                  </span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Matutino: </span>
-                  <span className="font-semibold text-md text-gray-700">{formatNumber(totalesPorTurno.matutino)}</span>
+                  <span className="font-semibold text-md text-gray-700">
+                    {formatNumber(totalesPorTurno.matutino)}
+                  </span>
                 </div>
                 <div>
                   <span className="block text-gray-600">Vespertino: </span>
-                  <span className="font-semibold text-md text-gray-700">{formatNumber(totalesPorTurno.vespertino)}</span>
+                  <span className="font-semibold text-md text-gray-700">
+                    {formatNumber(totalesPorTurno.vespertino)}
+                  </span>
                 </div>
               </div>
             </div>

@@ -27,6 +27,13 @@ const Totales_Terminado_Estacion = () => {
     matutino: 0,
     vespertino: 0,
   });
+  // Estados para la funcionalidad de notas
+  // "notas" es un objeto con clave la hora y valor: { id, nota }
+  const [notas, setNotas] = useState({});
+  // "notaActiva" almacena la hora del bucket en el que se hizo clic para mostrar el recuadro
+  const [notaActiva, setNotaActiva] = useState(null);
+  // "editingNota" almacena el texto que se edita o se va a guardar en la nota
+  const [editingNota, setEditingNota] = useState("");
   // Orden fijo de buckets (horas)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
@@ -59,7 +66,6 @@ const Totales_Terminado_Estacion = () => {
     const obtenerDatos = async () => {
       try {
         // Se obtienen las metas desde "/metas/metas-terminados"
-        // Se espera recibir meta_nocturno, meta_matutino y meta_vespertino.
         const responseMetas = await clienteAxios("/metas/metas-terminados");
         const registrosMetas = responseMetas.data.registros;
         let sumaNocturno = 0, sumaMatutino = 0, sumaVespertino = 0;
@@ -74,15 +80,16 @@ const Totales_Terminado_Estacion = () => {
           matutino: sumaMatutino,
           vespertino: sumaVespertino,
         });
-        // Calculamos la meta acumulada:
-        // Nocturno y Matutino tienen 8 horas, Vespertino 7 horas.
+        // Calculamos la meta acumulada: Nocturno y Matutino tienen 8 horas, Vespertino 7 horas.
         setMetasTotalesPorTurno({
           nocturno: sumaNocturno * 8,
           matutino: sumaMatutino * 8,
           vespertino: sumaVespertino * 7,
         });
         // Se obtienen los registros (hits) desde "/terminado/terminado/actualdia"
-        const responseRegistros = await clienteAxios("/terminado/terminado/actualdia");
+        const responseRegistros = await clienteAxios(
+          "/terminado/terminado/actualdia"
+        );
         const registrosApi = responseRegistros.data.registros;
         const ahora = moment();
         // Definimos la jornada: inicia 22:00 y finaliza 21:30 del día siguiente
@@ -101,6 +108,8 @@ const Totales_Terminado_Estacion = () => {
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
+        // Cargar las notas para la sección "terminado"
+        cargarNotas();
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
@@ -111,7 +120,10 @@ const Totales_Terminado_Estacion = () => {
   const calcularTotalesPorTurno = (registros, inicioHoy) => {
     const totales = { nocturno: 0, matutino: 0, vespertino: 0 };
     registros.forEach((registro) => {
-      const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
+      const fechaHoraRegistro = moment(
+        `${registro.fecha} ${registro.hour}`,
+        "YYYY-MM-DD HH:mm:ss"
+      );
       // Turno Nocturno: de inicioHoy hasta inicioHoy + 8 horas
       if (
         fechaHoraRegistro.isBetween(
@@ -152,7 +164,10 @@ const Totales_Terminado_Estacion = () => {
   const agruparHitsPorHora = () => {
     const hits = {};
     registros.forEach((registro) => {
-      const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
+      const fechaHoraRegistro = moment(
+        `${registro.fecha} ${registro.hour}`,
+        "YYYY-MM-DD HH:mm:ss"
+      );
       const horaFormateada = fechaHoraRegistro.format("HH:mm");
       hits[horaFormateada] = (hits[horaFormateada] || 0) + registro.hits;
     });
@@ -162,7 +177,9 @@ const Totales_Terminado_Estacion = () => {
   // Función para obtener el objeto moment del bucket (hora de inicio) dado un string "HH:mm" y el inicio de la jornada
   const getBucketMoment = (horaStr, inicioHoy) => {
     const [h, m] = horaStr.split(":").map(Number);
-    let bucket = inicioHoy.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    let bucket = inicioHoy
+      .clone()
+      .set({ hour: h, minute: m, second: 0, millisecond: 0 });
     // Si la hora es menor a 22, se considera que pertenece al día siguiente
     if (h < 22) {
       bucket.add(1, "day");
@@ -190,7 +207,7 @@ const Totales_Terminado_Estacion = () => {
     .map((hora) => ({
       hora,
       rango: calcularRangoHoras(hora),
-      valor: getDisplayValue(hora)
+      valor: getDisplayValue(hora),
     }))
     .filter((col) => col.valor !== "");
   // Función para asignar clase de color: se compara el valor (hits) del bucket con la meta por hora correspondiente
@@ -203,7 +220,14 @@ const Totales_Terminado_Estacion = () => {
   const getMetaParaHora = (horaStr, inicioHoy) => {
     const bucketMoment = getBucketMoment(horaStr, inicioHoy);
     // Turno Nocturno: de inicioHoy hasta inicioHoy + 8 horas
-    if (bucketMoment.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)"))
+    if (
+      bucketMoment.isBetween(
+        inicioHoy.clone(),
+        inicioHoy.clone().add(8, "hours"),
+        null,
+        "[)"
+      )
+    )
       return metasPorHora.nocturno;
     // Turno Matutino: de inicioHoy + 8h 30min hasta inicioHoy + 16h
     else if (
@@ -227,6 +251,79 @@ const Totales_Terminado_Estacion = () => {
       return metasPorHora.vespertino;
     return 0;
   };
+  // –––––––––––––– FUNCIONALIDAD DE NOTAS ––––––––––––––
+  // Muestra u oculta el recuadro de nota al hacer clic en un bucket (celda)
+  const toggleNota = (hora) => {
+    if (notaActiva === hora) {
+      setNotaActiva(null);
+    } else {
+      setNotaActiva(hora);
+      setEditingNota(notas[hora]?.nota || "");
+    }
+  };
+  // Función para guardar la nota (POST) usando seccion "terminado"
+  const handleGuardarNota = async (hora) => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const payload = {
+        fecha: today,
+        hora,
+        seccion: "terminado", // Se usa la sección "terminado" para esta API
+        nota: editingNota,
+      };
+      const response = await clienteAxios.post("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al guardar la nota:", error);
+    }
+  };
+  // Función para editar la nota (PUT) usando el id de la nota existente
+  const handleEditarNota = async (hora) => {
+    try {
+      const notaActual = notas[hora];
+      if (!notaActual || !notaActual.id) {
+        console.error("No se encontró la nota con id para la hora:", hora);
+        return;
+      }
+      const payload = {
+        id: notaActual.id,
+        nota: editingNota,
+      };
+      const response = await clienteAxios.put("/notas/notas", payload);
+      setNotas((prev) => ({
+        ...prev,
+        [hora]: { id: response.data.id, nota: response.data.nota },
+      }));
+      setNotaActiva(null);
+    } catch (error) {
+      console.error("Error al editar la nota:", error);
+    }
+  };
+  // Función para cargar las notas (GET) de la sección "terminado" para el día actual
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas", {
+        params: { seccion: "terminado", fecha: today },
+      });
+      const notasMap = {};
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
+  };
+  // –––––––––––––– RENDERIZACIÓN DEL COMPONENTE ––––––––––––––
   return (
     <div className="max-w-screen-xl rounded-lg">
       {/* Versión para pantallas grandes */}
@@ -234,7 +331,7 @@ const Totales_Terminado_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              {/* Primer header vacío: el nombre "Bloq. Terminado" se mostrará en el body */}
+              {/* Primer header vacío: se mostrará el nombre "Bloq. Terminado" en el body */}
               <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
                 <th
@@ -268,11 +365,62 @@ const Totales_Terminado_Estacion = () => {
                 return (
                   <td
                     key={i}
-                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white"
+                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white relative cursor-pointer"
+                    onClick={() => toggleNota(col.hora)}
                   >
                     <span className={getClassName(col.valor, metaCol)}>
                       {col.valor}
                     </span>
+                    {/* Se muestra el recuadro de nota si el bucket está activo */}
+                    {notaActiva === col.hora && (
+                      <div
+                        className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <textarea
+                          className="w-full h-16 p-1 border mb-2 text-xs"
+                          value={editingNota}
+                          onChange={(e) => setEditingNota(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            disabled={!!notas[col.hora]?.nota}
+                            className={`py-1 px-3 rounded text-xs ${
+                              notas[col.hora]?.nota
+                                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                                : "bg-green-500 text-white hover:bg-green-600"
+                            }`}
+                            onClick={(e) => {
+                              if (!notas[col.hora]?.nota) {
+                                e.stopPropagation();
+                                handleGuardarNota(col.hora);
+                              }
+                            }}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNota(col.hora);
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNotaActiva(null);
+                            }}
+                          >
+                            Cerrar
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 );
               })}
