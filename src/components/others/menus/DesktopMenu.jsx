@@ -14,6 +14,9 @@ const DesktopMenu = ({
           <p className="uppercase">Avisos</p>
         </Link>
       )}
+      <Link to="/procesos_LA" onClick={handleMenuItemClick} className="uppercase">
+        Producción LA
+      </Link>
       <Link to="/" onClick={handleMenuItemClick} className="uppercase">
         Producción
       </Link>

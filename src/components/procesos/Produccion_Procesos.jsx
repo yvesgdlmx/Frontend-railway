@@ -17,20 +17,23 @@ const Produccion_Procesos = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         // 1. Obtención de metas desde '/metas/metas-manuales'
+        // Utilizamos el registro global, por ejemplo: "global produccion"
         const responseMetas = await clienteAxios.get('/metas/metas-manuales');
-        const metaRegistro = responseMetas.data.registros.find(registro => registro.name === '32 JOB COMPLETE');
-        // Extraemos las metas base para cada turno
+        const metaRegistro = responseMetas.data.registros.find(registro =>
+          registro.name.toLowerCase() === 'global produccion'
+        );
+        // Extraer las metas base para cada turno; se usa 0 como default si no se encuentra
         const metaBaseNocturno = metaRegistro ? metaRegistro.meta_nocturno : 0;
         const metaBaseMatutino = metaRegistro ? metaRegistro.meta_matutino : 0;
         const metaBaseVespertino = metaRegistro ? metaRegistro.meta_vespertino : 0;
-        // Se asigna la meta base (por hora) según el turno nocturno (esto lo seguimos usando para otros cálculos o visualización)
+        // Se asigna la meta base (por hora) según lo definido para el turno nocturno 
         setMetaPorHora(metaBaseNocturno);
-        // Definir las metas totales para cada turno según horas fijas: 8 para nocturno y matutino, 7 para vespertino
+        // Definir las metas totales para cada turno usando horas fijas:
+        // 8 horas para los turnos nocturno y matutino, y 7 horas para el vespertino
         const metaTotalNocturno = 8 * metaBaseNocturno;
         const metaTotalMatutino = 8 * metaBaseMatutino;
         const metaTotalVespertino = 7 * metaBaseVespertino;
@@ -39,6 +42,7 @@ const Produccion_Procesos = () => {
         setMetaVespertino(metaTotalVespertino);
         // 2. Obtener los registros de producción desde '/manual/manual/actualdia'
         const responseRegistros = await clienteAxios.get('/manual/manual/actualdia');
+        // Filtramos los registros de producción que incluyan "JOB COMPLETE"
         const registros = responseRegistros.data.registros.filter(registro =>
           registro.name.includes('JOB COMPLETE')
         );
@@ -46,7 +50,7 @@ const Produccion_Procesos = () => {
         // 3. Definir intervalos horarios de acuerdo a la jornada
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
-          // Jornada: turno nocturno de hoy 22:00 a mañana 06:00 
+          // Jornada: turno nocturno de hoy 22:00 a mañana 06:00
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(29, 'minutes');
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
@@ -95,19 +99,19 @@ const Produccion_Procesos = () => {
         setHitsMatutino(sumaHitsMatutino);
         setHitsVespertino(sumaHitsVespertino);
         setTotalHits(sumaHitsNocturno + sumaHitsMatutino + sumaHitsVespertino);
-        // 6. Calcular la meta en vivo acumulada según cada turno.
+        // 6. Calcular la meta en vivo acumulada para el turno en curso
         let metaAcumulada = 0;
-        if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
-          // Estamos en el turno nocturno
+        if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) { 
+          // Turno nocturno: multiplicar las horas transcurridas por la meta base para este turno
           const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
           metaAcumulada = Math.floor(horasTranscurridasNocturno) * metaBaseNocturno;
         } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
-          // El turno nocturno ya se completó y estamos en el matutino
-          metaAcumulada = metaTotalNocturno; // meta completada del nocturno
+          // Turno matutino: sumar la meta completa del turno nocturno y el acumulado del matutino
+          metaAcumulada = metaTotalNocturno;
           const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasMatutino) * metaBaseMatutino;
         } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
-          // Los turnos nocturno y matutino completados, y estamos en el vespertino
+          // Turno vespertino: sumar metas completas de nocturno y matutino y el acumulado del vespertino
           metaAcumulada = metaTotalNocturno + metaTotalMatutino;
           const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasVespertino) * metaBaseVespertino;
@@ -122,7 +126,9 @@ const Produccion_Procesos = () => {
           );
           return horaActual.isAfter(
             moment.tz(`${ultimo.fecha} ${ultimo.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City')
-          ) ? actual : ultimo;
+          )
+            ? actual
+            : ultimo;
         }, registros[0]);
         const formattedLastHour = moment.tz(
           `${ultimoRegistro.fecha} ${ultimoRegistro.hour}`,
@@ -144,7 +150,7 @@ const Produccion_Procesos = () => {
   };
   return (
     <div className='bg-white p-4 rounded-xl'>
-      <Link to='/totales_estacion#biselado' className='hidden lg:block'>
+      <Link to='/totales_estacion#produccion' className='hidden lg:block'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
           <h2 className='text-white font-bold uppercase'>Producción</h2>
           <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />

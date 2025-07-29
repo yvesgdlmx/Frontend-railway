@@ -37,6 +37,15 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
             )}
             <li>
               <Link
+                to={'/procesos_LA'}
+                onClick={handleClick}
+                className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7"
+              >
+                Producción LA
+              </Link>
+            </li>
+            <li>
+              <Link
                 to={'/'}
                 onClick={handleClick}
                 className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7"

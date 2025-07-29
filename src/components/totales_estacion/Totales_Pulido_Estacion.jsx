@@ -7,6 +7,7 @@ moment.tz.setDefault("America/Mexico_City");
 const Totales_Pulido_Estacion = () => {
   const location = useLocation();
   const pulidoRef = useRef(null);
+  
   // Estados para los registros (hits)
   const [registros, setRegistros] = useState([]);
   // Estados para la meta por hora y la meta acumulada por turno
@@ -26,11 +27,11 @@ const Totales_Pulido_Estacion = () => {
     matutino: 0,
     vespertino: 0,
   });
-  // Estados para la funcionalidad de notas (igual que en “Generado”)
-  // Se guardará un objeto cuya clave es la hora y su valor es { id, nota }
+  // Estados para la funcionalidad de notas
   const [notas, setNotas] = useState({});
   const [notaActiva, setNotaActiva] = useState(null);
   const [editingNota, setEditingNota] = useState("");
+  
   // Orden fijo de los buckets (horas)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
@@ -62,33 +63,31 @@ const Totales_Pulido_Estacion = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Para las metas se consulta a la API que retorna metas de pulido
+        // 1. Obtener metas para pulido desde '/metas/metas-pulidos'
         const responseMetas = await clienteAxios("/metas/metas-pulidos");
         const registrosMetas = responseMetas.data.registros;
-        let sumaNocturno = 0,
-            sumaMatutino = 0,
-            sumaVespertino = 0;
-        registrosMetas.forEach((item) => {
-          sumaNocturno += item.meta_nocturno;
-          sumaMatutino += item.meta_matutino;
-          sumaVespertino += item.meta_vespertino;
-        });
+        // Se busca el registro global con name "global pulido"
+        const globalMeta = registrosMetas.find(item =>
+          item.name.toLowerCase() === "global"
+        );
+        // En caso de no encontrarlo, se asigna 0 por default
+        const metaNocturnoBase = globalMeta ? globalMeta.meta_nocturno : 0;
+        const metaMatutinoBase = globalMeta ? globalMeta.meta_matutino : 0;
+        const metaVespertinoBase = globalMeta ? globalMeta.meta_vespertino : 0;
         setMetasPorHora({
-          nocturno: sumaNocturno,
-          matutino: sumaMatutino,
-          vespertino: sumaVespertino,
+          nocturno: metaNocturnoBase,
+          matutino: metaMatutinoBase,
+          vespertino: metaVespertinoBase,
         });
-        // Calcular metas acumuladas por turno (ajusta las horas según corresponda)
         setMetasTotalesPorTurno({
-          nocturno: sumaNocturno * 8,
-          matutino: sumaMatutino * 8,
-          vespertino: sumaVespertino * 7,
+          nocturno: metaNocturnoBase * 8,
+          matutino: metaMatutinoBase * 8,
+          vespertino: metaVespertinoBase * 7,
         });
-        // Obtener registros (hits) del día actual
+        // 2. Obtener registros (hits) del día actual desde '/pulido/pulido/actualdia'
         const responseRegistros = await clienteAxios("/pulido/pulido/actualdia");
         const registrosAPI = responseRegistros.data.registros;
         const ahora = moment();
-        // Definir la jornada: de las 22:00 del día anterior a las 21:30 del día siguiente
         let inicioJornada = moment().startOf("day").add(22, "hours");
         let finJornada = moment(inicioJornada).add(1, "days").subtract(30, "minutes");
         if (ahora.isBefore(inicioJornada)) {
@@ -173,7 +172,9 @@ const Totales_Pulido_Estacion = () => {
   // Función para obtener el objeto moment correspondiente al bucket dado la hora y el inicio de la jornada
   const getBucketMoment = (horaStr, inicioJornada) => {
     const [h, m] = horaStr.split(":").map(Number);
-    let bucket = inicioJornada.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    let bucket = inicioJornada
+      .clone()
+      .set({ hour: h, minute: m, second: 0, millisecond: 0 });
     if (h < 22) {
       bucket.add(1, "day");
     }
@@ -367,7 +368,6 @@ const Totales_Pulido_Estacion = () => {
                           onClick={(e) => e.stopPropagation()}
                         />
                         <div className="flex justify-end space-x-2">
-                          {/* Botón Guardar: deshabilitado si ya existe una nota */}
                           <button
                             disabled={!!notas[col.hora]?.nota}
                             className={`py-1 px-3 rounded text-xs ${
@@ -460,7 +460,6 @@ const Totales_Pulido_Estacion = () => {
                     idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
                 >
-                  {/* Fila principal: muestra el rango y el valor; clic para abrir notas */}
                   <div
                     className="flex justify-between items-center cursor-pointer"
                     onClick={() => toggleNota(col.hora)}
@@ -476,7 +475,6 @@ const Totales_Pulido_Estacion = () => {
                       {col.valor}
                     </span>
                   </div>
-                  {/* Panel de notas: se muestra si la nota para esta hora está activa */}
                   {notaActiva === col.hora && (
                     <div
                       className="mt-2 bg-gray-100 p-2 rounded shadow-md"

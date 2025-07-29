@@ -43,6 +43,9 @@ const DesktopMenuWhite = () => {
             <p className="uppercase">Avisos</p>
           </Link>
         )}
+        <Link to={'/procesos_LA'}>
+          <p>Producción LA</p>
+        </Link>
         <Link to={'/'}>
           <p>Producción</p>
         </Link>

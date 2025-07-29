@@ -8,7 +8,9 @@ import AuthLayout from './layouts/AuthLayout';
 // Usar React.lazy para cargar componentes de forma asíncrona
 const Login = lazy(() => import('./components/others/Login'));
 const Procesos = lazy(() => import('./paginas/Procesos'));
+const ProcesosLA = lazy(() => import('./paginas/ProcesosLA'))
 const Totales_Estacion = lazy(() => import('./paginas/totales/Totales_Estacion'));
+const Totales_Estacion_LA = lazy(() => import('./paginas/totales/Totales_Estacion_LA'))
 const Totales_Surtido_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Surtido_Maquina2'));
 const Totales_Tallado_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Tallado_Maquina2'));
 const Totales_Generado_Maquina2 = lazy(() => import('./components/totales_maquina/Totales_Generado_Maquina2'));
@@ -27,6 +29,7 @@ const Historial_Por_Dia = lazy(() => import('./paginas/historial/Historial_Por_D
 const Tableros_Tallado = lazy(() => import('./paginas/tableros/Tableros_Tallado'));
 const Tableros_Terminado = lazy(() => import('./paginas/tableros/Tableros_Terminado'));
 const Tableros_Tallado_Terminado = lazy(() => import('./paginas/tableros/Tableros_Tallado_Terminado'));
+const Linea_Automatica_Tableros = lazy(() => import('./components/tableros/Linea_Automatica_Tableros'))
 const Reporte = lazy(() => import('./paginas/reportes/Reporte'));
 const ReporteAntiguedad = lazy(() => import('./paginas/reportes/ReporteAntiguedad'));
 const ReporteTrabajosNuevos = lazy(() => import('./paginas/reportes/ReporteTrabajosNuevos'));
@@ -49,7 +52,9 @@ function App() {
           <Routes>
             <Route path='/' element={<Layout />}>
               <Route index element={<Procesos />} />
+              <Route path='/procesos_LA' element={<ProcesosLA />} />
               <Route path='/totales_estacion' element={<Totales_Estacion />} />
+              <Route path='/totales_estacion_la' element={<Totales_Estacion_LA />} />
               <Route path='/totales_surtido_maquina' element={<Totales_Surtido_Maquina2 />} />
               <Route path='/totales_tallado_maquina' element={<Totales_Tallado_Maquina2 />} />
               <Route path='/totales_generado_maquina' element={<Totales_Generado_Maquina2 />} />
@@ -69,6 +74,7 @@ function App() {
               <Route path='/tableros_tallado' element={<Tableros_Tallado />} />
               <Route path='/tableros_terminado' element={<Tableros_Terminado />} />
               <Route path='/tableros_tallado_terminado' element={<Tableros_Tallado_Terminado />} />
+              <Route path='/linea_automatica' element={<Linea_Automatica_Tableros/>} />
               <Route path='/reportes' element={<Reporte />} />
               <Route path='/reportes_antiguedad' element={<ReporteAntiguedad />} />
               <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos />} />

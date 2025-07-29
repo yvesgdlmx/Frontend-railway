@@ -17,30 +17,36 @@ const Generado_Procesos = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. Obtener las metas del endpoint y sumarlas por turno
+        // 1. Obtener la meta global del endpoint
         const responseMetas = await clienteAxios.get('/metas/metas-generadores');
-        const sumaMetaNocturno = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
-        const sumaMetaMatutino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_matutino, 0);
-        const sumaMetaVespertino = responseMetas.data.registros.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
+        // Buscar el registro "global"
+        const metaGlobal = responseMetas.data.registros.find(item => item.name.toLowerCase() === "global");
+        if (!metaGlobal) {
+          console.error("No se encontró el registro global en las metas");
+          return;
+        }
+        const sumaMetaNocturno = metaGlobal.meta_nocturno;
+        const sumaMetaMatutino = metaGlobal.meta_matutino;
+        const sumaMetaVespertino = metaGlobal.meta_vespertino;
         // 2. Obtener los registros del día
         const responseRegistros = await clienteAxios.get('/generadores/generadores/actualdia');
         const registros = responseRegistros.data.registros;
         const ahora = moment().tz('America/Mexico_City');
-        // 3. Definir los intervalos horarias de acuerdo a la jornada
+        // 3. Definir los intervalos horarios basados en la jornada
         let inicioNocturno, finNocturno;
         let inicioMatutino, finMatutino;
         let inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
-          // Si es después de las 22:00, la jornada nocturna empieza hoy y se extiende hasta mañana 06:00
+          // Jornada nocturna que inicia hoy y termina mañana a las 06:00
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours');
-          // Los turnos de mañana se programan para el día siguiente
+          // Turnos del día siguiente
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
           finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().add(1, 'day').startOf('day').add(21, 'hours').add(30, 'minutes');
         } else {
-          // Antes de las 22:00: se considera la jornada actual
+          // Antes de las 22:00 se considera la jornada actual
           inicioNocturno = ahora.clone().subtract(1, 'day').startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().startOf('day').add(6, 'hours');
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
@@ -83,7 +89,7 @@ const Generado_Procesos = () => {
         // Calcular el total de hits
         const total = hitsNocturno + hitsMatutino + hitsVespertino;
         setTotalHits(total);
-        // 6. Definir horas fijas de cada turno y asignar las metas totales (usando suma de metas)
+        // 6. Definir horas fijas de cada turno y calcular la meta total por turno multiplicando la meta global (por hora) por las horas del turno
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
@@ -93,19 +99,16 @@ const Generado_Procesos = () => {
         setMetaNocturno(metaTotalNocturno);
         setMetaMatutino(metaTotalMatutino);
         setMetaVespertino(metaTotalVespertino);
-        // 7. Calcular la meta en vivo acumulada según en qué turno se encuentre "ahora"
+        // 7. Calcular la meta en vivo acumulada según el turno en el que se encuentra "ahora"
         let metaAcumulada = 0;
         if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
-          // Turno nocturno: calcular horas transcurridas a partir del inicio
           const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
           metaAcumulada = Math.floor(horasTranscurridasNocturno) * sumaMetaNocturno;
         } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
-          // Turno nocturno completado y durante el matutino: se suma la meta completa del nocturno
           metaAcumulada = metaTotalNocturno;
           const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasMatutino) * sumaMetaMatutino;
         } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
-          // Turnos nocturno y matutino completados y durante el vespertino: se suman las metas completas de los dos turnos y la parcial del vespertino
           metaAcumulada = metaTotalNocturno + metaTotalMatutino;
           const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasVespertino) * sumaMetaVespertino;
@@ -129,7 +132,8 @@ const Generado_Procesos = () => {
         );
         setUltimaHora(formattedLastHour.format('HH:mm'));
         // Calcular la siguiente media hora para el próximo corte
-        const horaFinal = formattedLastHour.clone().add(30 - (formattedLastHour.minute() % 30), 'minutes');
+        const minutosParaMediaHora = 30 - (formattedLastHour.minute() % 30);
+        const horaFinal = formattedLastHour.clone().add(minutosParaMediaHora, 'minutes');
         const siguienteHoraDate = horaFinal.clone().add(30, 'minutes');
         setSiguienteHora(siguienteHoraDate.format('HH:mm'));
       } catch (error) {

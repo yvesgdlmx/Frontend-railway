@@ -20,7 +20,6 @@ const Totales_Engraver_Estacion = () => {
     matutino: 0,
     vespertino: 0,
   });
-  
   // Estado para los totales de hits por turno
   const [totalesPorTurno, setTotalesPorTurno] = useState({
     nocturno: 0,
@@ -63,29 +62,25 @@ const Totales_Engraver_Estacion = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Se obtienen las metas específicas para Engraver. Se espera recibir meta_nocturno, meta_matutino y meta_vespertino.
+        // Se obtienen las metas específicas para Engraver.
+        // En lugar de sumar todos los registros, se utiliza el objeto global.
         const responseMetas = await clienteAxios("/metas/metas-engravers");
         const registrosMetas = responseMetas.data.registros;
-        let sumaNocturno = 0,
-          sumaMatutino = 0,
-          sumaVespertino = 0;
-        registrosMetas.forEach((item) => {
-          sumaNocturno += item.meta_nocturno;
-          sumaMatutino += item.meta_matutino;
-          sumaVespertino += item.meta_vespertino;
-        });
-        // Se establece la meta por hora para cada turno
+        // Se busca el registro global, asumiendo que su nombre (en minúsculas) es "global engraver"
+        const globalMeta = registrosMetas.find(item => item.name.toLowerCase() === "global");
+        const metaNocturnoBase = globalMeta ? globalMeta.meta_nocturno : 0;
+        const metaMatutinoBase = globalMeta ? globalMeta.meta_matutino : 0;
+        const metaVespertinoBase = globalMeta ? globalMeta.meta_vespertino : 0;
+        // Se establecen la meta por hora y la meta acumulada por turno
         setMetasPorHora({
-          nocturno: sumaNocturno,
-          matutino: sumaMatutino,
-          vespertino: sumaVespertino,
+          nocturno: metaNocturnoBase,
+          matutino: metaMatutinoBase,
+          vespertino: metaVespertinoBase,
         });
-        // Se calcula la meta acumulada por turno:
-        // Para el turno nocturno y matutino se consideran 8 horas; para vespertino son 7 horas.
         setMetasTotalesPorTurno({
-          nocturno: sumaNocturno * 8,
-          matutino: sumaMatutino * 8,
-          vespertino: sumaVespertino * 7,
+          nocturno: metaNocturnoBase * 8,
+          matutino: metaMatutinoBase * 8,
+          vespertino: metaVespertinoBase * 7,
         });
         // Se obtienen los registros (hits) del día actual
         const responseRegistros = await clienteAxios("/engraver/engraver/actualdia");
@@ -185,7 +180,7 @@ const Totales_Engraver_Estacion = () => {
     }
     return bucket;
   };
-  /* 
+  /*
     Función que retorna el valor a mostrar para cada bucket:
       - Si existe un valor registrado en hitsPorHora, se retorna ese valor.
       - Si no existe, se verifica si el bucket ya cerró (con un margen de 5 minutos);
@@ -248,7 +243,6 @@ const Totales_Engraver_Estacion = () => {
     return 0;
   };
   // --- Funciones para el manejo de notas ---
-  // Función para mostrar/ocultar el recuadro de nota en la celda seleccionada
   const toggleNota = (hora) => {
     if (notaActiva === hora) {
       setNotaActiva(null);
@@ -257,7 +251,6 @@ const Totales_Engraver_Estacion = () => {
       setEditingNota(notas[hora]?.nota || "");
     }
   };
-  // Función para guardar una nueva nota (POST) para la sección "engraver"
   const handleGuardarNota = async (hora) => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -277,7 +270,6 @@ const Totales_Engraver_Estacion = () => {
       console.error("Error al guardar la nota:", error);
     }
   };
-  // Función para editar una nota existente (PUT)
   const handleEditarNota = async (hora) => {
     try {
       const notaActual = notas[hora];
@@ -299,7 +291,6 @@ const Totales_Engraver_Estacion = () => {
       console.error("Error al editar la nota:", error);
     }
   };
-  // Función para cargar las notas existentes (GET) para la sección "engraver"
   const cargarNotas = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -326,7 +317,6 @@ const Totales_Engraver_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              {/* Primera cabecera vacía, para que el nombre aparezca junto al ícono */}
               <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
                 <th
@@ -485,7 +475,6 @@ const Totales_Engraver_Estacion = () => {
                     idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
                 >
-                  {/* Fila principal: muestra el rango y el valor. Al hacer clic se activa el panel de nota */}
                   <div
                     className="flex justify-between items-center cursor-pointer"
                     onClick={() => toggleNota(col.hora)}
@@ -501,7 +490,6 @@ const Totales_Engraver_Estacion = () => {
                       {col.valor}
                     </span>
                   </div>
-                  {/* Panel de notas: se muestra condicionalmente si notaActiva coincide con la hora */}
                   {notaActiva === col.hora && (
                     <div
                       className="mt-2 bg-gray-100 p-2 rounded shadow-md"

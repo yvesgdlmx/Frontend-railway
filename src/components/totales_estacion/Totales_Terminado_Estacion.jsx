@@ -68,31 +68,31 @@ const Totales_Terminado_Estacion = () => {
         // Se obtienen las metas desde "/metas/metas-terminados"
         const responseMetas = await clienteAxios("/metas/metas-terminados");
         const registrosMetas = responseMetas.data.registros;
-        let sumaNocturno = 0, sumaMatutino = 0, sumaVespertino = 0;
-        registrosMetas.forEach((item) => {
-          sumaNocturno += item.meta_nocturno;
-          sumaMatutino += item.meta_matutino;
-          sumaVespertino += item.meta_vespertino;
-        });
+        // Buscamos el registro global para la sección "terminado"
+        const globalMeta = registrosMetas.find(item => 
+          item.name.toLowerCase() === "global"
+        );
+        // Si existe el registro global, usamos sus metas base. Caso contrario se asigna 0.
+        const metaNocturnoBase = globalMeta ? globalMeta.meta_nocturno : 0;
+        const metaMatutinoBase = globalMeta ? globalMeta.meta_matutino : 0;
+        const metaVespertinoBase = globalMeta ? globalMeta.meta_vespertino : 0;
         // Guardamos la meta por hora para cada turno
         setMetasPorHora({
-          nocturno: sumaNocturno,
-          matutino: sumaMatutino,
-          vespertino: sumaVespertino,
+          nocturno: metaNocturnoBase,
+          matutino: metaMatutinoBase,
+          vespertino: metaVespertinoBase,
         });
-        // Calculamos la meta acumulada: Nocturno y Matutino tienen 8 horas, Vespertino 7 horas.
+        // Calculamos la meta acumulada: nocturno y matutino = 8 horas, vespertino = 7 horas.
         setMetasTotalesPorTurno({
-          nocturno: sumaNocturno * 8,
-          matutino: sumaMatutino * 8,
-          vespertino: sumaVespertino * 7,
+          nocturno: metaNocturnoBase * 8,
+          matutino: metaMatutinoBase * 8,
+          vespertino: metaVespertinoBase * 7,
         });
         // Se obtienen los registros (hits) desde "/terminado/terminado/actualdia"
-        const responseRegistros = await clienteAxios(
-          "/terminado/terminado/actualdia"
-        );
+        const responseRegistros = await clienteAxios("/terminado/terminado/actualdia");
         const registrosApi = responseRegistros.data.registros;
         const ahora = moment();
-        // Definimos la jornada: inicia 22:00 y finaliza 21:30 del día siguiente
+        // Definimos la jornada: inicia a las 22:00 y finaliza a las 21:30 del día siguiente
         let inicioHoy = moment().startOf("day").add(22, "hours");
         let finHoy = moment(inicioHoy).add(1, "days").subtract(30, "minutes");
         if (ahora.isBefore(inicioHoy)) {
@@ -190,7 +190,7 @@ const Totales_Terminado_Estacion = () => {
     Función que devuelve el valor a mostrar para cada bucket:
     - Si existe un valor en hitsPorHora para ese bucket, se retorna dicho valor.
     - Si no, se verifica si el bucket ya debió haber cerrado (sumándole un margen de 5 minutos).
-      Si ya cerró, se retorna 0; de lo contrario, se retorna una cadena vacía.
+      Si ya cerró, se retorna 0; de lo contrario, una cadena vacía.
   */
   const getDisplayValue = (horaStr) => {
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
@@ -202,7 +202,7 @@ const Totales_Terminado_Estacion = () => {
     const margen = 5; // minutos
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
-  // Se arma un arreglo de columnas a partir del arreglo fijo de horas; se filtran buckets sin valor
+  // Se arma un arreglo de columnas a partir del arreglo fijo de horas. Se filtran buckets sin valor
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
@@ -213,7 +213,7 @@ const Totales_Terminado_Estacion = () => {
   // Función para asignar clase de color: se compara el valor (hits) del bucket con la meta por hora correspondiente
   const getClassName = (valor, meta) =>
     valor >= meta ? "text-green-500" : "text-red-500";
-  // Determinar el inicio de la jornada (uso global)
+  // Determinar el inicio de la jornada (usado de forma global)
   let inicioHoy = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicioHoy)) inicioHoy.subtract(1, "day");
   // Función que, dado un bucket (hora), retorna la meta por hora asignada al turno correspondiente
@@ -268,7 +268,7 @@ const Totales_Terminado_Estacion = () => {
       const payload = {
         fecha: today,
         hora,
-        seccion: "terminado", // Se usa la sección "terminado" para esta API
+        seccion: "terminado", // Se usa la sección "terminado"
         nota: editingNota,
       };
       const response = await clienteAxios.post("/notas/notas", payload);
@@ -471,7 +471,6 @@ const Totales_Terminado_Estacion = () => {
               const metaCol = getMetaParaHora(col.hora, inicioHoy);
               return (
                 <div key={idx} className={`mb-2 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"} rounded`}>
-                  {/* Fila principal: se muestra el rango y el valor; al hacerlo clic se activa el panel de notas */}
                   <div
                     className="flex justify-between items-center cursor-pointer py-2 px-4"
                     onClick={() => toggleNota(col.hora)}
@@ -481,7 +480,6 @@ const Totales_Terminado_Estacion = () => {
                       {col.valor}
                     </span>
                   </div>
-                  {/* Panel de notas: se inserta en el flujo y empuja hacia abajo el contenido */}
                   {notaActiva === col.hora && (
                     <div
                       className="mt-2 bg-gray-100 p-4 border rounded shadow-md w-full text-xs"
@@ -543,7 +541,6 @@ const Totales_Terminado_Estacion = () => {
               <button className="text-white font-bold uppercase">Ver Detalles</button>
             </Link>
           </div>
-          {/* Totales por turno para versión mobile */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
               <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>

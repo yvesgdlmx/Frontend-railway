@@ -1,111 +1,119 @@
-import { useEffect, useState } from "react";
-import clienteAxios from "../../../config/clienteAxios";
+import { useEffect, useState, useRef } from "react";
+import clienteAxios from "../../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from "moment-timezone";
-import { formatNumber } from "../../helpers/formatNumber";
+import { formatNumber } from "../../../helpers/formatNumber";
 moment.tz.setDefault("America/Mexico_City");
-const Totales_Surtido_Estacion = () => {
+const Totales_Biselado_EstacionLA = () => {
   const location = useLocation();
+  const generadoRef = useRef(null);
+  // Estados para registros (hits)
   const [registros, setRegistros] = useState([]);
-  const [totalesPorTurno, setTotalesPorTurno] = useState({
-    matutino: 0,
-    vespertino: 0,
-    nocturno: 0,
-  });
+  // Estados para las metas por hora y metas acumuladas por turno
   const [metasPorHora, setMetasPorHora] = useState({
+    nocturno: 0,
     matutino: 0,
     vespertino: 0,
-    nocturno: 0,
   });
   const [metasTotalesPorTurno, setMetasTotalesPorTurno] = useState({
+    nocturno: 0,
     matutino: 0,
     vespertino: 0,
-    nocturno: 0,
   });
-  // Para las notas, se almacena un objeto cuya clave es la hora y su valor es un objeto { id, nota }
+  // Estado para los totales de hits por turno
+  const [totalesPorTurno, setTotalesPorTurno] = useState({
+    nocturno: 0,
+    matutino: 0,
+    vespertino: 0,
+  });
+  // Estados para la funcionalidad de notas: se guarda un objeto cuya clave es la hora y su valor es { id, nota }
   const [notas, setNotas] = useState({});
-  const [notaActiva, setNotaActiva] = useState(null); // almacena la hora en la que se hizo click para abrir el recuadro
+  const [notaActiva, setNotaActiva] = useState(null); // Almacena la hora de la celda en la que se hizo click para mostrar el recuadro de nota
   const [editingNota, setEditingNota] = useState("");
-  
-  // Arreglo de horas (buckets)
+  // Orden de buckets (horas)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
     "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:30", // Matutino
-    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00", // Nocturno
+    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00"  // Nocturno
   ];
+  // Definir los patrones (máquinas deseadas)
+  const patterns = [
+    "228 DOUBLER 2",
+    "229 DOUBLER 3",
+    "230 DOUBLER 4",
+    "231 DOUBLER 5",
+    "232 DOUBLER 6",
+    "298 DOUBLER",
+    "312 RAZR",
+    "318 HSE 1",
+    "319 HSE 2"
+  ];
+  // Scroll si el hash es "#generado"
+  useEffect(() => {
+    if (location.hash === "#generado" && generadoRef.current) {
+      setTimeout(() => {
+        const yOffset = -90;
+        const element = generadoRef.current;
+        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }, 100);
+    }
+  }, [location]);
+  // Calcula el rango de horas (bucket de 1 hora)
   const calcularRangoHoras = (hora) => {
-    const inicio = hora;
     let fin;
     if (hora === "23:00") {
       fin = "00:00";
     } else {
-      const obj = moment(hora, "HH:mm");
-      fin = obj.add(1, "hour").format("HH:mm");
+      fin = moment(hora, "HH:mm").add(1, "hour").format("HH:mm");
     }
-    return `${inicio} - ${fin}`;
+    return `${hora} - ${fin}`;
   };
-  // Si la URL trae hash, realiza scroll.
-  useEffect(() => {
-    if (location.hash) {
-      setTimeout(() => {
-        const id = location.hash.replace("#", "");
-        const element = document.getElementById(id);
-        if (element) {
-          window.scrollTo({
-            top: element.offsetTop - 100,
-            behavior: "smooth",
-          });
-        }
-      }, 0);
-    }
-  }, [location]);
-  // Cargar datos y notas
+  // Obtener datos: metas y registros (hits)
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // 1. Obtener metas para surtido desde '/metas/metas-manuales'
-        // Se utiliza el registro global para surtido en lugar de sumar metas de registros individuales.
-        const responseMetas = await clienteAxios("/metas/metas-manuales");
+        // 1. Obtener la meta de generadores desde '/metas/metas-generadores'
+        // Filtramos las metas para que solo incluyan las máquinas deseadas.
+        const responseMetas = await clienteAxios("/metas/metas-biselados");
         const registrosMetas = responseMetas.data.registros;
-        const globalMeta = registrosMetas.find(item => 
-          item.name.toLowerCase() === "global surtido"
+        const metasFiltradas = registrosMetas.filter(meta =>
+          patterns.some(pat => meta.name.startsWith(pat))
         );
-        // Si no se encuentra, se asigna 0 como valor por default
-        const metaNocturnoPorHora = globalMeta ? globalMeta.meta_nocturno : 0;
-        const metaMatutinoPorHora = globalMeta ? globalMeta.meta_matutino : 0;
-        const metaVespertinoPorHora = globalMeta ? globalMeta.meta_vespertino : 0;
+        const sumaNocturno = metasFiltradas.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
+        const sumaMatutino = metasFiltradas.reduce((acc, curr) => acc + curr.meta_matutino, 0);
+        const sumaVespertino = metasFiltradas.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
         setMetasPorHora({
-          nocturno: metaNocturnoPorHora,
-          matutino: metaMatutinoPorHora,
-          vespertino: metaVespertinoPorHora,
+          nocturno: sumaNocturno,
+          matutino: sumaMatutino,
+          vespertino: sumaVespertino,
         });
         setMetasTotalesPorTurno({
-          nocturno: metaNocturnoPorHora * 8,
-          matutino: metaMatutinoPorHora * 8,
-          vespertino: metaVespertinoPorHora * 7,
+          nocturno: sumaNocturno * 8,
+          matutino: sumaMatutino * 8,
+          vespertino: sumaVespertino * 7,
         });
-        // 2. Obtener registros (hits) del día actual desde '/manual/manual/actualdia'
-        const responseRegistros = await clienteAxios("/manual/manual/actualdia");
-        // Filtrar los registros relacionados a "LENS LOG" (si es necesario, puede ajustarse la condición)
-        const registrosLensLog = responseRegistros.data.registros.filter((registro) =>
-          registro.name.includes("LENS LOG")
-        );
+        // 2. Obtener registros (hits) del día actual
+        // Filtrar los registros para que solo incluyan las máquinas deseadas.
+        const responseRegistros = await clienteAxios("/biselado/biselado/actualdia");
+        const registrosAPI = responseRegistros.data.registros;
         const ahora = moment();
+        // La jornada inicia a las 22:00 del día anterior y finaliza a las 21:30 del día siguiente
         let inicioJornada = moment().startOf("day").add(22, "hours");
+        let finJornada = moment(inicioJornada).add(1, "days").subtract(30, "minutes");
         if (ahora.isBefore(inicioJornada)) {
           inicioJornada.subtract(1, "day");
+          finJornada.subtract(1, "day");
         }
-        const finJornada = inicioJornada.clone().add(1, "days").subtract(30, "minutes");
-        const registrosFiltrados = registrosLensLog.filter((registro) => {
-          const fechaHoraRegistro = moment(
-            `${registro.fecha} ${registro.hour}`,
-            "YYYY-MM-DD HH:mm:ss"
-          );
-          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)");
+        const registrosFiltrados = registrosAPI.filter((registro) => {
+          // Además de la validación de la jornada, filtra por máquina
+          const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
+          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)") &&
+            patterns.some(pat => registro.name.startsWith(pat));
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
-        // Cargar las notas para la fecha actual y sección "surtido"
+        // Cargar las notas para la sección "generado"
         cargarNotas();
       } catch (error) {
         console.error("Error al obtener los datos:", error);
@@ -113,39 +121,12 @@ const Totales_Surtido_Estacion = () => {
     };
     obtenerDatos();
   }, []);
-  // Cargar notas (se espera que el response incluya id y nota)
-  const cargarNotas = async () => {
-    try {
-      const today = moment().format("YYYY-MM-DD");
-      // Se asume que la sección es "surtido"
-      const response = await clienteAxios.get("/notas/notas", {
-        params: { seccion: "surtido", fecha: today },
-      });
-      const notasMap = {};
-      // Si la respuesta es un array, se itera sobre él
-      if (Array.isArray(response.data)) {
-        response.data.forEach((item) => {
-          notasMap[item.hora] = { id: item.id, nota: item.nota };
-        });
-      } else {
-        console.error("La respuesta de la API no es un array:", response.data);
-      }
-      setNotas(notasMap);
-    } catch (error) {
-      console.error("Error al cargar las notas:", error);
-    }
-  };
+  // Función para calcular totales de hits por turno
   const calcularTotalesPorTurno = (registros, inicioJornada) => {
-    const totales = {
-      matutino: 0,
-      vespertino: 0,
-      nocturno: 0,
-    };
+    const totales = { nocturno: 0, matutino: 0, vespertino: 0 };
     registros.forEach((registro) => {
-      const fechaHoraRegistro = moment(
-        `${registro.fecha} ${registro.hour}`,
-        "YYYY-MM-DD HH:mm:ss"
-      );
+      const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
+      // Turno Nocturno: de inicioJornada hasta inicioJornada + 8 horas
       if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone(),
@@ -155,7 +136,9 @@ const Totales_Surtido_Estacion = () => {
         )
       ) {
         totales.nocturno += registro.hits;
-      } else if (
+      }
+      // Turno Matutino: de inicioJornada + 8h 30min hasta inicioJornada + 16h
+      else if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(8, "hours").add(30, "minutes"),
           inicioJornada.clone().add(16, "hours"),
@@ -164,7 +147,9 @@ const Totales_Surtido_Estacion = () => {
         )
       ) {
         totales.matutino += registro.hits;
-      } else if (
+      }
+      // Turno Vespertino: de inicioJornada + 16h 30min hasta inicioJornada + 23h 30min
+      else if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(16, "hours").add(30, "minutes"),
           inicioJornada.clone().add(23, "hours").add(30, "minutes"),
@@ -177,109 +162,107 @@ const Totales_Surtido_Estacion = () => {
     });
     setTotalesPorTurno(totales);
   };
+  // Función para agrupar hits por hora (bucket)
   const agruparHitsPorHora = () => {
     const hits = {};
     registros.forEach((registro) => {
-      const fechaHoraRegistro = moment(
-        `${registro.fecha} ${registro.hour}`,
-        "YYYY-MM-DD HH:mm:ss"
-      );
+      const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
       const horaFormateada = fechaHoraRegistro.format("HH:mm");
-      if (hits[horaFormateada]) {
-        hits[horaFormateada] += registro.hits;
-      } else {
-        hits[horaFormateada] = registro.hits;
-      }
+      hits[horaFormateada] = (hits[horaFormateada] || 0) + registro.hits;
     });
     return hits;
   };
   const hitsPorHora = agruparHitsPorHora();
+  // Función para obtener el objeto moment correspondiente al bucket dada la hora y el inicio de la jornada
   const getBucketMoment = (horaStr, inicioJornada) => {
     const [h, m] = horaStr.split(":").map(Number);
-    let bucket = inicioJornada
-      .clone()
-      .set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    let bucket = inicioJornada.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
     if (h < 22) {
       bucket.add(1, "day");
     }
     return bucket;
   };
-  const getDisplayValue = (horaStr, inicioJornada) => {
+  /* Función que devuelve el valor a mostrar en cada bucket:
+     - Si existe un valor registrado en hitsPorHora se retorna.
+     - Si no existe, se verifica si el bucket ya cerró (con margen de 5 min)
+       y se retorna 0; de lo contrario, cadena vacía.
+  */
+  const getDisplayValue = (horaStr) => {
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
     const ahora = moment();
+    let inicioJornada = moment().startOf("day").add(22, "hours");
+    if (ahora.isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
     const bucketInicio = getBucketMoment(horaStr, inicioJornada);
     const bucketFin = bucketInicio.clone().add(1, "hour");
-    const margen = 5;
+    const margen = 5; // minutos
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
-  let inicioJornada = moment().startOf("day").add(22, "hours");
-  if (moment().isBefore(inicioJornada)) {
-    inicioJornada.subtract(1, "day");
-  }
-  // Construcción de las columnas filtrando las que tengan algún valor.
+  // Armar columnas (buckets) a partir del orden fijo, filtrando las que retornen ""
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
       rango: calcularRangoHoras(hora),
-      valor: getDisplayValue(hora, inicioJornada),
+      valor: getDisplayValue(hora),
     }))
     .filter((col) => col.valor !== "");
+  // Función para asignar clase (color) según si se cumple la meta
+  const getClassName = (hits, meta) =>
+    parseInt(hits, 10) >= meta ? "text-green-500" : "text-red-500";
+  // Definir el inicio de la jornada
+  let inicioJornada = moment().startOf("day").add(22, "hours");
+  if (moment().isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
+  // Función que dada una hora (bucket) retorna la meta por hora correspondiente según turno
   const getMetaParaHora = (horaStr, inicioJornada) => {
-    const bucket = getBucketMoment(horaStr, inicioJornada);
+    const bucketMoment = getBucketMoment(horaStr, inicioJornada);
     if (
-      bucket.isBetween(
+      bucketMoment.isBetween(
         inicioJornada.clone(),
         inicioJornada.clone().add(8, "hours"),
         null,
         "[)"
       )
-    ) {
+    )
       return metasPorHora.nocturno;
-    } else if (
-      bucket.isBetween(
+    else if (
+      bucketMoment.isBetween(
         inicioJornada.clone().add(8, "hours").add(30, "minutes"),
         inicioJornada.clone().add(16, "hours"),
         null,
         "[)"
       )
-    ) {
+    )
       return metasPorHora.matutino;
-    } else if (
-      bucket.isBetween(
+    else if (
+      bucketMoment.isBetween(
         inicioJornada.clone().add(16, "hours").add(30, "minutes"),
         inicioJornada.clone().add(23, "hours").add(30, "minutes"),
         null,
         "[)"
       )
-    ) {
+    )
       return metasPorHora.vespertino;
-    }
     return 0;
   };
-  const getClassName = (hits, meta) =>
-    parseInt(hits, 10) >= meta ? "text-green-500" : "text-red-500";
-  // Función para mostrar y ocultar el recuadro de la nota.
+  // Función para mostrar/ocultar el recuadro de nota
   const toggleNota = (hora) => {
     if (notaActiva === hora) {
       setNotaActiva(null);
     } else {
       setNotaActiva(hora);
-      // Si ya existe una nota para esa hora, se carga su contenido; de lo contrario, cadena vacía.
       setEditingNota(notas[hora]?.nota || "");
     }
   };
-  // Función para guardar la nota (método POST)
+  // Función para guardar la nota (POST) en la sección "generado"
   const handleGuardarNota = async (hora) => {
     try {
       const today = moment().format("YYYY-MM-DD");
       const payload = {
         fecha: today,
         hora,
-        seccion: "surtido",
+        seccion: "generado",
         nota: editingNota,
       };
       const response = await clienteAxios.post("/notas/notas", payload);
-      // Se espera que el response incluya el id y la nota creada.
       setNotas((prev) => ({
         ...prev,
         [hora]: { id: response.data.id, nota: response.data.nota },
@@ -289,7 +272,7 @@ const Totales_Surtido_Estacion = () => {
       console.error("Error al guardar la nota:", error);
     }
   };
-  // Función para editar la nota (método PUT) enviando el id y la nueva nota.
+  // Función para editar la nota (PUT) enviando el id y la nueva nota
   const handleEditarNota = async (hora) => {
     try {
       const notaActual = notas[hora];
@@ -302,7 +285,6 @@ const Totales_Surtido_Estacion = () => {
         nota: editingNota,
       };
       const response = await clienteAxios.put("/notas/notas", payload);
-      // Actualizamos la nota con la respuesta del servidor.
       setNotas((prev) => ({
         ...prev,
         [hora]: { id: response.data.id, nota: response.data.nota },
@@ -312,10 +294,30 @@ const Totales_Surtido_Estacion = () => {
       console.error("Error al editar la nota:", error);
     }
   };
+  // Función para cargar las notas (GET) para la sección "generado"
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas", {
+        params: { seccion: "generado", fecha: today },
+      });
+      const notasMap = {};
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
+  };
   return (
     <div className="max-w-screen-xl rounded-lg">
       {/* Versión para pantallas grandes */}
-      <div className="hidden lg:block" id="surtido">
+      <div className="hidden lg:block" ref={generadoRef}>
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
@@ -333,29 +335,24 @@ const Totales_Surtido_Estacion = () => {
           <tbody className="text-center bg-white">
             <tr className="font-semibold text-gray-700">
               <td className="py-3">
-                <Link to={"/totales_surtido_maquina"} className="link__tabla">
+                <Link to={"/linea_automatica"} className="link__tabla">
                   <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
-                    <img
-                      src="./img/ver.png"
-                      alt=""
-                      width={25}
-                      className="relative left-2"
-                    />
+                    <img src="./img/ver.png" alt="" width={25} className="relative left-2" />
                     <div className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base">
-                      Surtido
+                      Biselado
                     </div>
                   </div>
                 </Link>
               </td>
               {columnas.map((col, i) => {
-                const metaParaCol = getMetaParaHora(col.hora, inicioJornada);
+                const metaCol = getMetaParaHora(col.hora, inicioJornada);
                 return (
                   <td
                     key={i}
                     className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white relative"
                     onClick={() => toggleNota(col.hora)}
                   >
-                    <span className={getClassName(col.valor, metaParaCol)}>
+                    <span className={getClassName(col.valor, metaCol)}>
                       {col.valor}
                     </span>
                     {notaActiva === col.hora && (
@@ -413,11 +410,12 @@ const Totales_Surtido_Estacion = () => {
             </tr>
           </tbody>
         </table>
-        <div className="flex flex-row justify-around mt-4 font-semibold mb-4 gap-6">
+        {/* Totales por turno (Desktop) */}
+        <div className="flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4 gap-6">
           <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
               Total Nocturno:{" "}
-              <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
+              <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.nocturno)}
               </span>{" "}
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
@@ -427,7 +425,7 @@ const Totales_Surtido_Estacion = () => {
           <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
               Total Matutino:{" "}
-              <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
+              <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.matutino)}
               </span>{" "}
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
@@ -437,7 +435,7 @@ const Totales_Surtido_Estacion = () => {
           <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
             <p className="text-gray-600 text-sm md:text-base">
               Total Vespertino:{" "}
-              <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
+              <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino) + " ml-1 font-bold"}>
                 {formatNumber(totalesPorTurno.vespertino)}
               </span>{" "}
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
@@ -446,42 +444,46 @@ const Totales_Surtido_Estacion = () => {
           </div>
         </div>
       </div>
-      {/* Versión para móviles */}
+      {/* Versión para pantallas pequeñas/medianas */}
       <div className="block lg:hidden mt-4">
         <div className="bg-white shadow-md rounded-lg mb-4 p-6">
           <div className="flex justify-between border-b pb-2">
             <span className="font-bold text-gray-700">Nombre:</span>
-            <span className="font-bold text-gray-700">Surtido</span>
+            <span className="font-bold text-gray-700">Generado</span>
           </div>
           <div className="py-4">
             <span className="font-bold text-gray-700">Horas:</span>
-            {columnas.map((col, i) => {
-              const metaParaCol = getMetaParaHora(col.hora, inicioJornada);
+            {columnas.map((col, idx) => {
+              const metaCol = getMetaParaHora(col.hora, inicioJornada);
               return (
                 <div
-                  key={i}
-                  className={`flex justify-between py-2 px-4 ${
-                    i % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
+                  key={idx}
+                  className={`flex flex-col py-2 px-4 ${
+                    idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
-                  onClick={() => toggleNota(col.hora)}
                 >
-                  <span className="font-bold text-gray-700">{col.rango}:</span>
-                  <span
-                    className={`font-bold ${
-                      parseInt(col.valor, 10) >= metaParaCol
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
+                  <div
+                    className="flex justify-between items-center cursor-pointer"
+                    onClick={() => toggleNota(col.hora)}
                   >
-                    {col.valor}
-                  </span>
+                    <span className="font-bold text-gray-700">{col.rango}:</span>
+                    <span
+                      className={`font-bold ${
+                        parseInt(col.valor, 10) >= metaCol
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {col.valor}
+                    </span>
+                  </div>
                   {notaActiva === col.hora && (
                     <div
-                      className="absolute bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      className="mt-2 bg-gray-100 p-2 rounded shadow-md"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <textarea
-                        className="w-full h-12 p-1 border mb-2 text-xs"
+                        className="w-full h-16 p-1 border mb-2 text-xs"
                         value={editingNota}
                         onChange={(e) => setEditingNota(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
@@ -530,7 +532,7 @@ const Totales_Surtido_Estacion = () => {
           </div>
           <div className="flex justify-center mt-4">
             <Link
-              to={"/totales_surtido_maquina"}
+              to={"/linea_automatica"}
               className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
             >
               <button className="text-white font-bold uppercase">Ver Detalles</button>
@@ -578,4 +580,4 @@ const Totales_Surtido_Estacion = () => {
     </div>
   );
 };
-export default Totales_Surtido_Estacion;
+export default Totales_Biselado_EstacionLA;

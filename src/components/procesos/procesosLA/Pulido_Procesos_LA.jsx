@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import clienteAxios from '../../../config/clienteAxios';
+import clienteAxios from '../../../../config/clienteAxios';
 import moment from 'moment-timezone';
-import { formatNumber } from '../../helpers/formatNumber';
-const Biselado_Procesos = () => {
+import { formatNumber } from '../../../helpers/formatNumber';
+const Pulido_Procesos_LA = () => {
   const [totalHits, setTotalHits] = useState(0);
   const [ultimaHora, setUltimaHora] = useState("");
   const [siguienteHora, setSiguienteHora] = useState("");
@@ -17,36 +17,43 @@ const Biselado_Procesos = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. Se obtiene el registro global desde el endpoint '/metas/metas-biselados'
-        const responseMetas = await clienteAxios.get('/metas/metas-biselados');
-        const metaGlobal = responseMetas.data.registros.find(item =>
-          item.name.toLowerCase() === 'global'
+        // Definir los patrones de las máquinas deseadas
+        const patterns = [
+          "266 MULTIFLEX 1",
+          "267 MULTIFLEX 2",
+          "268 MULTIFLEX 3",
+          "269 MULTIFLEX 4"
+        ];
+        // 1. Obtener las metas y filtrarlas para incluir solo las de las máquinas solicitadas
+        const responseMetas = await clienteAxios.get('/metas/metas-pulidos');
+        const metasFiltradas = responseMetas.data.registros.filter(meta =>
+          patterns.some(pat => meta.name.startsWith(pat))
         );
-        if (!metaGlobal) {
-          console.error("No se encontró el registro 'global' en las metas");
-          return;
-        }
-        // Extraer las metas por hora a partir del registro global
-        const sumaMetaNocturno = metaGlobal.meta_nocturno;
-        const sumaMetaMatutino = metaGlobal.meta_matutino;
-        const sumaMetaVespertino = metaGlobal.meta_vespertino;
-        // 2. Se obtienen los registros actuales desde '/biselado/biselado/actualdia'
-        const responseRegistros = await clienteAxios.get('/biselado/biselado/actualdia');
+        const sumaMetaNocturno = metasFiltradas.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
+        const sumaMetaMatutino = metasFiltradas.reduce((acc, curr) => acc + curr.meta_matutino, 0);
+        const sumaMetaVespertino = metasFiltradas.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
+        // 2. Obtener los registros del día y filtrarlos para solo incluir las máquinas deseadas
+        const responseRegistros = await clienteAxios.get('/pulido/pulido/actualdia');
         const registros = responseRegistros.data.registros;
+        const registrosFiltrados = registros.filter(registro =>
+          patterns.some(pat => registro.name.startsWith(pat))
+        );
         const ahora = moment().tz('America/Mexico_City');
-        // 3. Definir intervalos de turno
-        let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
+        // 3. Definir intervalos horarios de acuerdo a la jornada
+        let inicioNocturno, finNocturno;
+        let inicioMatutino, finMatutino;
+        let inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
-          // Nueva jornada: turno nocturno de hoy 22:00 a mañana 06:00
+          // Jornada nocturna: de hoy 22:00 a mañana 06:00
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours');
-          // Turno matutino y vespertino para el día siguiente
+          // Turnos siguientes para el día siguiente
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
           finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().add(1, 'day').startOf('day').add(21, 'hours').add(30, 'minutes');
         } else {
-          // Jornada actual: turno nocturno de ayer 22:00 a hoy 06:00
+          // Jornada actual: se consideran los turnos de hoy
           inicioNocturno = ahora.clone().subtract(1, 'day').startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().startOf('day').add(6, 'hours');
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
@@ -54,8 +61,8 @@ const Biselado_Procesos = () => {
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().startOf('day').add(22, 'hours');
         }
-        // 4. Filtrar registros de cada turno
-        const registrosNocturno = registros.filter(registro => {
+        // 4. Filtrar los registros por turno (usando los registros filtrados por máquinas)
+        const registrosNocturno = registrosFiltrados.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
             'YYYY-MM-DD HH:mm:ss',
@@ -63,7 +70,7 @@ const Biselado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '[)');
         });
-        const registrosMatutino = registros.filter(registro => {
+        const registrosMatutino = registrosFiltrados.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
             'YYYY-MM-DD HH:mm:ss',
@@ -71,7 +78,7 @@ const Biselado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '[)');
         });
-        const registrosVespertino = registros.filter(registro => {
+        const registrosVespertino = registrosFiltrados.filter(registro => {
           const fechaHoraRegistro = moment.tz(
             `${registro.fecha} ${registro.hour}`,
             'YYYY-MM-DD HH:mm:ss',
@@ -79,15 +86,17 @@ const Biselado_Procesos = () => {
           );
           return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
         });
-        // 5. Calcular hits por turno
+        // 5. Calcular los hits por turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsMatutino = registrosMatutino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         const hitsVespertino = registrosVespertino.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
         setHitsNocturno(hitsNocturno);
         setHitsMatutino(hitsMatutino);
         setHitsVespertino(hitsVespertino);
-        setTotalHits(hitsNocturno + hitsMatutino + hitsVespertino);
-        // 6. Calcular las metas totales para cada turno (horas fijas: nocturno y matutino = 8; vespertino = 7)
+        // Total de hits (sólo de los registros filtrados)
+        const total = hitsNocturno + hitsMatutino + hitsVespertino;
+        setTotalHits(total);
+        // 6. Definir horas fijas de cada turno y asignar las metas totales (usando las metas filtradas)
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
@@ -97,7 +106,7 @@ const Biselado_Procesos = () => {
         setMetaNocturno(metaTotalNocturno);
         setMetaMatutino(metaTotalMatutino);
         setMetaVespertino(metaTotalVespertino);
-        // 7. Calcular la "meta en vivo" acumulada según el turno activo
+        // 7. Calcular la meta en vivo acumulada según en qué turno se encuentre “ahora”
         let metaAcumulada = 0;
         if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
           const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
@@ -112,7 +121,8 @@ const Biselado_Procesos = () => {
           metaAcumulada += Math.floor(horasTranscurridasVespertino) * sumaMetaVespertino;
         }
         setMeta(metaAcumulada);
-        // 8. Obtener el último registro para calcular la siguiente ventana de 30 minutos
+        // 8. Obtener el último registro para determinar el corte de la siguiente media hora (se puede usar cualquiera de los registros, aquí se usa el sin filtrar)
+        // Si prefieres usar los registros filtrados, podrías cambiar 'registros' por 'registrosFiltrados'
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
             `${actual.fecha} ${actual.hour}`,
@@ -129,9 +139,9 @@ const Biselado_Procesos = () => {
           'America/Mexico_City'
         );
         setUltimaHora(formattedLastHour.format('HH:mm'));
-        const horaFinal = moment(formattedLastHour);
-        horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
-        const siguienteHoraDate = moment(horaFinal).add(30, 'minutes');
+        // Calcular la siguiente media hora para el próximo corte
+        const horaFinal = formattedLastHour.clone().add(30 - (formattedLastHour.minute() % 30), 'minutes');
+        const siguienteHoraDate = horaFinal.clone().add(30, 'minutes');
         setSiguienteHora(siguienteHoraDate.format('HH:mm'));
       } catch (error) {
         console.error("Error al obtener los datos:", error);
@@ -139,24 +149,34 @@ const Biselado_Procesos = () => {
     };
     fetchData();
   }, []);
-  const getClassName = (hits, meta) => {
-    return hits >= meta ? "text-green-700" : "text-red-700";
-  };
+  const getClassName = (hits, meta) => (hits >= meta ? "text-green-700" : "text-red-700");
   return (
     <div className='bg-white p-4 rounded-xl'>
-      <Link to='/totales_estacion#biselado' className='hidden lg:block'>
+      <Link to='/totales_estacion_la#pulido' className='hidden lg:block'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
-          <h2 className='text-white font-bold uppercase'>Biselado</h2>
-          <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
+          <h2 className='text-white font-bold uppercase'>Pulido</h2>
+          <img
+            src="/img/arrow.png"
+            alt="ver"
+            width={25}
+            style={{ filter: 'invert(100%)' }}
+            className='relative'
+          />
         </div>
       </Link>
-      <Link to='/totales_estacion?seccion=biselado' className='block lg:hidden'>
+      <Link to='/totales_estacion_la?seccion=pulido' className='block lg:hidden'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
-          <h2 className='text-white font-bold uppercase'>Biselado</h2>
-          <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
+          <h2 className='text-white font-bold uppercase'>Pulido</h2>
+          <img
+            src="/img/arrow.png"
+            alt="ver"
+            width={25}
+            style={{ filter: 'invert(100%)' }}
+            className='relative'
+          />
         </div>
       </Link>
-      <p className='font-light mb-2'>Mostrando información del área de biselado.</p>
+      <p className='font-light mb-2'>Mostrando información del área de pulido.</p>
       <div className='flex items-center justify-between py-4 px-2 border-2'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span>
@@ -182,4 +202,4 @@ const Biselado_Procesos = () => {
     </div>
   );
 };
-export default Biselado_Procesos;
+export default Pulido_Procesos_LA;

@@ -22,12 +22,6 @@ const Procesos = () => {
         <Tallado_Procesos />
         <Generado_Procesos />
         <Pulido_Procesos />
-        <Engraver_Procesos />
-        <AR_Procesos />
-        <HardCoat_Procesos />
-        <Recubrimiento_Procesos />
-        <Desbloqueo_Procesos />
-        <Terminado_Procesos />
         <Biselado_Procesos />
         <Produccion_Procesos />
       </div>

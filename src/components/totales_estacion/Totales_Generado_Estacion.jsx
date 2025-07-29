@@ -61,15 +61,17 @@ const Totales_Generado_Estacion = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Obtener la meta de generadores
+        // 1. Obtener la meta de generadores desde '/metas/metas-generadores'
+        // Usamos el registro global, por ejemplo: "global generadores"
         const responseMetas = await clienteAxios("/metas/metas-generadores");
         const registrosMetas = responseMetas.data.registros;
-        let sumaNocturno = 0, sumaMatutino = 0, sumaVespertino = 0;
-        registrosMetas.forEach((item) => {
-          sumaNocturno += item.meta_nocturno;
-          sumaMatutino += item.meta_matutino;
-          sumaVespertino += item.meta_vespertino;
-        });
+        const metaGlobal = registrosMetas.find(registro =>
+          registro.name.toLowerCase() === "global"
+        );
+        // Extraer las metas base (por hora) directamente desde el registro global
+        const sumaNocturno = metaGlobal ? metaGlobal.meta_nocturno : 0;
+        const sumaMatutino = metaGlobal ? metaGlobal.meta_matutino : 0;
+        const sumaVespertino = metaGlobal ? metaGlobal.meta_vespertino : 0;
         setMetasPorHora({
           nocturno: sumaNocturno,
           matutino: sumaMatutino,
@@ -80,7 +82,7 @@ const Totales_Generado_Estacion = () => {
           matutino: sumaMatutino * 8,
           vespertino: sumaVespertino * 7,
         });
-        // Obtener registros (hits) del día actual
+        // 2. Obtener registros (hits) del día actual
         const responseRegistros = await clienteAxios("/generadores/generadores/actualdia");
         const registrosAPI = responseRegistros.data.registros;
         const ahora = moment();
@@ -166,7 +168,7 @@ const Totales_Generado_Estacion = () => {
     return hits;
   };
   const hitsPorHora = agruparHitsPorHora();
-  // Función para obtener el objeto moment correspondiente al bucket dado la hora y el inicio de la jornada
+  // Función para obtener el objeto moment correspondiente al bucket dada la hora y el inicio de la jornada
   const getBucketMoment = (horaStr, inicioJornada) => {
     const [h, m] = horaStr.split(":").map(Number);
     let bucket = inicioJornada.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
@@ -252,7 +254,7 @@ const Totales_Generado_Estacion = () => {
       const payload = {
         fecha: today,
         hora,
-        seccion: "generado", // Se envía con seccion "generado"
+        seccion: "generado",
         nota: editingNota,
       };
       const response = await clienteAxios.post("/notas/notas", payload);
@@ -294,7 +296,6 @@ const Totales_Generado_Estacion = () => {
       const response = await clienteAxios.get("/notas/notas", {
         params: { seccion: "generado", fecha: today },
       });
-      // Transformar el array de notas en un objeto con clave de hora: { id, nota }
       const notasMap = {};
       if (Array.isArray(response.data)) {
         response.data.forEach((item) => {
@@ -315,7 +316,6 @@ const Totales_Generado_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              {/* Primera columna: Enlace, ícono y nombre "Generado" */}
               <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
                 <th
@@ -362,7 +362,6 @@ const Totales_Generado_Estacion = () => {
                           onClick={(e) => e.stopPropagation()}
                         />
                         <div className="flex justify-end space-x-2">
-                          {/* Botón Guardar: se deshabilita si ya existe una nota */}
                           <button
                             disabled={!!notas[col.hora]?.nota}
                             className={`py-1 px-3 rounded text-xs ${
@@ -458,7 +457,6 @@ const Totales_Generado_Estacion = () => {
                     idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
                 >
-                  {/* Fila principal: muestra el rango y el valor. Tiene onClick para abrir el recuadro de nota */}
                   <div
                     className="flex justify-between items-center cursor-pointer"
                     onClick={() => toggleNota(col.hora)}
@@ -474,7 +472,139 @@ const Totales_Generado_Estacion = () => {
                       {col.valor}
                     </span>
                   </div>
-                  {/* Panel de notas: se muestra si la nota de esta hora está activa */}
+                  {notaActiva === col.hora && (
+                    <div
+                      className="mt-2 bg-gray-100 p-2 rounded shadow-md"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <textarea
+                        className="w-full h-16 p-1 border mb-2 text-xs"
+                        value={editingNota}
+                        onChange={(e) => setEditingNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          disabled={!!notas[col.hora]?.nota}
+                          className={`py-1 px-3 rounded text-xs ${
+                            notas[col.hora]?.nota
+                              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                              : "bg-green-500 text-white hover:bg-green-600"
+                          }`}
+                          onClick={(e) => {
+                            if (!notas[col.hora]?.nota) {
+                              e.stopPropagation();
+                              handleGuardarNota(col.hora);
+                            }
+                          }}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditarNota(col.hora);
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNotaActiva(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-center mt-4">
+            <Link
+              to={"/totales_generado_maquina"}
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+            >
+              <button className="text-white font-bold uppercase">Ver Detalles</button>
+            </Link>
+          </div>
+          <div className="mt-6 border-t pt-4">
+            <div className="bg-green-50 p-4 rounded-lg shadow-md">
+              <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Total Nocturno:{" "}
+                    <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
+                      {formatNumber(totalesPorTurno.nocturno)}
+                    </span>{" "}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
+                    {metasPorHora.nocturno}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Total Matutino:{" "}
+                    <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
+                      {formatNumber(totalesPorTurno.matutino)}
+                    </span>{" "}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
+                    {metasPorHora.matutino}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Total Vespertino:{" "}
+                    <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
+                      {formatNumber(totalesPorTurno.vespertino)}
+                    </span>{" "}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
+                    {metasPorHora.vespertino}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Versión para pantallas pequeñas/medianas */}
+      <div className="block lg:hidden mt-4">
+        <div className="bg-white shadow-md rounded-lg mb-4 p-6">
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-bold text-gray-700">Nombre:</span>
+            <span className="font-bold text-gray-700">Generado</span>
+          </div>
+          <div className="py-4">
+            <span className="font-bold text-gray-700">Horas:</span>
+            {columnas.map((col, idx) => {
+              const metaCol = getMetaParaHora(col.hora, inicioJornada);
+              return (
+                <div
+                  key={idx}
+                  className={`flex flex-col py-2 px-4 ${
+                    idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
+                  }`}
+                >
+                  <div
+                    className="flex justify-between items-center cursor-pointer"
+                    onClick={() => toggleNota(col.hora)}
+                  >
+                    <span className="font-bold text-gray-700">{col.rango}:</span>
+                    <span
+                      className={`font-bold ${
+                        parseInt(col.valor, 10) >= metaCol
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {col.valor}
+                    </span>
+                  </div>
                   {notaActiva === col.hora && (
                     <div
                       className="mt-2 bg-gray-100 p-2 rounded shadow-md"

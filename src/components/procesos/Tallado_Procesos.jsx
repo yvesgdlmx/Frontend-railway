@@ -17,22 +17,24 @@ const Tallado_Procesos = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. Se obtienen las metas del endpoint usando la nueva estructura
+        // 1. Se obtiene el registro global de metas
         const responseMetas = await clienteAxios.get('/metas/metas-tallados');
-        const sumaMetaNocturno = responseMetas.data.registros.reduce(
-          (acc, curr) => acc + curr.meta_nocturno, 0
+        const metaGlobal = responseMetas.data.registros.find(item =>
+          item.name.toLowerCase() === 'global'
         );
-        const sumaMetaMatutino = responseMetas.data.registros.reduce(
-          (acc, curr) => acc + curr.meta_matutino, 0
-        );
-        const sumaMetaVespertino = responseMetas.data.registros.reduce(
-          (acc, curr) => acc + curr.meta_vespertino, 0
-        );
+        if (!metaGlobal) {
+          console.error("No se encontró el registro 'global' en las metas");
+          return;
+        }
+        // Se extraen las metas por hora del registro global
+        const sumaMetaNocturno = metaGlobal.meta_nocturno;
+        const sumaMetaMatutino = metaGlobal.meta_matutino;
+        const sumaMetaVespertino = metaGlobal.meta_vespertino;
         // 2. Se obtienen los registros del tallado para el día actual
         const responseRegistros = await clienteAxios.get('/tallado/tallado/actualdia');
         const registros = responseRegistros.data.registros;
         const ahora = moment().tz('America/Mexico_City');
-        // 3. Definir los intervalos de turno según la jornada
+        // 3. Definir intervalos de turno según la jornada
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
           // Nueva jornada:
@@ -90,8 +92,7 @@ const Tallado_Procesos = () => {
         setHitsMatutino(hitsMatutino);
         setHitsVespertino(hitsVespertino);
         setTotalHits(hitsNocturno + hitsMatutino + hitsVespertino);
-        // 6. Calcular las metas totales para cada turno
-        //    (horas fijas: nocturno y matutino = 8; vespertino = 7)
+        // 6. Calcular las metas totales para cada turno (horas fijas: nocturno y matutino = 8; vespertino = 7)
         const horasNocturno = 8;
         const horasMatutino = 8;
         const horasVespertino = 7;
@@ -102,9 +103,6 @@ const Tallado_Procesos = () => {
         setMetaMatutino(metaTotalMatutino);
         setMetaVespertino(metaTotalVespertino);
         // 7. Calcular la meta en vivo de forma acumulativa según el turno activo:
-        //    - Si se encuentra en el turno nocturno: se usa la cantidad de horas transcurridas * sumaMetaNocturno.
-        //    - En el turno matutino: se suma toda la meta del turno nocturno y se añade la parte proporcional del matutino.
-        //    - En el turno vespertino: se suman los dos turnos completos y se añade la parte proporcional del vespertino.
         let metaAcumulada = 0;
         if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
           const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
@@ -157,14 +155,26 @@ const Tallado_Procesos = () => {
       <Link to='/totales_estacion#tallado' className='hidden lg:block'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
           <h2 className='text-white font-bold uppercase'>Bloqueo de tallado</h2>
-          <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
+          <img 
+            src="/img/arrow.png" 
+            alt="ver" 
+            width={25} 
+            style={{ filter: 'invert(100%)' }} 
+            className='relative' 
+          />
         </div>
       </Link>
       {/* Enlace para pantallas pequeñas y medianas */}
       <Link to='/totales_estacion?seccion=tallado' className='block lg:hidden'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
           <h2 className='text-white font-bold uppercase'>Bloqueo de tallado</h2>
-          <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
+          <img 
+            src="/img/arrow.png" 
+            alt="ver" 
+            width={25} 
+            style={{ filter: 'invert(100%)' }} 
+            className='relative' 
+          />
         </div>
       </Link>
       <p className='font-light mb-2'>Mostrando información del área de Tallado.</p>

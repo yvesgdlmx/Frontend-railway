@@ -38,7 +38,7 @@ const Totales_Biselado_Estacion = () => {
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
     "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:30", // Matutino
-    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00"  // Nocturno
+    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00",  // Nocturno
   ];
   // Efecto para hacer scroll si la URL contiene el hash "#biselado"
   useEffect(() => {
@@ -55,26 +55,28 @@ const Totales_Biselado_Estacion = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Se obtienen las metas desde "/metas/metas-biselados"
+        // 1. Obtener metas para biselado desde "/metas/metas-biselados"
         const responseMetas = await clienteAxios("/metas/metas-biselados");
         const registrosMetas = responseMetas.data.registros;
-        let sumaNocturno = 0, sumaMatutino = 0, sumaVespertino = 0;
-        registrosMetas.forEach((item) => {
-          sumaNocturno += item.meta_nocturno;
-          sumaMatutino += item.meta_matutino;
-          sumaVespertino += item.meta_vespertino;
-        });
+        // Se busca el registro global; por ejemplo, aquel cuyo name (en minúsculas) sea "global biselado"
+        const globalMeta = registrosMetas.find(item =>
+          item.name.toLowerCase() === "global"
+        );
+        // En caso de no encontrar la meta global se asigna 0 como default
+        const metaNocturnoBase = globalMeta ? globalMeta.meta_nocturno : 0;
+        const metaMatutinoBase = globalMeta ? globalMeta.meta_matutino : 0;
+        const metaVespertinoBase = globalMeta ? globalMeta.meta_vespertino : 0;
         setMetasPorHora({
-          nocturno: sumaNocturno,
-          matutino: sumaMatutino,
-          vespertino: sumaVespertino,
+          nocturno: metaNocturnoBase,
+          matutino: metaMatutinoBase,
+          vespertino: metaVespertinoBase,
         });
         setMetasTotalesPorTurno({
-          nocturno: sumaNocturno * 8,
-          matutino: sumaMatutino * 8,
-          vespertino: sumaVespertino * 7,
+          nocturno: metaNocturnoBase * 8,
+          matutino: metaMatutinoBase * 8,
+          vespertino: metaVespertinoBase * 7,
         });
-        // Obtener registros (hits) para la jornada actual desde "/biselado/biselado/actualdia"
+        // 2. Obtener registros (hits) para la jornada actual desde "/biselado/biselado/actualdia"
         const responseRegistros = await clienteAxios("/biselado/biselado/actualdia");
         const registrosApi = responseRegistros.data.registros;
         const ahora = moment();
@@ -174,7 +176,7 @@ const Totales_Biselado_Estacion = () => {
     }
     return bucket;
   };
-  /*  
+  /*
     Función que devuelve el valor a mostrar para cada bucket:
     - Si en hitsPorHora existe un valor para esa hora se retorna.
     - Si no existe y el bucket ya cerró (con un margen de 5 minutos), se retorna 0.
@@ -543,45 +545,33 @@ const Totales_Biselado_Estacion = () => {
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Nocturno:{" "}
                     <span
-                      className={getClassName(
-                        totalesPorTurno.nocturno,
-                        metasTotalesPorTurno.nocturno
-                      )}
+                      className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}
                     >
                       {formatNumber(totalesPorTurno.nocturno)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
-                    {metasPorHora.nocturno}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Matutino:{" "}
                     <span
-                      className={getClassName(
-                        totalesPorTurno.matutino,
-                        metasTotalesPorTurno.matutino
-                      )}
+                      className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}
                     >
                       {formatNumber(totalesPorTurno.matutino)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
-                    {metasPorHora.matutino}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Vespertino:{" "}
                     <span
-                      className={getClassName(
-                        totalesPorTurno.vespertino,
-                        metasTotalesPorTurno.vespertino
-                      )}
+                      className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}
                     >
                       {formatNumber(totalesPorTurno.vespertino)}
                     </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
-                    {metasPorHora.vespertino}
+                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
                   </p>
                 </div>
               </div>

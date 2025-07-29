@@ -54,31 +54,30 @@ const Totales_Desbloqueo_Estacion = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Consultar las metas correspondientes a "DEBLOCKING"
+        // 1. Consultar las metas correspondientes a "DEBLOCKING" desde "/metas/metas-manuales"
         const responseMetas = await clienteAxios("/metas/metas-manuales");
-        const registrosMetas = responseMetas.data.registros.filter(registro =>
-          registro.name.includes("DEBLOCKING")
+        const registrosMetas = responseMetas.data.registros;
+        // Se busca el objeto global: se asume que su propiedad name es "GLOBAL DESBLOQUEO"
+        const globalMeta = registrosMetas.find(item =>
+          item.name.toLowerCase() === "global desbloqueo"
         );
-        let sumaNocturno = 0,
-          sumaMatutino = 0,
-          sumaVespertino = 0;
-        registrosMetas.forEach((item) => {
-          sumaNocturno += item.meta_nocturno;
-          sumaMatutino += item.meta_matutino;
-          sumaVespertino += item.meta_vespertino;
-        });
+        // En caso de no encontrar el registro global se asigna 0 por default
+        const metaNocturnoBase = globalMeta ? globalMeta.meta_nocturno : 0;
+        const metaMatutinoBase = globalMeta ? globalMeta.meta_matutino : 0;
+        const metaVespertinoBase = globalMeta ? globalMeta.meta_vespertino : 0;
         setMetasPorHora({
-          nocturno: sumaNocturno,
-          matutino: sumaMatutino,
-          vespertino: sumaVespertino,
+          nocturno: metaNocturnoBase,
+          matutino: metaMatutinoBase,
+          vespertino: metaVespertinoBase,
         });
         setMetasTotalesPorTurno({
-          nocturno: sumaNocturno * 8,    // Nocturno: 8 horas
-          matutino: sumaMatutino * 8,    // Matutino: 8 horas
-          vespertino: sumaVespertino * 7  // Vespertino: 7 horas
+          nocturno: metaNocturnoBase * 8, // Nocturno: 8 horas
+          matutino: metaMatutinoBase * 8, // Matutino: 8 horas
+          vespertino: metaVespertinoBase * 7, // Vespertino: 7 horas
         });
-        // Obtener los registros (hits) del día actual para DEBLOCKING
+        // 2. Obtener los registros (hits) del día actual para DEBLOCKING
         const responseRegistros = await clienteAxios("/manual/manual/actualdia");
+        // Se asume que en el registro se tiene "DEBLOCKING" en el name
         const registrosDesblocking = responseRegistros.data.registros.filter(registro =>
           registro.name.includes("DEBLOCKING")
         );
@@ -229,8 +228,7 @@ const Totales_Desbloqueo_Estacion = () => {
         null,
         "[)"
       )
-    )
-      return metasPorHora.nocturno;
+    ) return metasPorHora.nocturno;
     else if (
       bucketMoment.isBetween(
         inicioJornada.clone().add(8, "hours").add(30, "minutes"),
@@ -238,8 +236,7 @@ const Totales_Desbloqueo_Estacion = () => {
         null,
         "[)"
       )
-    )
-      return metasPorHora.matutino;
+    ) return metasPorHora.matutino;
     else if (
       bucketMoment.isBetween(
         inicioJornada.clone().add(16, "hours").add(30, "minutes"),
@@ -247,12 +244,10 @@ const Totales_Desbloqueo_Estacion = () => {
         null,
         "[)"
       )
-    )
-      return metasPorHora.vespertino;
+    ) return metasPorHora.vespertino;
     return 0;
   };
   // ————— FUNCIONALIDAD DE NOTAS —————
-  // Función que muestra/oculta el recuadro de nota al hacer clic en una celda (bucket)
   const toggleNota = (hora) => {
     if (notaActiva === hora) {
       setNotaActiva(null);
@@ -261,14 +256,13 @@ const Totales_Desbloqueo_Estacion = () => {
       setEditingNota(notas[hora]?.nota || "");
     }
   };
-  // Función para guardar la nota (POST) usando la sección "desbloqueo"
   const handleGuardarNota = async (hora) => {
     try {
       const today = moment().format("YYYY-MM-DD");
       const payload = {
         fecha: today,
         hora,
-        seccion: "desbloqueo", // Se utiliza la sección "desbloqueo"
+        seccion: "desbloqueo",
         nota: editingNota,
       };
       const response = await clienteAxios.post("/notas/notas", payload);
@@ -281,7 +275,6 @@ const Totales_Desbloqueo_Estacion = () => {
       console.error("Error al guardar la nota:", error);
     }
   };
-  // Función para editar la nota (PUT) usando el id de la nota existente
   const handleEditarNota = async (hora) => {
     try {
       const notaActual = notas[hora];
@@ -303,7 +296,6 @@ const Totales_Desbloqueo_Estacion = () => {
       console.error("Error al editar la nota:", error);
     }
   };
-  // Función para cargar las notas (GET) de la sección "desbloqueo" para el día actual
   const cargarNotas = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -331,7 +323,6 @@ const Totales_Desbloqueo_Estacion = () => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr className="bg-blue-500 text-white border-l-2">
-              {/* Columna inicial vacía */}
               <th className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base"></th>
               {columnas.map((col, i) => (
                 <th
@@ -345,7 +336,6 @@ const Totales_Desbloqueo_Estacion = () => {
           </thead>
           <tbody className="text-center bg-white">
             <tr className="font-semibold text-gray-700">
-              {/* Celda inicial con el nombre e ícono "ver" */}
               <td className="py-3">
                 <Link to={"/totales_desblocking_maquina"} className="link__tabla">
                   <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
@@ -476,7 +466,6 @@ const Totales_Desbloqueo_Estacion = () => {
                     idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
                 >
-                  {/* Fila principal: se muestra el rango y el valor; al hacer clic se activa el panel de notas */}
                   <div
                     className="flex justify-between items-center cursor-pointer"
                     onClick={() => toggleNota(col.hora)}
@@ -492,7 +481,6 @@ const Totales_Desbloqueo_Estacion = () => {
                       {col.valor}
                     </span>
                   </div>
-                  {/* Panel de notas: se inserta en el flujo y empuja hacia abajo el contenido */}
                   {notaActiva === col.hora && (
                     <div
                       className="mt-2 bg-gray-100 p-4 border rounded shadow-md w-full text-xs"
