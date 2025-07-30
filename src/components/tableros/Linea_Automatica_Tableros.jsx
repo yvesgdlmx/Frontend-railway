@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import moment from "moment";
 import clienteAxios from "../../../config/clienteAxios";
 import TablaSurtidoMaquina from "../others/tables/TablaSurtidoMaquina";
@@ -11,7 +12,7 @@ const Linea_Automatica_Tableros = () => {
   const areas = [
     {
       key: "generado",
-      title: "Resumen generado",
+      title: "Generado",
       metaEndpoint: "/metas/metas-generadores",
       dataEndpoint: "/generadores/generadores/actualdia",
       seccion: "Generado",
@@ -19,7 +20,7 @@ const Linea_Automatica_Tableros = () => {
     },
     {
       key: "pulido",
-      title: "Resumen pulido",
+      title: "Pulido",
       metaEndpoint: "/metas/metas-pulidos",
       dataEndpoint: "/pulido/pulido/actualdia",
       seccion: "Pulido",
@@ -27,7 +28,7 @@ const Linea_Automatica_Tableros = () => {
     },
     {
       key: "biselado",
-      title: "Resumen Biselado",
+      title: "Biselado",
       metaEndpoint: "/metas/metas-biselados",
       dataEndpoint: "/biselado/biselado/actualdia",
       seccion: "Biselado",
@@ -45,7 +46,12 @@ const Linea_Automatica_Tableros = () => {
     },
   ];
   // Estado para controlar el área activa
-  const [activeArea, setActiveArea] = useState("generado");
+  const location = useLocation();
+  // Extraer el query parameter en formato URLSearchParams
+  const queryParams = new URLSearchParams(location.search);
+  const activeAreaQuery = queryParams.get("activeArea");
+
+  const [activeArea, setActiveArea] = useState(activeAreaQuery || "generado");
   const currentArea = areas.find((area) => area.key === activeArea);
   // Estados para almacenar la data y las metas consultadas
   const [tableData, setTableData] = useState([]);

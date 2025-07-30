@@ -335,7 +335,7 @@ const Totales_Biselado_EstacionLA = () => {
           <tbody className="text-center bg-white">
             <tr className="font-semibold text-gray-700">
               <td className="py-3">
-                <Link to={"/linea_automatica"} className="link__tabla">
+                <Link to={{pathname: "/linea_automatica", search: "?activeArea=biselado"}} className="link__tabla">
                   <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 px-4">
                     <img src="./img/ver.png" alt="" width={25} className="relative left-2" />
                     <div className="py-3 px-4 min-w-[150px] whitespace-nowrap text-sm md:text-base">
@@ -532,7 +532,7 @@ const Totales_Biselado_EstacionLA = () => {
           </div>
           <div className="flex justify-center mt-4">
             <Link
-              to={"/linea_automatica"}
+              to={{pathname: "/linea_automatica", search: "?activeArea=biselado"}}
               className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
             >
               <button className="text-white font-bold uppercase">Ver Detalles</button>
