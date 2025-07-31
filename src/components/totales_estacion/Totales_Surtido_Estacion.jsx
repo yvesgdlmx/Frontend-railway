@@ -22,11 +22,18 @@ const Totales_Surtido_Estacion = () => {
     vespertino: 0,
     nocturno: 0,
   });
-  // Para las notas, se almacena un objeto cuya clave es la hora y su valor es un objeto { id, nota }
+  // Estado para las notas por hora (ya existentes)
   const [notas, setNotas] = useState({});
-  const [notaActiva, setNotaActiva] = useState(null); // almacena la hora en la que se hizo click para abrir el recuadro
+  const [notaActiva, setNotaActiva] = useState(null);
   const [editingNota, setEditingNota] = useState("");
-  
+  // NUEVO: Estado para las notas de turno
+  const [notasTurnos, setNotasTurnos] = useState({
+    nocturno: null,
+    matutino: null,
+    vespertino: null,
+  });
+  const [turnoActivo, setTurnoActivo] = useState(null);
+  const [editingTurnoNota, setEditingTurnoNota] = useState("");
   // Arreglo de horas (buckets)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
@@ -59,18 +66,16 @@ const Totales_Surtido_Estacion = () => {
       }, 0);
     }
   }, [location]);
-  // Cargar datos y notas
+  // Cargar datos, notas por hora y notas por turno
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
         // 1. Obtener metas para surtido desde '/metas/metas-manuales'
-        // Se utiliza el registro global para surtido en lugar de sumar metas de registros individuales.
         const responseMetas = await clienteAxios("/metas/metas-manuales");
         const registrosMetas = responseMetas.data.registros;
-        const globalMeta = registrosMetas.find(item => 
+        const globalMeta = registrosMetas.find(item =>
           item.name.toLowerCase() === "global surtido"
         );
-        // Si no se encuentra, se asigna 0 como valor por default
         const metaNocturnoPorHora = globalMeta ? globalMeta.meta_nocturno : 0;
         const metaMatutinoPorHora = globalMeta ? globalMeta.meta_matutino : 0;
         const metaVespertinoPorHora = globalMeta ? globalMeta.meta_vespertino : 0;
@@ -86,8 +91,7 @@ const Totales_Surtido_Estacion = () => {
         });
         // 2. Obtener registros (hits) del día actual desde '/manual/manual/actualdia'
         const responseRegistros = await clienteAxios("/manual/manual/actualdia");
-        // Filtrar los registros relacionados a "LENS LOG" (si es necesario, puede ajustarse la condición)
-        const registrosLensLog = responseRegistros.data.registros.filter((registro) =>
+        const registrosLensLog = responseRegistros.data.registros.filter(registro =>
           registro.name.includes("LENS LOG")
         );
         const ahora = moment();
@@ -105,24 +109,24 @@ const Totales_Surtido_Estacion = () => {
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
-        // Cargar las notas para la fecha actual y sección "surtido"
+        // Cargar las notas para la fecha actual en la sección "surtido" (notas por hora)
         cargarNotas();
+        // Cargar las notas para totales por turno en la misma fecha y sección
+        cargarNotasTurnos();
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
     };
     obtenerDatos();
   }, []);
-  // Cargar notas (se espera que el response incluya id y nota)
+  // Cargar notas por hora (ya existentes)
   const cargarNotas = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
-      // Se asume que la sección es "surtido"
       const response = await clienteAxios.get("/notas/notas", {
         params: { seccion: "surtido", fecha: today },
       });
       const notasMap = {};
-      // Si la respuesta es un array, se itera sobre él
       if (Array.isArray(response.data)) {
         response.data.forEach((item) => {
           notasMap[item.hora] = { id: item.id, nota: item.nota };
@@ -133,6 +137,28 @@ const Totales_Surtido_Estacion = () => {
       setNotas(notasMap);
     } catch (error) {
       console.error("Error al cargar las notas:", error);
+    }
+  };
+  // NUEVO: Función para cargar las notas de turno
+  const cargarNotasTurnos = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      // Se asume la sección "surtido" para los totales
+      const response = await clienteAxios.get("/notas/notas_turnos", {
+        params: { seccion: "surtido", fecha: today },
+      });
+      const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          // Se utiliza el campo "turno" para asignar la nota al turno correspondiente
+          notasTurnosMap[item.turno] = { id: item.id, comentario: item.comentario };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotasTurnos(notasTurnosMap);
+    } catch (error) {
+      console.error("Error al cargar las notas de turno:", error);
     }
   };
   const calcularTotalesPorTurno = (registros, inicioJornada) => {
@@ -258,17 +284,26 @@ const Totales_Surtido_Estacion = () => {
   };
   const getClassName = (hits, meta) =>
     parseInt(hits, 10) >= meta ? "text-green-500" : "text-red-500";
-  // Función para mostrar y ocultar el recuadro de la nota.
+  // Función para mostrar y ocultar el recuadro de la nota por hora.
   const toggleNota = (hora) => {
     if (notaActiva === hora) {
       setNotaActiva(null);
     } else {
       setNotaActiva(hora);
-      // Si ya existe una nota para esa hora, se carga su contenido; de lo contrario, cadena vacía.
       setEditingNota(notas[hora]?.nota || "");
     }
   };
-  // Función para guardar la nota (método POST)
+  // NUEVO: Función para mostrar/ocultar la nota de turno.
+  // Al hacer click sobre el recuadro del total de turno, se activa.
+  const toggleNotaTurno = (turno) => {
+    if (turnoActivo === turno) {
+      setTurnoActivo(null);
+    } else {
+      setTurnoActivo(turno);
+      setEditingTurnoNota(notasTurnos[turno]?.comentario || "");
+    }
+  };
+  // Función para guardar la nota por hora (ya existente)
   const handleGuardarNota = async (hora) => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -279,7 +314,6 @@ const Totales_Surtido_Estacion = () => {
         nota: editingNota,
       };
       const response = await clienteAxios.post("/notas/notas", payload);
-      // Se espera que el response incluya el id y la nota creada.
       setNotas((prev) => ({
         ...prev,
         [hora]: { id: response.data.id, nota: response.data.nota },
@@ -289,7 +323,7 @@ const Totales_Surtido_Estacion = () => {
       console.error("Error al guardar la nota:", error);
     }
   };
-  // Función para editar la nota (método PUT) enviando el id y la nueva nota.
+  // Función para editar la nota por hora (ya existente)
   const handleEditarNota = async (hora) => {
     try {
       const notaActual = notas[hora];
@@ -302,7 +336,6 @@ const Totales_Surtido_Estacion = () => {
         nota: editingNota,
       };
       const response = await clienteAxios.put("/notas/notas", payload);
-      // Actualizamos la nota con la respuesta del servidor.
       setNotas((prev) => ({
         ...prev,
         [hora]: { id: response.data.id, nota: response.data.nota },
@@ -310,6 +343,47 @@ const Totales_Surtido_Estacion = () => {
       setNotaActiva(null);
     } catch (error) {
       console.error("Error al editar la nota:", error);
+    }
+  };
+  // NUEVO: Funciones para guardar y editar la nota de turno.
+  const handleGuardarNotaTurno = async (turno) => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const payload = {
+        fecha: today,
+        turno, // "nocturno", "matutino" o "vespertino"
+        seccion: "surtido",
+        comentario: editingTurnoNota,
+      };
+      const response = await clienteAxios.post("/notas/notas_turnos", payload);
+      setNotasTurnos((prev) => ({
+        ...prev,
+        [turno]: { id: response.data.id, comentario: response.data.comentario },
+      }));
+      setTurnoActivo(null);
+    } catch (error) {
+      console.error("Error al guardar la nota de turno:", error);
+    }
+  };
+  const handleEditarNotaTurno = async (turno) => {
+    try {
+      const notaActual = notasTurnos[turno];
+      if (!notaActual || !notaActual.id) {
+        console.error("No se encontró la nota para el turno:", turno);
+        return;
+      }
+      const payload = {
+        id: notaActual.id,
+        comentario: editingTurnoNota,
+      };
+      const response = await clienteAxios.put("/notas/notas_turnos", payload);
+      setNotasTurnos((prev) => ({
+        ...prev,
+        [turno]: { id: response.data.id, comentario: response.data.comentario },
+      }));
+      setTurnoActivo(null);
+    } catch (error) {
+      console.error("Error al editar la nota de turno:", error);
     }
   };
   return (
@@ -352,7 +426,12 @@ const Totales_Surtido_Estacion = () => {
                 return (
                   <td
                     key={i}
-                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white relative"
+                    title={
+                      notas[col.hora] && notas[col.hora].nota
+                        ? notas[col.hora].nota
+                        : "Haz click para agregar un comentario"
+                    }
+                    className="py-3 px-4 border-b font-bold border-l-2 border-gray-200 min-w-[150px] whitespace-nowrap text-sm md:text-base bg-white relative cursor-pointer"
                     onClick={() => toggleNota(col.hora)}
                   >
                     <span className={getClassName(col.valor, metaParaCol)}>
@@ -413,8 +492,18 @@ const Totales_Surtido_Estacion = () => {
             </tr>
           </tbody>
         </table>
+        {/* Sección de totales por turno con sus respectivas notas */}
         <div className="flex flex-row justify-around mt-4 font-semibold mb-4 gap-6">
-          <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
+          {/* Tarjeta para Total Nocturno */}
+          <div
+            className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center relative cursor-pointer"
+            title={
+              notasTurnos.nocturno && notasTurnos.nocturno.comentario
+                ? notasTurnos.nocturno.comentario
+                : "Haz click para agregar un comentario"
+            }
+            onClick={() => toggleNotaTurno("nocturno")}
+          >
             <p className="text-gray-600 text-sm md:text-base">
               Total Nocturno:{" "}
               <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
@@ -423,8 +512,67 @@ const Totales_Surtido_Estacion = () => {
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
               {metasPorHora.nocturno}
             </p>
+            {turnoActivo === "nocturno" && (
+              <div
+                className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {notasTurnos.nocturno ? (
+                  <p>{notasTurnos.nocturno.comentario}</p>
+                ) : (
+                  <p>Agregar un comentario</p>
+                )}
+                <textarea
+                  className="w-full h-16 p-1 border mb-2 text-xs"
+                  value={editingTurnoNota}
+                  onChange={(e) => setEditingTurnoNota(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="flex justify-end space-x-2">
+                  {notasTurnos.nocturno ? (
+                    <button
+                      className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditarNotaTurno("nocturno");
+                      }}
+                    >
+                      Editar
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGuardarNotaTurno("nocturno");
+                      }}
+                    >
+                      Guardar
+                    </button>
+                  )}
+                  <button
+                    className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTurnoActivo(null);
+                    }}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
+          {/* Tarjeta para Total Matutino */}
+          <div
+            className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center relative cursor-pointer"
+            title={
+              notasTurnos.matutino && notasTurnos.matutino.comentario
+                ? notasTurnos.matutino.comentario
+                : "Haz click para agregar un comentario"
+            }
+            onClick={() => toggleNotaTurno("matutino")}
+          >
             <p className="text-gray-600 text-sm md:text-base">
               Total Matutino:{" "}
               <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
@@ -433,8 +581,67 @@ const Totales_Surtido_Estacion = () => {
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
               {metasPorHora.matutino}
             </p>
+            {turnoActivo === "matutino" && (
+              <div
+                className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {notasTurnos.matutino ? (
+                  <p>{notasTurnos.matutino.comentario}</p>
+                ) : (
+                  <p>Agregar un comentario</p>
+                )}
+                <textarea
+                  className="w-full h-16 p-1 border mb-2 text-xs"
+                  value={editingTurnoNota}
+                  onChange={(e) => setEditingTurnoNota(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="flex justify-end space-x-2">
+                  {notasTurnos.matutino ? (
+                    <button
+                      className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditarNotaTurno("matutino");
+                      }}
+                    >
+                      Editar
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGuardarNotaTurno("matutino");
+                      }}
+                    >
+                      Guardar
+                    </button>
+                  )}
+                  <button
+                    className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTurnoActivo(null);
+                    }}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center">
+          {/* Tarjeta para Total Vespertino */}
+          <div
+            className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center relative cursor-pointer"
+            title={
+              notasTurnos.vespertino && notasTurnos.vespertino.comentario
+                ? notasTurnos.vespertino.comentario
+                : "Haz click para agregar un comentario"
+            }
+            onClick={() => toggleNotaTurno("vespertino")}
+          >
             <p className="text-gray-600 text-sm md:text-base">
               Total Vespertino:{" "}
               <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
@@ -443,6 +650,56 @@ const Totales_Surtido_Estacion = () => {
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
               {metasPorHora.vespertino}
             </p>
+            {turnoActivo === "vespertino" && (
+              <div
+                className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {notasTurnos.vespertino ? (
+                  <p>{notasTurnos.vespertino.comentario}</p>
+                ) : (
+                  <p>Agregar un comentario</p>
+                )}
+                <textarea
+                  className="w-full h-16 p-1 border mb-2 text-xs"
+                  value={editingTurnoNota}
+                  onChange={(e) => setEditingTurnoNota(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="flex justify-end space-x-2">
+                  {notasTurnos.vespertino ? (
+                    <button
+                      className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditarNotaTurno("vespertino");
+                      }}
+                    >
+                      Editar
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGuardarNotaTurno("vespertino");
+                      }}
+                    >
+                      Guardar
+                    </button>
+                  )}
+                  <button
+                    className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTurnoActivo(null);
+                    }}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -463,14 +720,17 @@ const Totales_Surtido_Estacion = () => {
                   className={`flex justify-between py-2 px-4 ${
                     i % 2 === 0 ? "bg-slate-200" : "bg-slate-300"
                   }`}
+                  title={
+                    notas[col.hora] && notas[col.hora].nota
+                      ? notas[col.hora].nota
+                      : "Haz click para agregar un comentario"
+                  }
                   onClick={() => toggleNota(col.hora)}
                 >
                   <span className="font-bold text-gray-700">{col.rango}:</span>
                   <span
                     className={`font-bold ${
-                      parseInt(col.valor, 10) >= metaParaCol
-                        ? "text-green-500"
-                        : "text-red-500"
+                      parseInt(col.valor, 10) >= metaParaCol ? "text-green-500" : "text-red-500"
                     }`}
                   >
                     {col.valor}
@@ -540,7 +800,15 @@ const Totales_Surtido_Estacion = () => {
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
               <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
               <div className="grid grid-cols-1 gap-4">
-                <div>
+                <div
+                  className="relative cursor-pointer"
+                  title={
+                    notasTurnos.nocturno && notasTurnos.nocturno.comentario
+                      ? notasTurnos.nocturno.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                  onClick={() => toggleNotaTurno("nocturno")}
+                >
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Nocturno:{" "}
                     <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
@@ -549,8 +817,66 @@ const Totales_Surtido_Estacion = () => {
                     / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
                     {metasPorHora.nocturno}
                   </p>
+                  {turnoActivo === "nocturno" && (
+                    <div
+                      className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {notasTurnos.nocturno ? (
+                        <p>{notasTurnos.nocturno.comentario}</p>
+                      ) : (
+                        <p>Agregar un comentario</p>
+                      )}
+                      <textarea
+                        className="w-full h-12 p-1 border mb-2 text-xs"
+                        value={editingTurnoNota}
+                        onChange={(e) => setEditingTurnoNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        {notasTurnos.nocturno ? (
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNotaTurno("nocturno");
+                            }}
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGuardarNotaTurno("nocturno");
+                            }}
+                          >
+                            Guardar
+                          </button>
+                        )}
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTurnoActivo(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
+                <div
+                  className="relative cursor-pointer"
+                  title={
+                    notasTurnos.matutino && notasTurnos.matutino.comentario
+                      ? notasTurnos.matutino.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                  onClick={() => toggleNotaTurno("matutino")}
+                >
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Matutino:{" "}
                     <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
@@ -559,8 +885,66 @@ const Totales_Surtido_Estacion = () => {
                     / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
                     {metasPorHora.matutino}
                   </p>
+                  {turnoActivo === "matutino" && (
+                    <div
+                      className="absolute z-[999] -top-10 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {notasTurnos.matutino ? (
+                        <p>{notasTurnos.matutino.comentario}</p>
+                      ) : (
+                        <p>Agregar un comentario</p>
+                      )}
+                      <textarea
+                        className="w-full h-12 p-1 border mb-2 text-xs"
+                        value={editingTurnoNota}
+                        onChange={(e) => setEditingTurnoNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        {notasTurnos.matutino ? (
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNotaTurno("matutino");
+                            }}
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGuardarNotaTurno("matutino");
+                            }}
+                          >
+                            Guardar
+                          </button>
+                        )}
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTurnoActivo(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
+                <div
+                  className="relative cursor-pointer"
+                  title={
+                    notasTurnos.vespertino && notasTurnos.vespertino.comentario
+                      ? notasTurnos.vespertino.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                  onClick={() => toggleNotaTurno("vespertino")}
+                >
                   <p className="text-gray-600 text-sm md:text-base">
                     Total Vespertino:{" "}
                     <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
@@ -569,6 +953,56 @@ const Totales_Surtido_Estacion = () => {
                     / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
                     {metasPorHora.vespertino}
                   </p>
+                  {turnoActivo === "vespertino" && (
+                    <div
+                      className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {notasTurnos.vespertino ? (
+                        <p>{notasTurnos.vespertino.comentario}</p>
+                      ) : (
+                        <p>Agregar un comentario</p>
+                      )}
+                      <textarea
+                        className="w-full h-12 p-1 border mb-2 text-xs"
+                        value={editingTurnoNota}
+                        onChange={(e) => setEditingTurnoNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        {notasTurnos.vespertino ? (
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNotaTurno("vespertino");
+                            }}
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGuardarNotaTurno("vespertino");
+                            }}
+                          >
+                            Guardar
+                          </button>
+                        )}
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTurnoActivo(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
