@@ -398,7 +398,7 @@ const Totales_AR_Estacion = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {notasTurnos.nocturno ? (
-                  <p>{notasTurnos.nocturno.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -463,7 +463,7 @@ const Totales_AR_Estacion = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {notasTurnos.matutino ? (
-                  <p>{notasTurnos.matutino.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -528,7 +528,7 @@ const Totales_AR_Estacion = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {notasTurnos.vespertino ? (
-                  <p>{notasTurnos.vespertino.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -643,27 +643,205 @@ const Totales_AR_Estacion = () => {
             </Link>
           </div>
           {/* Totales por Turno - Versión Mobile (se muestra solo el valor acumulado) */}
+          {/* Totales por Turno - Versión Mobile con funcionalidad de notas */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
               <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <span className="block text-gray-600">Nocturno: </span>
-                  <span className="font-semibold text-md text-gray-700">
+              <div className="space-y-4">
+                {/* Turno Nocturno */}
+                <div
+                  className="relative bg-white p-2 rounded shadow cursor-pointer"
+                  onClick={() => toggleNotaTurno("nocturno")}
+                  title={
+                    notasTurnos.nocturno && notasTurnos.nocturno.comentario
+                      ? notasTurnos.nocturno.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                >
+                  <span className="block text-gray-600">Total Nocturno:</span>
+                  <span className="block text-black font-bold">
                     {formatNumber(totalesPorTurno.nocturno)}
                   </span>
+                  {turnoActivo === "nocturno" && (
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {notasTurnos.nocturno ? (
+                        <p>{notasTurnos.nocturno.comentario}</p>
+                      ) : (
+                        <p>Agregar un comentario</p>
+                      )}
+                      <textarea
+                        className="w-full h-12 p-1 border mb-2 text-xs"
+                        value={editingTurnoNota}
+                        onChange={(e) => setEditingTurnoNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        {notasTurnos.nocturno ? (
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNotaTurno("nocturno");
+                            }}
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGuardarNotaTurno("nocturno");
+                            }}
+                          >
+                            Guardar
+                          </button>
+                        )}
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTurnoActivo(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <span className="block text-gray-600">Matutino: </span>
-                  <span className="font-semibold text-md text-gray-700">
+                {/* Turno Matutino */}
+                <div
+                  className="relative bg-white p-2 rounded shadow cursor-pointer"
+                  onClick={() => toggleNotaTurno("matutino")}
+                  title={
+                    notasTurnos.matutino && notasTurnos.matutino.comentario
+                      ? notasTurnos.matutino.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                >
+                  <span className="block text-gray-600">Total Matutino:</span>
+                  <span className="block text-black font-bold">
                     {formatNumber(totalesPorTurno.matutino)}
                   </span>
+                  {turnoActivo === "matutino" && (
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {notasTurnos.matutino ? (
+                        <p>{notasTurnos.matutino.comentario}</p>
+                      ) : (
+                        <p>Agregar un comentario</p>
+                      )}
+                      <textarea
+                        className="w-full h-12 p-1 border mb-2 text-xs"
+                        value={editingTurnoNota}
+                        onChange={(e) => setEditingTurnoNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        {notasTurnos.matutino ? (
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNotaTurno("matutino");
+                            }}
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGuardarNotaTurno("matutino");
+                            }}
+                          >
+                            Guardar
+                          </button>
+                        )}
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTurnoActivo(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <span className="block text-gray-600">Vespertino: </span>
-                  <span className="font-semibold text-md text-gray-700">
+                {/* Turno Vespertino */}
+                <div
+                  className="relative bg-white p-2 rounded shadow cursor-pointer"
+                  onClick={() => toggleNotaTurno("vespertino")}
+                  title={
+                    notasTurnos.vespertino && notasTurnos.vespertino.comentario
+                      ? notasTurnos.vespertino.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                >
+                  <span className="block text-gray-600">Total Vespertino:</span>
+                  <span className="block text-black font-bold">
                     {formatNumber(totalesPorTurno.vespertino)}
                   </span>
+                  {turnoActivo === "vespertino" && (
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {notasTurnos.vespertino ? (
+                        <p>{notasTurnos.vespertino.comentario}</p>
+                      ) : (
+                        <p>Agregar un comentario</p>
+                      )}
+                      <textarea
+                        className="w-full h-12 p-1 border mb-2 text-xs"
+                        value={editingTurnoNota}
+                        onChange={(e) => setEditingTurnoNota(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        {notasTurnos.vespertino ? (
+                          <button
+                            className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditarNotaTurno("vespertino");
+                            }}
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGuardarNotaTurno("vespertino");
+                            }}
+                          >
+                            Guardar
+                          </button>
+                        )}
+                        <button
+                          className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTurnoActivo(null);
+                          }}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

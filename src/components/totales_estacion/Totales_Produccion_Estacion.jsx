@@ -466,7 +466,7 @@ const Totales_Produccion_Estacion = () => {
               <div className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                    onClick={(e) => e.stopPropagation()}>
                 {notasTurnos.nocturno ? (
-                  <p>{notasTurnos.nocturno.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -532,7 +532,7 @@ const Totales_Produccion_Estacion = () => {
               <div className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                    onClick={(e) => e.stopPropagation()}>
                 {notasTurnos.matutino ? (
-                  <p>{notasTurnos.matutino.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -598,7 +598,7 @@ const Totales_Produccion_Estacion = () => {
               <div className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                    onClick={(e) => e.stopPropagation()}>
                 {notasTurnos.vespertino ? (
-                  <p>{notasTurnos.vespertino.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -719,23 +719,38 @@ const Totales_Produccion_Estacion = () => {
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
               <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
               <div className="grid grid-cols-1 gap-4">
-                <div className="relative cursor-pointer" onClick={() => toggleNotaTurno("nocturno")}>
+                {/* Tarjeta para turno Nocturno */}
+                <div
+                  className="relative border p-3 rounded shadow-sm bg-white cursor-pointer"
+                  onClick={() => toggleNotaTurno("nocturno")}
+                  title={
+                    notasTurnos.nocturno && notasTurnos.nocturno.comentario
+                      ? notasTurnos.nocturno.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                >
                   <p className="text-gray-600 text-sm md:text-base">
-                    Total Nocturno:{" "}
-                    <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno) + " font-bold"}>
+                    <strong>Total Nocturno:</strong>{" "}
+                    <span className={`${getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)} font-bold`}>
                       {formatNumber(totalesPorTurno.nocturno)}
-                    </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
+                    </span>
                   </p>
+                  <div className="flex justify-between mt-1 text-gray-500 text-xs">
+                    <p>Meta Nocturno: {formatNumber(metasTotalesPorTurno.nocturno)}</p>
+                    <p>Meta x Hora: {metasPorHora.nocturno}</p>
+                  </div>
                   {turnoActivo === "nocturno" && (
-                    <div className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {notasTurnos.nocturno ? (
-                        <p>{notasTurnos.nocturno.comentario}</p>
+                        <p></p>
                       ) : (
                         <p>Agregar un comentario</p>
                       )}
                       <textarea
-                        className="w-full h-16 p-1 border mb-2 text-xs"
+                        className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
                         onChange={(e) => setEditingTurnoNota(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
@@ -775,23 +790,38 @@ const Totales_Produccion_Estacion = () => {
                     </div>
                   )}
                 </div>
-                <div className="relative cursor-pointer" onClick={() => toggleNotaTurno("matutino")}>
+                {/* Tarjeta para turno Matutino */}
+                <div
+                  className="relative border p-3 rounded shadow-sm bg-white cursor-pointer"
+                  onClick={() => toggleNotaTurno("matutino")}
+                  title={
+                    notasTurnos.matutino && notasTurnos.matutino.comentario
+                      ? notasTurnos.matutino.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                >
                   <p className="text-gray-600 text-sm md:text-base">
-                    Total Matutino:{" "}
-                    <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino) + " font-bold"}>
+                    <strong>Total Matutino:</strong>{" "}
+                    <span className={`${getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)} font-bold`}>
                       {formatNumber(totalesPorTurno.matutino)}
-                    </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
+                    </span>
                   </p>
+                  <div className="flex justify-between mt-1 text-gray-500 text-xs">
+                    <p>Meta Matutino: {formatNumber(metasTotalesPorTurno.matutino)}</p>
+                    <p>Meta x Hora: {metasPorHora.matutino}</p>
+                  </div>
                   {turnoActivo === "matutino" && (
-                    <div className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {notasTurnos.matutino ? (
-                        <p>{notasTurnos.matutino.comentario}</p>
+                        <p></p>
                       ) : (
                         <p>Agregar un comentario</p>
                       )}
                       <textarea
-                        className="w-full h-16 p-1 border mb-2 text-xs"
+                        className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
                         onChange={(e) => setEditingTurnoNota(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
@@ -831,23 +861,38 @@ const Totales_Produccion_Estacion = () => {
                     </div>
                   )}
                 </div>
-                <div className="relative cursor-pointer" onClick={() => toggleNotaTurno("vespertino")}>
+                {/* Tarjeta para turno Vespertino */}
+                <div
+                  className="relative border p-3 rounded shadow-sm bg-white cursor-pointer"
+                  onClick={() => toggleNotaTurno("vespertino")}
+                  title={
+                    notasTurnos.vespertino && notasTurnos.vespertino.comentario
+                      ? notasTurnos.vespertino.comentario
+                      : "Haz click para agregar un comentario"
+                  }
+                >
                   <p className="text-gray-600 text-sm md:text-base">
-                    Total Vespertino:{" "}
-                    <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino) + " font-bold"}>
+                    <strong>Total Vespertino:</strong>{" "}
+                    <span className={`${getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)} font-bold`}>
                       {formatNumber(totalesPorTurno.vespertino)}
-                    </span>{" "}
-                    / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
+                    </span>
                   </p>
+                  <div className="flex justify-between mt-1 text-gray-500 text-xs">
+                    <p>Meta Vespertino: {formatNumber(metasTotalesPorTurno.vespertino)}</p>
+                    <p>Meta x Hora: {metasPorHora.vespertino}</p>
+                  </div>
                   {turnoActivo === "vespertino" && (
-                    <div className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {notasTurnos.vespertino ? (
-                        <p>{notasTurnos.vespertino.comentario}</p>
+                        <p></p>
                       ) : (
                         <p>Agregar un comentario</p>
                       )}
                       <textarea
-                        className="w-full h-16 p-1 border mb-2 text-xs"
+                        className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
                         onChange={(e) => setEditingTurnoNota(e.target.value)}
                         onClick={(e) => e.stopPropagation()}

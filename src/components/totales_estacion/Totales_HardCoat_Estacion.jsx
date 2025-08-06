@@ -458,7 +458,7 @@ const Totales_HardCoat_Estacion = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {notasTurnos.nocturno ? (
-                  <p>{notasTurnos.nocturno.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -525,7 +525,7 @@ const Totales_HardCoat_Estacion = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {notasTurnos.matutino ? (
-                  <p>{notasTurnos.matutino.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -592,7 +592,7 @@ const Totales_HardCoat_Estacion = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {notasTurnos.vespertino ? (
-                  <p>{notasTurnos.vespertino.comentario}</p>
+                  <p></p>
                 ) : (
                   <p>Agregar un comentario</p>
                 )}
@@ -732,8 +732,9 @@ const Totales_HardCoat_Estacion = () => {
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
               <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
               <div className="grid grid-cols-1 gap-4">
+                {/* Tarjeta para turno Nocturno */}
                 <div
-                  className="relative cursor-pointer"
+                  className="relative border p-3 rounded shadow-sm bg-white cursor-pointer"
                   title={
                     notasTurnos.nocturno && notasTurnos.nocturno.comentario
                       ? notasTurnos.nocturno.comentario
@@ -742,15 +743,16 @@ const Totales_HardCoat_Estacion = () => {
                   onClick={() => toggleNotaTurno("nocturno")}
                 >
                   <p className="text-gray-600 text-sm md:text-base">
-                    Total Nocturno: {formatNumber(totalesPorTurno.nocturno)}
+                    <strong>Total Nocturno:</strong>{" "}
+                    <span>{formatNumber(totalesPorTurno.nocturno)}</span>
                   </p>
                   {turnoActivo === "nocturno" && (
                     <div
-                      className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {notasTurnos.nocturno ? (
-                        <p>{notasTurnos.nocturno.comentario}</p>
+                        <p></p>
                       ) : (
                         <p>Agregar un comentario</p>
                       )}
@@ -795,8 +797,9 @@ const Totales_HardCoat_Estacion = () => {
                     </div>
                   )}
                 </div>
+                {/* Tarjeta para turno Matutino */}
                 <div
-                  className="relative cursor-pointer"
+                  className="relative border p-3 rounded shadow-sm bg-white cursor-pointer"
                   title={
                     notasTurnos.matutino && notasTurnos.matutino.comentario
                       ? notasTurnos.matutino.comentario
@@ -805,15 +808,16 @@ const Totales_HardCoat_Estacion = () => {
                   onClick={() => toggleNotaTurno("matutino")}
                 >
                   <p className="text-gray-600 text-sm md:text-base">
-                    Total Matutino: {formatNumber(totalesPorTurno.matutino)}
+                    <strong>Total Matutino:</strong>{" "}
+                    <span>{formatNumber(totalesPorTurno.matutino)}</span>
                   </p>
                   {turnoActivo === "matutino" && (
                     <div
-                      className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {notasTurnos.matutino ? (
-                        <p>{notasTurnos.matutino.comentario}</p>
+                        <p></p>
                       ) : (
                         <p>Agregar un comentario</p>
                       )}
@@ -858,8 +862,9 @@ const Totales_HardCoat_Estacion = () => {
                     </div>
                   )}
                 </div>
+                {/* Tarjeta para turno Vespertino */}
                 <div
-                  className="relative cursor-pointer"
+                  className="relative border p-3 rounded shadow-sm bg-white cursor-pointer"
                   title={
                     notasTurnos.vespertino && notasTurnos.vespertino.comentario
                       ? notasTurnos.vespertino.comentario
@@ -868,15 +873,16 @@ const Totales_HardCoat_Estacion = () => {
                   onClick={() => toggleNotaTurno("vespertino")}
                 >
                   <p className="text-gray-600 text-sm md:text-base">
-                    Total Vespertino: {formatNumber(totalesPorTurno.vespertino)}
+                    <strong>Total Vespertino:</strong>{" "}
+                    <span>{formatNumber(totalesPorTurno.vespertino)}</span>
                   </p>
                   {turnoActivo === "vespertino" && (
                     <div
-                      className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                      className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {notasTurnos.vespertino ? (
-                        <p>{notasTurnos.vespertino.comentario}</p>
+                        <p></p>
                       ) : (
                         <p>Agregar un comentario</p>
                       )}

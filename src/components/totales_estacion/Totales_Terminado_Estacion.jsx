@@ -472,7 +472,7 @@ const Totales_Terminado_Estacion = () => {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {notasTurnos[turno] ? (
-                    <p>{notasTurnos[turno].comentario}</p>
+                    <p></p>
                   ) : (
                     <p>Agregar un comentario</p>
                   )}
@@ -532,7 +532,7 @@ const Totales_Terminado_Estacion = () => {
             {columnas.map((col, idx) => {
               const metaCol = getMetaParaHora(col.hora, inicioHoy);
               return (
-                <div key={idx} className={`mb-2 ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"} rounded`}>
+                <div key={idx} className={` ${idx % 2 === 0 ? "bg-slate-200" : "bg-slate-300"}`}>
                   <div
                     className="flex justify-between items-center cursor-pointer py-2 px-4"
                     title={
@@ -615,7 +615,7 @@ const Totales_Terminado_Estacion = () => {
                 {["nocturno", "matutino", "vespertino"].map((turno) => (
                   <div
                     key={turno}
-                    className="relative cursor-pointer"
+                    className="relative border p-3 rounded shadow-sm bg-white cursor-pointer"
                     title={
                       notasTurnos[turno] && notasTurnos[turno].comentario
                         ? notasTurnos[turno].comentario
@@ -623,22 +623,34 @@ const Totales_Terminado_Estacion = () => {
                     }
                     onClick={() => toggleNotaTurno(turno)}
                   >
+                    {/* Fila 1: Total */}
                     <p className="text-gray-600 text-sm md:text-base">
-                      {turno === "nocturno" && "Total Nocturno: "}
-                      {turno === "matutino" && "Total Matutino: "}
-                      {turno === "vespertino" && "Total Vespertino: "}
-                      <span className={getClassName(totalesPorTurno[turno], metasTotalesPorTurno[turno]) + " ml-1 font-bold"}>
+                      {turno === "nocturno" && "Total Nocturno:"}
+                      {turno === "matutino" && "Total Matutino:"}
+                      {turno === "vespertino" && "Total Vespertino:"}{" "}
+                      <span
+                        className={
+                          getClassName(
+                            totalesPorTurno[turno],
+                            metasTotalesPorTurno[turno]
+                          ) + " ml-1 font-bold"
+                        }
+                      >
                         {formatNumber(totalesPorTurno[turno])}
-                      </span>{" "}
-                      / Meta Acumulada: {formatNumber(metasTotalesPorTurno[turno])} / Meta x Hora: {metasPorHora[turno]}
+                      </span>
                     </p>
+                    {/* Fila 2: Meta acumulada y Meta x Hora */}
+                    <div className="flex justify-between mt-1 text-gray-500 text-xs">
+                      <p>Meta {turno.charAt(0).toUpperCase() + turno.slice(1)} Acumulada: {formatNumber(metasTotalesPorTurno[turno])}</p>
+                      <p>Meta x Hora: {metasPorHora[turno]}</p>
+                    </div>
                     {turnoActivo === turno && (
                       <div
-                        className="absolute z-[999] -top-12 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                        className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {notasTurnos[turno] ? (
-                          <p>{notasTurnos[turno].comentario}</p>
+                          <p></p>
                         ) : (
                           <p>Agregar un comentario</p>
                         )}
