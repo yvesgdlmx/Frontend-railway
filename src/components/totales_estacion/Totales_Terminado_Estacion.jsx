@@ -491,7 +491,7 @@ const Totales_Terminado_Estacion = () => {
                           handleEditarNotaTurno(turno);
                         }}
                       >
-                        Editar
+                        Guardar Cambios
                       </button>
                     ) : (
                       <button
@@ -669,7 +669,7 @@ const Totales_Terminado_Estacion = () => {
                                 handleEditarNotaTurno(turno);
                               }}
                             >
-                              Editar
+                              Guardar Cambios
                             </button>
                           ) : (
                             <button

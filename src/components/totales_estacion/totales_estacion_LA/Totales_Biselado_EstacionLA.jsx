@@ -536,7 +536,7 @@ const Totales_Biselado_EstacionLA = () => {
                         handleEditarNotaTurno("nocturno");
                       }}
                     >
-                      Editar
+                      Guardar Cambios
                     </button>
                   ) : (
                     <button
@@ -605,7 +605,7 @@ const Totales_Biselado_EstacionLA = () => {
                         handleEditarNotaTurno("matutino");
                       }}
                     >
-                      Editar
+                      Guardar Cambios
                     </button>
                   ) : (
                     <button
@@ -674,7 +674,7 @@ const Totales_Biselado_EstacionLA = () => {
                         handleEditarNotaTurno("vespertino");
                       }}
                     >
-                      Editar
+                      Guardar Cambios
                     </button>
                   ) : (
                     <button
@@ -849,7 +849,7 @@ const Totales_Biselado_EstacionLA = () => {
                               handleEditarNotaTurno("nocturno");
                             }}
                           >
-                            Editar
+                            Guardar Cambios
                           </button>
                         ) : (
                           <button
@@ -920,7 +920,7 @@ const Totales_Biselado_EstacionLA = () => {
                               handleEditarNotaTurno("matutino");
                             }}
                           >
-                            Editar
+                            Guardar Cambios
                           </button>
                         ) : (
                           <button
@@ -991,7 +991,7 @@ const Totales_Biselado_EstacionLA = () => {
                               handleEditarNotaTurno("vespertino");
                             }}
                           >
-                            Editar
+                            Guardar Cambios
                           </button>
                         ) : (
                           <button

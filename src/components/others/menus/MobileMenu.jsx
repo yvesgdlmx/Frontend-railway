@@ -45,7 +45,7 @@ const MobileMenu = ({
               <Link
                 to="/procesos_LA"
                 onClick={handleMenuItemClick}
-                className="block py-2 px-3 text-white uppercase hover:bg-gray-600"
+                className="block py-2 px-7 text-white uppercase hover:bg-gray-600"
               >
                 Producción LA
               </Link>
@@ -54,7 +54,7 @@ const MobileMenu = ({
               <Link
                 to="/"
                 onClick={handleMenuItemClick}
-                className="block py-2 px-3 text-white uppercase hover:bg-gray-600"
+                className="block py-2 px-7 text-white uppercase hover:bg-gray-600"
               >
                 Producción
               </Link>

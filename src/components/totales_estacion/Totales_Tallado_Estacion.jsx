@@ -501,7 +501,7 @@ const Totales_Tallado_Estacion = () => {
                           handleEditarNotaTurno(turno);
                         }}
                       >
-                        Editar
+                        Guardar Cambios
                       </button>
                     ) : (
                       <button
@@ -661,7 +661,7 @@ const Totales_Tallado_Estacion = () => {
                               handleEditarNotaTurno("nocturno");
                             }}
                           >
-                            Editar
+                            Guardar Cambios
                           </button>
                         ) : (
                           <button
@@ -732,7 +732,7 @@ const Totales_Tallado_Estacion = () => {
                               handleEditarNotaTurno("matutino");
                             }}
                           >
-                            Editar
+                            Guardar Cambios
                           </button>
                         ) : (
                           <button
@@ -803,7 +803,7 @@ const Totales_Tallado_Estacion = () => {
                               handleEditarNotaTurno("vespertino");
                             }}
                           >
-                            Editar
+                            Guardar Cambios
                           </button>
                         ) : (
                           <button

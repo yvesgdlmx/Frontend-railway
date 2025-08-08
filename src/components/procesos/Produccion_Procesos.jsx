@@ -11,12 +11,21 @@ const Produccion_Procesos = () => {
   const [hitsMatutino, setHitsMatutino] = useState(0);
   const [hitsVespertino, setHitsVespertino] = useState(0);
   const [hitsNocturno, setHitsNocturno] = useState(0);
+  
   // Estados para las metas
   const [meta, setMeta] = useState(0); // Meta en vivo acumulada
   const [metaPorHora, setMetaPorHora] = useState(0); // Meta base por hora
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
+  // NUEVO: Estados para las notas por turno
+  const [notasTurnos, setNotasTurnos] = useState({
+    nocturno: null,
+    matutino: null,
+    vespertino: null,
+  });
+  const [turnoActivo, setTurnoActivo] = useState(null);
+  const [editingTurnoNota, setEditingTurnoNota] = useState("");
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -26,14 +35,11 @@ const Produccion_Procesos = () => {
         const metaRegistro = responseMetas.data.registros.find(registro =>
           registro.name.toLowerCase() === 'global produccion'
         );
-        // Extraer las metas base para cada turno; se usa 0 como default si no se encuentra
         const metaBaseNocturno = metaRegistro ? metaRegistro.meta_nocturno : 0;
         const metaBaseMatutino = metaRegistro ? metaRegistro.meta_matutino : 0;
         const metaBaseVespertino = metaRegistro ? metaRegistro.meta_vespertino : 0;
-        // Se asigna la meta base (por hora) según lo definido para el turno nocturno 
         setMetaPorHora(metaBaseNocturno);
-        // Definir las metas totales para cada turno usando horas fijas:
-        // 8 horas para los turnos nocturno y matutino, y 7 horas para el vespertino
+        // Definir las metas totales para cada turno (turnos nocturno y matutino tienen 8 horas, vespertino 7)
         const metaTotalNocturno = 8 * metaBaseNocturno;
         const metaTotalMatutino = 8 * metaBaseMatutino;
         const metaTotalVespertino = 7 * metaBaseVespertino;
@@ -42,15 +48,13 @@ const Produccion_Procesos = () => {
         setMetaVespertino(metaTotalVespertino);
         // 2. Obtener los registros de producción desde '/manual/manual/actualdia'
         const responseRegistros = await clienteAxios.get('/manual/manual/actualdia');
-        // Filtramos los registros de producción que incluyan "JOB COMPLETE"
         const registros = responseRegistros.data.registros.filter(registro =>
           registro.name.includes('JOB COMPLETE')
         );
         const ahora = moment().tz('America/Mexico_City');
-        // 3. Definir intervalos horarios de acuerdo a la jornada
+        // 3. Definir intervalos horarios según la jornada
         let inicioNocturno, finNocturno, inicioMatutino, finMatutino, inicioVespertino, finVespertino;
         if (ahora.hour() >= 22) {
-          // Jornada: turno nocturno de hoy 22:00 a mañana 06:00
           inicioNocturno = ahora.clone().startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(29, 'minutes');
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
@@ -58,7 +62,6 @@ const Produccion_Procesos = () => {
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().add(1, 'day').startOf('day').add(21, 'hours').add(30, 'minutes');
         } else {
-          // Jornada actual: turno nocturno de ayer 22:00 a hoy 06:00
           inicioNocturno = ahora.clone().subtract(1, 'day').startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().startOf('day').add(6, 'hours').add(29, 'minutes');
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
@@ -102,16 +105,13 @@ const Produccion_Procesos = () => {
         // 6. Calcular la meta en vivo acumulada para el turno en curso
         let metaAcumulada = 0;
         if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) { 
-          // Turno nocturno: multiplicar las horas transcurridas por la meta base para este turno
           const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
           metaAcumulada = Math.floor(horasTranscurridasNocturno) * metaBaseNocturno;
         } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
-          // Turno matutino: sumar la meta completa del turno nocturno y el acumulado del matutino
           metaAcumulada = metaTotalNocturno;
           const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasMatutino) * metaBaseMatutino;
         } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
-          // Turno vespertino: sumar metas completas de nocturno y matutino y el acumulado del vespertino
           metaAcumulada = metaTotalNocturno + metaTotalMatutino;
           const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasVespertino) * metaBaseVespertino;
@@ -126,9 +126,7 @@ const Produccion_Procesos = () => {
           );
           return horaActual.isAfter(
             moment.tz(`${ultimo.fecha} ${ultimo.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City')
-          )
-            ? actual
-            : ultimo;
+          ) ? actual : ultimo;
         }, registros[0]);
         const formattedLastHour = moment.tz(
           `${ultimoRegistro.fecha} ${ultimoRegistro.hour}`,
@@ -145,9 +143,82 @@ const Produccion_Procesos = () => {
     };
     fetchData();
   }, []);
-  const getClassName = (hits, metaTurno) => {
-    return hits >= metaTurno ? "text-green-700" : "text-red-700";
+  // useEffect para cargar las notas de turno de la sección "produccion"
+  useEffect(() => {
+    const cargarNotasTurnos = async () => {
+      try {
+        const today = moment().format("YYYY-MM-DD");
+        const response = await clienteAxios.get("/notas/notas_turnos", {
+          params: { seccion: "produccion", fecha: today },
+        });
+        const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
+        if (Array.isArray(response.data)) {
+          response.data.forEach(item => {
+            notasTurnosMap[item.turno] = { id: item.id, comentario: item.comentario };
+          });
+        } else {
+          console.error("La respuesta de la API no es un array:", response.data);
+        }
+        setNotasTurnos(notasTurnosMap);
+      } catch (error) {
+        console.error("Error al cargar las notas de turno:", error);
+      }
+    };
+    cargarNotasTurnos();
+  }, []);
+  // Función para togglear la ventana emergente de edición/agregar nota
+  const toggleNotaTurno = (turno) => {
+    if (turnoActivo === turno) {
+      setTurnoActivo(null);
+    } else {
+      setTurnoActivo(turno);
+      setEditingTurnoNota(notasTurnos[turno]?.comentario || "");
+    }
   };
+  // Función para guardar una nueva nota
+  const handleGuardarNotaTurno = async (turno) => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const payload = {
+        fecha: today,
+        turno, // "nocturno", "matutino" o "vespertino"
+        seccion: "produccion",
+        comentario: editingTurnoNota,
+      };
+      const response = await clienteAxios.post("/notas/notas_turnos", payload);
+      setNotasTurnos(prev => ({
+        ...prev,
+        [turno]: { id: response.data.id, comentario: response.data.comentario }
+      }));
+      setTurnoActivo(null);
+    } catch (error) {
+      console.error("Error al guardar la nota de turno:", error);
+    }
+  };
+  // Función para editar una nota existente
+  const handleEditarNotaTurno = async (turno) => {
+    try {
+      const notaActual = notasTurnos[turno];
+      if (!notaActual || !notaActual.id) {
+        console.error("No se encontró la nota para el turno:", turno);
+        return;
+      }
+      const payload = {
+        id: notaActual.id,
+        comentario: editingTurnoNota,
+      };
+      const response = await clienteAxios.put("/notas/notas_turnos", payload);
+      setNotasTurnos(prev => ({
+        ...prev,
+        [turno]: { id: response.data.id, comentario: response.data.comentario }
+      }));
+      setTurnoActivo(null);
+    } catch (error) {
+      console.error("Error al editar la nota de turno:", error);
+    }
+  };
+  const getClassName = (hits, metaTurno) => 
+    hits >= metaTurno ? "text-green-700" : "text-red-700";
   return (
     <div className='bg-white p-4 rounded-xl'>
       <Link to='/totales_estacion#produccion' className='hidden lg:block'>
@@ -168,22 +239,99 @@ const Produccion_Procesos = () => {
           Último registro: <span className='font-semibold xs:text-sm md:text-md'>{ultimaHora} - {siguienteHora}</span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Trabajos: <span className={totalHits >= meta ? "text-green-700" : "text-red-700"}>{formatNumber(totalHits)}</span>
+          Trabajos: <span className={totalHits >= meta ? "text-green-700" : "text-red-700"}>
+            {formatNumber(totalHits)}
+          </span>
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
           Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{formatNumber(meta)}</span>
         </p>
       </div>
-      <div className='flex items-center justify-between py-4 px-2 border-2'>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
-        </p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
-        </p>
-        <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
-          Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
-        </p>
+      {/* Sección de totales por turno con funcionalidad de notas */}
+      <div className='flex flex-col gap-4 border-2 py-4 px-2 relative'>
+        <div className='flex items-center justify-between'>
+          {/* Nocturno */}
+          <div 
+            className="cursor-pointer"
+            onClick={() => toggleNotaTurno("nocturno")}
+            title={notasTurnos.nocturno && notasTurnos.nocturno.comentario ? notasTurnos.nocturno.comentario : "Haz click para agregar un comentario"}
+          >
+            <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+              Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
+            </p>
+          </div>
+          {/* Matutino */}
+          <div 
+            className="cursor-pointer"
+            onClick={() => toggleNotaTurno("matutino")}
+            title={notasTurnos.matutino && notasTurnos.matutino.comentario ? notasTurnos.matutino.comentario : "Haz click para agregar un comentario"}
+          >
+            <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+              Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
+            </p>
+          </div>
+          {/* Vespertino */}
+          <div 
+            className="cursor-pointer"
+            onClick={() => toggleNotaTurno("vespertino")}
+            title={notasTurnos.vespertino && notasTurnos.vespertino.comentario ? notasTurnos.vespertino.comentario : "Haz click para agregar un comentario"}
+          >
+            <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
+              Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
+            </p>
+          </div>
+        </div>
+        {/* Ventana emergente para editar o agregar la nota */}
+        {turnoActivo && (
+          <div className="absolute z-10 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+            style={{
+              left: turnoActivo === "nocturno" ? "0" : turnoActivo === "matutino" ? "33%" : "auto",
+              right: turnoActivo === "vespertino" ? "0" : "auto",
+              top: "-55px",
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {notasTurnos[turnoActivo] ? (<p></p>) : (<p>Agregar un comentario</p>)}
+            <textarea
+              className="w-full h-16 p-1 border mb-2 text-xs"
+              value={editingTurnoNota}
+              onChange={e => setEditingTurnoNota(e.target.value)}
+              onClick={e => e.stopPropagation()}
+            />
+            <div className="flex justify-end space-x-2">
+              {notasTurnos[turnoActivo] ? (
+                <button
+                  className="bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleEditarNotaTurno(turnoActivo);
+                  }}
+                >
+                  Guardar Cambios
+                </button>
+              ) : (
+                <button
+                  className="bg-green-500 text-white py-1 px-3 rounded text-xs hover:bg-green-600"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleGuardarNotaTurno(turnoActivo);
+                  }}
+                >
+                  Guardar
+                </button>
+              )}
+              <button
+                className="bg-red-500 text-white py-1 px-3 rounded text-xs hover:bg-red-600"
+                onClick={e => {
+                  e.stopPropagation();
+                  setTurnoActivo(null);
+                }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

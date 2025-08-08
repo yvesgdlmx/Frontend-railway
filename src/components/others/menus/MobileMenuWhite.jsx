@@ -29,7 +29,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 <Link
                   to={'/cargar_media'}
                   onClick={handleClick}
-                  className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7"
+                  className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-6"
                 >
                   Avisos
                 </Link>
@@ -39,7 +39,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
               <Link
                 to={'/procesos_LA'}
                 onClick={handleClick}
-                className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7"
+                className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-6"
               >
                 Producción LA
               </Link>
@@ -48,7 +48,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
               <Link
                 to={'/'}
                 onClick={handleClick}
-                className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-7"
+                className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-6"
               >
                 Producción
               </Link>
