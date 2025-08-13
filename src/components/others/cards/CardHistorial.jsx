@@ -51,16 +51,14 @@ const CardHistorial = ({
       ? notasPorTurno.map((nota) => nota.comentario).join(" | ")
       : "No hay comentarios para este turno";
   };
-  // Estados para controlar la visibilidad de cada tooltip (podemos usar un objeto que guarde por turno)
-  const [tooltipVisible, setTooltipVisible] = useState({
-    nocturno: false,
-    matutino: false,
-    vespertino: false
-  });
-  const toggleTooltip = (turno) => {
+  // Estado para controlar la visibilidad de cada tooltip por sección y turno
+  // La clave será algo como: "surtido-matutino".
+  const [tooltipVisible, setTooltipVisible] = useState({});
+  const toggleTooltip = (seccion, turno) => {
+    const key = `${seccion}-${turno}`;
     setTooltipVisible((prev) => ({
       ...prev,
-      [turno]: !prev[turno]
+      [key]: !prev[key]
     }));
   };
   // Agrupamos los registros por máquina y separamos los hits por turno
@@ -237,7 +235,7 @@ const CardHistorial = ({
                   <div className="relative">
                     <div
                       className="text-center cursor-pointer"
-                      onClick={() => toggleTooltip("nocturno")}
+                      onClick={() => toggleTooltip(seccion, "nocturno")}
                     >
                       <span className="block text-gray-600">Nocturno</span>
                       <span
@@ -253,7 +251,7 @@ const CardHistorial = ({
                         / {formatNumber(metaNocturno)}
                       </span>
                     </div>
-                    {tooltipVisible.nocturno && (
+                    {tooltipVisible[`${seccion}-nocturno`] && (
                       <div className="mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded">
                         {mensajeTurno(seccion, "nocturno")}
                       </div>
@@ -263,7 +261,7 @@ const CardHistorial = ({
                   <div className="relative">
                     <div
                       className="text-center cursor-pointer"
-                      onClick={() => toggleTooltip("matutino")}
+                      onClick={() => toggleTooltip(seccion, "matutino")}
                     >
                       <span className="block text-gray-600">Matutino</span>
                       <span
@@ -279,7 +277,7 @@ const CardHistorial = ({
                         / {formatNumber(metaMatutino)}
                       </span>
                     </div>
-                    {tooltipVisible.matutino && (
+                    {tooltipVisible[`${seccion}-matutino`] && (
                       <div className="mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded">
                         {mensajeTurno(seccion, "matutino")}
                       </div>
@@ -289,7 +287,7 @@ const CardHistorial = ({
                   <div className="relative">
                     <div
                       className="text-center cursor-pointer"
-                      onClick={() => toggleTooltip("vespertino")}
+                      onClick={() => toggleTooltip(seccion, "vespertino")}
                     >
                       <span className="block text-gray-600">Vespertino</span>
                       <span
@@ -305,7 +303,7 @@ const CardHistorial = ({
                         / {formatNumber(metaVespertino)}
                       </span>
                     </div>
-                    {tooltipVisible.vespertino && (
+                    {tooltipVisible[`${seccion}-vespertino`] && (
                       <div className="mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded">
                         {mensajeTurno(seccion, "vespertino")}
                       </div>
