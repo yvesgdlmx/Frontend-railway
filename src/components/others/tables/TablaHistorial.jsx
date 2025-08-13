@@ -1,22 +1,21 @@
 import React from "react";
 import moment from "moment";
 import { formatNumber } from "../../../helpers/formatNumber";
-const TablaHistorial = ({ seccion, nombres, items, metas }) => {
-  // Funciones para obtener la meta de cada turno (meta por hora, que se multiplicará luego)
+const TablaHistorial = ({ seccion, nombres, items, metas, notas = [] }) => {
+  console.log("TablaHistorial -> seccion recibida:", seccion);
+  console.log("TablaHistorial -> notas recibidas:", notas);
   const getMetaNocturno = (machineName) =>
     Number(metas[machineName.trim()]?.meta_nocturno) || 0;
   const getMetaMatutino = (machineName) =>
     Number(metas[machineName.trim()]?.meta_matutino) || 0;
   const getMetaVespertino = (machineName) =>
     Number(metas[machineName.trim()]?.meta_vespertino) || 0;
-  // Agrupar los registros por nombre, iniciando con los nombres definidos en “nombres”
   const groupByName = (arr) => {
     const groups = {};
     nombres.forEach((machine) => {
       groups[machine] = {
         name: machine,
         hits: 0,
-        // Se guarda la meta por hora para cada turno
         metaNocturno: getMetaNocturno(machine),
         metaMatutino: getMetaMatutino(machine),
         metaVespertino: getMetaVespertino(machine),
@@ -37,27 +36,19 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
     });
     return Object.values(groups);
   };
-  // Calcular totales de hits por turno según la hora del registro
   const calcularTotalesPorTurno = (items) => {
-    let totalNocturno = 0,
-      totalMatutino = 0,
-      totalVespertino = 0;
+    let totalNocturno = 0, totalMatutino = 0, totalVespertino = 0;
     items.forEach((item) => {
       if (!item.hour) return;
       const [hrStr, minStr] = item.hour.split(":");
       const hr = parseInt(hrStr, 10);
       const min = parseInt(minStr, 10);
       const totalMinutes = hr * 60 + min;
-      // Turno nocturno: de 22:00 (1320) a 23:59 y de 00:00 a antes de 06:00 (360)
       if (totalMinutes >= 1320 || totalMinutes < 360) {
         totalNocturno += Number(item.hits);
-      }
-      // Turno matutino: de 06:30 (390) a 14:29 (869)
-      else if (totalMinutes >= 390 && totalMinutes <= 869) {
+      } else if (totalMinutes >= 390 && totalMinutes <= 869) {
         totalMatutino += Number(item.hits);
-      }
-      // Turno vespertino: de 14:30 (870) a 21:59 (1319)
-      else if (totalMinutes >= 870 && totalMinutes < 1320) {
+      } else if (totalMinutes >= 870 && totalMinutes < 1320) {
         totalVespertino += Number(item.hits);
       }
     });
@@ -65,8 +56,6 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
   };
   const agrupados = groupByName(items);
   const { totalNocturno, totalMatutino, totalVespertino } = calcularTotalesPorTurno(items);
-  // Calcular metas generales para cada turno:
-  // Se usa la fórmula: meta_por_hora * (horas del turno)
   const metaNocturnoGeneral = nombres.reduce(
     (sum, maquina) => sum + (getMetaNocturno(maquina) * 8),
     0
@@ -80,13 +69,31 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
     0
   );
   const metaGeneral = metaNocturnoGeneral + metaMatutinoGeneral + metaVespertinoGeneral;
-  // Función para asignar clases CSS según la comparación de hits con la meta
   const getClassName = (total, meta) => {
     if (typeof meta !== "number") return "text-gray-500";
     return total >= meta ? "text-green-600" : "text-red-600";
   };
+  // Función para obtener el mensaje para cada turno.
+  // Se utiliza includes para ver si la seccion en la nota contiene la seccion del componente.
+  const mensajeTurno = (turno) => {
+    const turnoParam = turno.trim().toLowerCase();
+    const seccionComp = seccion.trim().toLowerCase();
+    const notasPorTurno = notas.filter((nota) => {
+      const turnoNota = nota.turno.trim().toLowerCase();
+      const seccionNota = nota.seccion.trim().toLowerCase();
+      return turnoNota === turnoParam && seccionNota.includes(seccionComp);
+    });
+    console.log(
+      `mensajeTurno -> Turno: ${turno}, SeccionComponente: "${seccion}" => Notas:`,
+      notasPorTurno
+    );
+    return notasPorTurno.length > 0
+      ? notasPorTurno.map((nota) => nota.comentario).join(" | ")
+      : "No hay comentarios para este turno";
+  };
   const cardClasses =
-    seccion === "Producción"
+    seccion.trim().toLowerCase() === "producción" ||
+    seccion.trim().toLowerCase() === "produccion"
       ? "bg-white shadow-md rounded overflow-hidden flex flex-col h-auto self-start"
       : "bg-white shadow-md rounded overflow-hidden flex flex-col h-full";
   return (
@@ -117,20 +124,21 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
           </thead>
           <tbody>
             {agrupados.map((item, idx) => {
-              // Calculamos la meta por turno multiplicando la meta base (por hora)
-              // por las horas correspondientes de cada turno
               const metaNocturnoTurno = item.metaNocturno * 8;
               const metaMatutinoTurno = item.metaMatutino * 8;
               const metaVespertinoTurno = item.metaVespertino * 7;
-              // Suma total de la meta por jornada para esta máquina
               const metaJornada = metaNocturnoTurno + metaMatutinoTurno + metaVespertinoTurno;
               return (
-                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-blue-100"}>
+                <tr
+                  key={idx}
+                  className={idx % 2 === 0 ? "bg-white" : "bg-blue-100"}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-[11px] xl:text-[13.5px] text-gray-900">
                     {item.name}
                   </td>
                   <td className={`font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13px] ${getClassName(item.hits, metaJornada)}`}>
-                    {formatNumber(item.hits)}<span className="text-gray-500"> / {formatNumber(metaJornada)}</span> 
+                    {formatNumber(item.hits)}
+                    <span className="text-gray-500"> / {formatNumber(metaJornada)}</span>
                     <br />
                     <span className="text-[12.5px] text-gray-500">hits / meta</span>
                   </td>
@@ -149,13 +157,16 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
           </tbody>
         </table>
       </div>
-      {/* Resumen General */}
+      {/* Resumen General con tooltips por turno */}
       <div className="bg-slate-50 p-4 border-t border-white rounded-b">
         <p className="text-center text-sm font-semibold text-gray-500 mb-2">
           Resumen General
         </p>
         <div className="grid grid-cols-2 grid-rows-2 gap-4">
-          <div className="text-center p-2 border border-gray-400 rounded">
+          <div
+            className="text-center p-2 border border-gray-400 rounded"
+            title={mensajeTurno("nocturno")}
+          >
             <p className="text-xs text-gray-600">Total Nocturno / Meta Nocturno</p>
             <p className="text-lg font-bold">
               <span className={getClassName(totalNocturno, metaNocturnoGeneral)}>
@@ -166,7 +177,10 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
               </span>
             </p>
           </div>
-          <div className="text-center p-2 border border-gray-400 rounded">
+          <div
+            className="text-center p-2 border border-gray-400 rounded"
+            title={mensajeTurno("matutino")}
+          >
             <p className="text-xs text-gray-600">Total Matutino / Meta Matutino</p>
             <p className="text-lg font-bold">
               <span className={getClassName(totalMatutino, metaMatutinoGeneral)}>
@@ -177,10 +191,11 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
               </span>
             </p>
           </div>
-          <div className="text-center p-2 border border-gray-400 rounded">
-            <p className="text-xs text-gray-600">
-              Total Vespertino / Meta Vespertino
-            </p>
+          <div
+            className="text-center p-2 border border-gray-400 rounded"
+            title={mensajeTurno("vespertino")}
+          >
+            <p className="text-xs text-gray-600">Total Vespertino / Meta Vespertino</p>
             <p className="text-lg font-bold">
               <span className={getClassName(totalVespertino, metaVespertinoGeneral)}>
                 {formatNumber(totalVespertino)}
@@ -193,15 +208,12 @@ const TablaHistorial = ({ seccion, nombres, items, metas }) => {
           <div className="text-center p-2 border border-gray-400 rounded">
             <p className="text-xs text-gray-600">Total General / Meta General</p>
             <p className="text-lg font-bold">
-              <span
-                className={getClassName(
-                  totalNocturno + totalMatutino + totalVespertino,
-                  metaGeneral
-                )}
-              >
+              <span className={getClassName(totalNocturno + totalMatutino + totalVespertino, metaGeneral)}>
                 {formatNumber(totalNocturno + totalMatutino + totalVespertino)}
               </span>{" "}
-              <span className="text-gray-500">/ {formatNumber(metaGeneral)}</span>
+              <span className="text-gray-500">
+                / {formatNumber(metaGeneral)}
+              </span>
             </p>
           </div>
         </div>
