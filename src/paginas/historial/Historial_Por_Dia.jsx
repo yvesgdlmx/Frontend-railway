@@ -218,6 +218,7 @@ const Historial_Por_Dia = () => {
               selectedDay={selectedDay}
               registros={data.registros}
               metas={metas}
+              notas={notas}
             />
           </div>
         </>
