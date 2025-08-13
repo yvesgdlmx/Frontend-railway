@@ -52,7 +52,6 @@ const CardHistorial = ({
       : "No hay comentarios para este turno";
   };
   // Estado para controlar la visibilidad de cada tooltip por sección y turno
-  // La clave será algo como: "surtido-matutino".
   const [tooltipVisible, setTooltipVisible] = useState({});
   const toggleTooltip = (seccion, turno) => {
     const key = `${seccion}-${turno}`;
