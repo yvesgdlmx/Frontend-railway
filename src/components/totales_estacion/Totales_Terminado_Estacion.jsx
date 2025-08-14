@@ -307,7 +307,7 @@ const Totales_Terminado_Estacion = () => {
       const payload = {
         fecha: today,
         turno, // "nocturno", "matutino" o "vespertino"
-        seccion: "terminado",
+        seccion: "bloqueo de terminado",
         comentario: editingTurnoNota,
       };
       const response = await clienteAxios.post("/notas/notas_turnos", payload);

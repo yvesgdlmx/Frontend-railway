@@ -315,7 +315,7 @@ const Totales_Produccion_Estacion = () => {
   const handleGuardarNotaTurno = async (turno) => {
     try {
       const today = moment().format("YYYY-MM-DD");
-      const payload = { fecha: today, turno, seccion: "produccion", comentario: editingTurnoNota };
+      const payload = { fecha: today, turno, seccion: "producción", comentario: editingTurnoNota };
       const response = await clienteAxios.post("/notas/notas_turnos", payload);
       setNotasTurnos((prev) => ({
         ...prev,

@@ -149,7 +149,7 @@ const Produccion_Procesos = () => {
       try {
         const today = moment().format("YYYY-MM-DD");
         const response = await clienteAxios.get("/notas/notas_turnos", {
-          params: { seccion: "produccion", fecha: today },
+          params: { seccion: "producción", fecha: today },
         });
         const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
         if (Array.isArray(response.data)) {
