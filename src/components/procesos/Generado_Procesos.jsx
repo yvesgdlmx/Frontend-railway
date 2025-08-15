@@ -279,7 +279,7 @@ const Generado_Procesos = () => {
             Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
             {/* Se muestra el ícono si existe una nota para este turno */}
             {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
-              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              <FaComment className="inline-block ml-1 text-blue-500" />
             )}
           </p>
           {turnoActivo === "nocturno" && (
@@ -338,7 +338,7 @@ const Generado_Procesos = () => {
           <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
             Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
             {notasTurnos.matutino && notasTurnos.matutino.comentario && (
-              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              <FaComment className="inline-block ml-1 text-blue-500" />
             )}
           </p>
           {turnoActivo === "matutino" && (
@@ -397,7 +397,7 @@ const Generado_Procesos = () => {
           <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
             Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
             {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
-              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              <FaComment className="inline-block ml-1 text-blue-500" />
             )}
           </p>
           {turnoActivo === "vespertino" && (

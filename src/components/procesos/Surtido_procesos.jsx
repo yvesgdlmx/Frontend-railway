@@ -288,7 +288,7 @@ const Surtido_procesos = () => {
             / {formatNumber(metaNocturno)}
             {/* Muestra el ícono si existe un comentario */}
             {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
-              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              <FaComment className="inline-block ml-1 text-blue-500" />
             )}
           </p>
           {turnoActivo === "nocturno" && (
@@ -353,7 +353,7 @@ const Surtido_procesos = () => {
             <span className={getClassName(hitsMatutino, metaMatutino)}> {formatNumber(hitsMatutino)} </span> 
             / {formatNumber(metaMatutino)}
             {notasTurnos.matutino && notasTurnos.matutino.comentario && (
-              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              <FaComment className="inline-block ml-1 text-blue-500"/>
             )}
           </p>
           {turnoActivo === "matutino" && (
@@ -418,7 +418,7 @@ const Surtido_procesos = () => {
             <span className={getClassName(hitsVespertino, metaVespertino)}> {formatNumber(hitsVespertino)} </span> 
             / {formatNumber(metaVespertino)}
             {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
-              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              <FaComment className="inline-block ml-1 text-blue-500" />
             )}
           </p>
           {turnoActivo === "vespertino" && (
