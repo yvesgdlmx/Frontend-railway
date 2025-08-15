@@ -163,7 +163,7 @@ const Tallado_Procesos = () => {
       try {
         const today = moment().format("YYYY-MM-DD");
         const response = await clienteAxios.get("/notas/notas_turnos", {
-          params: { seccion: "tallado", fecha: today },
+          params: { seccion: "bloqueo de tallado", fecha: today },
         });
         const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
         if (Array.isArray(response.data)) {

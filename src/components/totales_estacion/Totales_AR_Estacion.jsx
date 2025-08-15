@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from "moment-timezone";
 import { formatNumber } from "../../helpers/formatNumber";
+import { FaComment } from "react-icons/fa"; // Importamos el ícono
 moment.tz.setDefault("America/Mexico_City");
 const Totales_AR_Estacion = () => {
   const location = useLocation();
@@ -57,8 +58,7 @@ const Totales_AR_Estacion = () => {
       setTimeout(() => {
         const yOffset = -90;
         const element = arRef.current;
-        const y =
-          element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
         window.scrollTo({ top: y, behavior: "smooth" });
       }, 100);
     }
@@ -67,9 +67,7 @@ const Totales_AR_Estacion = () => {
   const cargarNotas = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
-      const { data } = await clienteAxios.get(
-        `/notas/notas?fecha=${today}&seccion=ar`
-      );
+      const { data } = await clienteAxios.get(`/notas/notas?fecha=${today}&seccion=ar`);
       let notasMap = {};
       if (Array.isArray(data)) {
         data.forEach((item) => {
@@ -87,9 +85,7 @@ const Totales_AR_Estacion = () => {
   const cargarNotasTurnos = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
-      const { data } = await clienteAxios.get(
-        `/notas/notas_turnos?fecha=${today}&seccion=ar`
-      );
+      const { data } = await clienteAxios.get(`/notas/notas_turnos?fecha=${today}&seccion=ar`);
       let notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
       if (Array.isArray(data)) {
         data.forEach((item) => {
@@ -111,9 +107,7 @@ const Totales_AR_Estacion = () => {
     const obtenerRegistros = async () => {
       const { data } = await clienteAxios(`/manual/manual/actualdia`);
       const registrosAR = data.registros.filter((registro) =>
-        ["52", "53", "54", "55", "56"].some((num) =>
-          registro.name.includes(num)
-        )
+        ["52", "53", "54", "55", "56"].some((num) => registro.name.includes(num))
       );
       const ahora = moment();
       let inicioHoy = moment().startOf("day").add(22, "hours"); // 22:00 del día anterior
@@ -441,6 +435,9 @@ const Totales_AR_Estacion = () => {
               <span className="font-bold text-gray-700">
                 {formatNumber(totalesPorTurno.nocturno)}
               </span>
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "nocturno" && (
               <div
@@ -504,6 +501,9 @@ const Totales_AR_Estacion = () => {
               <span className="font-bold text-gray-700">
                 {formatNumber(totalesPorTurno.matutino)}
               </span>
+              {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "matutino" && (
               <div
@@ -567,17 +567,16 @@ const Totales_AR_Estacion = () => {
               <span className="font-bold text-gray-700">
                 {formatNumber(totalesPorTurno.vespertino)}
               </span>
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "vespertino" && (
               <div
                 className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.vespertino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -709,9 +708,7 @@ const Totales_AR_Estacion = () => {
           {/* Totales por Turno - Versión Mobile con funcionalidad de notas */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
-              <h4 className="font-semibold text-green-700 mb-2">
-                Totales por Turno
-              </h4>
+              <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
               <div className="space-y-4">
                 {/* Turno Nocturno */}
                 <div
@@ -727,6 +724,9 @@ const Totales_AR_Estacion = () => {
                   <span className="block text-black font-bold">
                     {formatNumber(totalesPorTurno.nocturno)}
                   </span>
+                  {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                    <FaComment size={12} className="inline ml-2 text-blue-500" />
+                  ) : null}
                   {turnoActivo === "nocturno" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
@@ -792,6 +792,9 @@ const Totales_AR_Estacion = () => {
                   <span className="block text-black font-bold">
                     {formatNumber(totalesPorTurno.matutino)}
                   </span>
+                  {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                    <FaComment size={12} className="inline ml-2 text-blue-500" />
+                  ) : null}
                   {turnoActivo === "matutino" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
@@ -857,6 +860,9 @@ const Totales_AR_Estacion = () => {
                   <span className="block text-black font-bold">
                     {formatNumber(totalesPorTurno.vespertino)}
                   </span>
+                  {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                    <FaComment size={12} className="inline ml-2 text-blue-500" />
+                  ) : null}
                   {turnoActivo === "vespertino" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"

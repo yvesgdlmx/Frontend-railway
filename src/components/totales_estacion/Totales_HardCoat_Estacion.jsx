@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from "moment-timezone";
 import { formatNumber } from "../../helpers/formatNumber";
+import { FaComment } from "react-icons/fa"; // Importar el ícono
 moment.tz.setDefault("America/Mexico_City");
 const Totales_HardCoat_Estacion = () => {
   const location = useLocation();
@@ -192,7 +193,6 @@ const Totales_HardCoat_Estacion = () => {
       valor: getDisplayValue(hora),
     }))
     .filter((col) => col.valor !== "");
-  // Función para asignar clases según si alcanza la meta (este ejemplo es básico)
   const getClassName = (hits, meta) =>
     parseInt(hits, 10) >= meta ? "text-green-500" : "text-red-500";
   // --- Funciones para manejo de notas por hora (ya existentes) ---
@@ -244,7 +244,7 @@ const Totales_HardCoat_Estacion = () => {
       console.error("Error al editar la nota:", error);
     }
   };
-  // --- NUEVO: Funciones para manejo de notas de turno ---
+  // --- Funciones para manejo de notas de turno ---
   const cargarNotasTurnos = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -434,7 +434,7 @@ const Totales_HardCoat_Estacion = () => {
             </tr>
           </tbody>
         </table>
-        {/* Sección de totales por turno con sus respectivas notas (Pantallas grandes) */}
+        {/* Sección de totales por turno (Pantallas grandes) */}
         <div className="flex flex-row justify-around mt-4 font-semibold mb-4 gap-6">
           {/* Tarjeta para Total Nocturno */}
           <div
@@ -450,18 +450,17 @@ const Totales_HardCoat_Estacion = () => {
               Total Nocturno Acumulado:{" "}
               <span className="ml-1 font-bold text-gray-700">
                 {formatNumber(totalesPorTurno.nocturno)}
-              </span>
+              </span>{" "}
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "nocturno" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.nocturno ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -517,18 +516,17 @@ const Totales_HardCoat_Estacion = () => {
               Total Matutino Acumulado:{" "}
               <span className="ml-1 font-bold text-gray-700">
                 {formatNumber(totalesPorTurno.matutino)}
-              </span>
+              </span>{" "}
+              {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "matutino" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.matutino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -584,18 +582,17 @@ const Totales_HardCoat_Estacion = () => {
               Total Vespertino Acumulado:{" "}
               <span className="ml-1 font-bold text-gray-700">
                 {formatNumber(totalesPorTurno.vespertino)}
-              </span>
+              </span>{" "}
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "vespertino" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.vespertino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -730,7 +727,9 @@ const Totales_HardCoat_Estacion = () => {
           {/* Sección de totales por turno para mobile */}
           <div className="mt-6 border-t pt-4">
             <div className="bg-green-50 p-4 rounded-lg shadow-md">
-              <h4 className="font-semibold text-green-700 mb-2">Totales por Turno</h4>
+              <h4 className="font-semibold text-green-700 mb-2">
+                Totales por Turno
+              </h4>
               <div className="grid grid-cols-1 gap-4">
                 {/* Tarjeta para turno Nocturno */}
                 <div
@@ -744,18 +743,17 @@ const Totales_HardCoat_Estacion = () => {
                 >
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Nocturno:</strong>{" "}
-                    <span>{formatNumber(totalesPorTurno.nocturno)}</span>
+                    <span>{formatNumber(totalesPorTurno.nocturno)}</span>{" "}
+                    {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
                   {turnoActivo === "nocturno" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.nocturno ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -809,18 +807,17 @@ const Totales_HardCoat_Estacion = () => {
                 >
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Matutino:</strong>{" "}
-                    <span>{formatNumber(totalesPorTurno.matutino)}</span>
+                    <span>{formatNumber(totalesPorTurno.matutino)}</span>{" "}
+                    {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
                   {turnoActivo === "matutino" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.matutino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -874,18 +871,17 @@ const Totales_HardCoat_Estacion = () => {
                 >
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Vespertino:</strong>{" "}
-                    <span>{formatNumber(totalesPorTurno.vespertino)}</span>
+                    <span>{formatNumber(totalesPorTurno.vespertino)}</span>{" "}
+                    {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
                   {turnoActivo === "vespertino" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.vespertino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}

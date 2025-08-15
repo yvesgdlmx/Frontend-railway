@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from "moment-timezone";
 import { formatNumber } from "../../helpers/formatNumber";
+import { FaComment } from "react-icons/fa"; // Importar el ícono
 moment.tz.setDefault("America/Mexico_City");
 const Totales_Engraver_Estacion = () => {
   const location = useLocation();
@@ -367,7 +368,7 @@ const Totales_Engraver_Estacion = () => {
   };
   return (
     <div className="max-w-screen-xl rounded-lg">
-      {/* Versión para pantallas grandes */}
+      {/* Versión para pantallas grandes (Desktop) */}
       <div className="hidden lg:block" ref={engraverRef}>
         <table className="min-w-full bg-white border">
           <thead>
@@ -471,8 +472,9 @@ const Totales_Engraver_Estacion = () => {
             </tr>
           </tbody>
         </table>
-        {/* Totales por turno (Versión Desktop) */}
+        {/* Totales por turno (Desktop) */}
         <div className="flex flex-col md:flex-row justify-around mt-4 font-semibold mb-4 gap-6">
+          {/* Tarjeta para turno Nocturno */}
           <div
             className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center relative cursor-pointer"
             title={
@@ -487,6 +489,9 @@ const Totales_Engraver_Estacion = () => {
               <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
                 {formatNumber(totalesPorTurno.nocturno)}
               </span>{" "}
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}{" "}
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
             </p>
             {turnoActivo === "nocturno" && (
@@ -494,11 +499,7 @@ const Totales_Engraver_Estacion = () => {
                 className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.nocturno ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -540,6 +541,7 @@ const Totales_Engraver_Estacion = () => {
               </div>
             )}
           </div>
+          {/* Tarjeta para turno Matutino */}
           <div
             className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center relative cursor-pointer"
             title={
@@ -554,6 +556,9 @@ const Totales_Engraver_Estacion = () => {
               <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
                 {formatNumber(totalesPorTurno.matutino)}
               </span>{" "}
+              {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}{" "}
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
             </p>
             {turnoActivo === "matutino" && (
@@ -561,11 +566,7 @@ const Totales_Engraver_Estacion = () => {
                 className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.matutino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -607,6 +608,7 @@ const Totales_Engraver_Estacion = () => {
               </div>
             )}
           </div>
+          {/* Tarjeta para turno Vespertino */}
           <div
             className="bg-white p-2 px-10 rounded-lg shadow-md flex items-center relative cursor-pointer"
             title={
@@ -621,6 +623,9 @@ const Totales_Engraver_Estacion = () => {
               <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
                 {formatNumber(totalesPorTurno.vespertino)}
               </span>{" "}
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}{" "}
               / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
             </p>
             {turnoActivo === "vespertino" && (
@@ -628,11 +633,7 @@ const Totales_Engraver_Estacion = () => {
                 className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.vespertino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -676,7 +677,7 @@ const Totales_Engraver_Estacion = () => {
           </div>
         </div>
       </div>
-      {/* Versión para pantallas pequeñas/medianas */}
+      {/* Versión para pantallas pequeñas/medianas (Mobile) */}
       <div className="block lg:hidden mt-4">
         <div className="bg-white shadow-md rounded-lg mb-4 p-6">
           <div className="flex justify-between border-b pb-2">
@@ -787,14 +788,15 @@ const Totales_Engraver_Estacion = () => {
                       : "Haz click para agregar un comentario"
                   }
                 >
-                  {/* Fila 1: Total */}
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Nocturno:</strong>{" "}
                     <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
                       {formatNumber(totalesPorTurno.nocturno)}
-                    </span>
+                    </span>{" "}
+                    {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
-                  {/* Fila 2: Meta Acumulada y Meta x Hora */}
                   <div className="flex justify-between mt-1 text-gray-500 text-xs">
                     <p>Meta Nocturno: {formatNumber(metasTotalesPorTurno.nocturno)}</p>
                     <p>Meta x Hora: {metasPorHora.nocturno}</p>
@@ -804,11 +806,7 @@ const Totales_Engraver_Estacion = () => {
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.nocturno ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -860,14 +858,15 @@ const Totales_Engraver_Estacion = () => {
                       : "Haz click para agregar un comentario"
                   }
                 >
-                  {/* Fila 1: Total */}
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Matutino:</strong>{" "}
                     <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
                       {formatNumber(totalesPorTurno.matutino)}
-                    </span>
+                    </span>{" "}
+                    {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
-                  {/* Fila 2: Meta Acumulada y Meta x Hora */}
                   <div className="flex justify-between mt-1 text-gray-500 text-xs">
                     <p>Meta Matutino: {formatNumber(metasTotalesPorTurno.matutino)}</p>
                     <p>Meta x Hora: {metasPorHora.matutino}</p>
@@ -877,11 +876,7 @@ const Totales_Engraver_Estacion = () => {
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.matutino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -933,14 +928,15 @@ const Totales_Engraver_Estacion = () => {
                       : "Haz click para agregar un comentario"
                   }
                 >
-                  {/* Fila 1: Total */}
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Vespertino:</strong>{" "}
                     <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
                       {formatNumber(totalesPorTurno.vespertino)}
-                    </span>
+                    </span>{" "}
+                    {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
-                  {/* Fila 2: Meta Acumulada y Meta x Hora */}
                   <div className="flex justify-between mt-1 text-gray-500 text-xs">
                     <p>Meta Vespertino: {formatNumber(metasTotalesPorTurno.vespertino)}</p>
                     <p>Meta x Hora: {metasPorHora.vespertino}</p>
@@ -950,11 +946,7 @@ const Totales_Engraver_Estacion = () => {
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.vespertino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}

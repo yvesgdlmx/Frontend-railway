@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import moment from "moment-timezone";
 import formatearHora from "../../../helpers/formatearHora";
 import { formatNumber } from "../../helpers/formatNumber";
+import { FaComment } from "react-icons/fa"; // Importa el ícono para los comentarios
 moment.tz.setDefault("America/Mexico_City");
 const Totales_Terminado_Estacion = () => {
   const location = useLocation();
@@ -25,11 +26,11 @@ const Totales_Terminado_Estacion = () => {
     matutino: 0,
     vespertino: 0,
   });
-  // Estados para las notas por hora (ya existentes)
+  // Estados para notas por hora
   const [notas, setNotas] = useState({});
   const [notaActiva, setNotaActiva] = useState(null);
   const [editingNota, setEditingNota] = useState("");
-  // ----- NUEVO: Estados para las notas de turno -----
+  // Estados para las notas de turno
   const [notasTurnos, setNotasTurnos] = useState({
     nocturno: null,
     matutino: null,
@@ -63,7 +64,27 @@ const Totales_Terminado_Estacion = () => {
       }, 100);
     }
   }, [location]);
-  // Obtener datos: metas y registros (hits)
+  // Función para cargar las notas por hora de la sección "terminado"
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas", {
+        params: { seccion: "terminado", fecha: today },
+      });
+      const notasMap = {};
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
+  };
+  // Obtener datos: metas, registros y notas (por hora y turno)
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
@@ -107,7 +128,7 @@ const Totales_Terminado_Estacion = () => {
         calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
         // Cargar notas por hora para la sección "terminado"
         cargarNotas();
-        // ----- NUEVO: Cargar las notas de turno para la sección "terminado" -----
+        // Cargar las notas de turno para la sección "terminado"
         cargarNotasTurnos();
       } catch (error) {
         console.error("Error al obtener los datos:", error);
@@ -115,7 +136,7 @@ const Totales_Terminado_Estacion = () => {
     };
     obtenerDatos();
   }, []);
-  // Función para calcular totales por turno
+  // Calcular totales por turno
   const calcularTotalesPorTurno = (registros, inicioHoy) => {
     const totales = { nocturno: 0, matutino: 0, vespertino: 0 };
     registros.forEach((registro) => {
@@ -154,7 +175,7 @@ const Totales_Terminado_Estacion = () => {
     });
     setTotalesPorTurno(totales);
   };
-  // Función para agrupar hits por hora (bucket)
+  // Agrupar hits por hora (bucket)
   const agruparHitsPorHora = () => {
     const hits = {};
     registros.forEach((registro) => {
@@ -168,8 +189,7 @@ const Totales_Terminado_Estacion = () => {
     return hits;
   };
   const hitsPorHora = agruparHitsPorHora();
-  // Dado un string "HH:mm" devuelve el objeto moment correspondiente al inicio del bucket,
-  // considerando que si la hora es menor a 22 se le agrega un día.
+  // Dado un string "HH:mm" devuelve el objeto moment correspondiente al inicio del bucket
   const getBucketMoment = (horaStr, inicioHoy) => {
     const [h, m] = horaStr.split(":").map(Number);
     let bucket = inicioHoy.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
@@ -186,7 +206,7 @@ const Totales_Terminado_Estacion = () => {
     const margen = 5;
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
-  // Construcción de columnas (buckets) filtrando los que tengan valor
+  // Construir columnas (buckets) solo con aquellos que tengan valor
   const columnas = ordenTurnos
     .map((hora) => ({
       hora,
@@ -195,10 +215,10 @@ const Totales_Terminado_Estacion = () => {
     }))
     .filter(col => col.valor !== "");
   const getClassName = (valor, meta) => (valor >= meta ? "text-green-500" : "text-red-500");
-  // Calculamos nuevamente el inicio de la jornada
+  // Recalcular el inicio de la jornada
   let inicioHoy = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicioHoy)) inicioHoy.subtract(1, "day");
-  // Dado un bucket (hora), retorna la meta por hora correspondiente al turno
+  // Dado un bucket (hora) retorna la meta por hora correspondiente al turno
   const getMetaParaHora = (horaStr, inicioHoy) => {
     const bucketMoment = getBucketMoment(horaStr, inicioHoy);
     if (
@@ -230,7 +250,7 @@ const Totales_Terminado_Estacion = () => {
       return metasPorHora.vespertino;
     return 0;
   };
-  // ----- FUNCIONALIDAD DE NOTAS POR HORA -----
+  // Funcionalidad de notas por hora
   const toggleNota = (hora) => {
     if (notaActiva === hora) {
       setNotaActiva(null);
@@ -270,13 +290,12 @@ const Totales_Terminado_Estacion = () => {
       console.error("Error al editar la nota:", error);
     }
   };
-  // ----- NUEVO: FUNCIONALIDAD DE NOTAS POR TURNO -----
-  // Función para cargar las notas de turno (GET) de la sección "terminado"
+  // Funcionalidad de notas por turno
   const cargarNotasTurnos = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
       const response = await clienteAxios.get("/notas/notas_turnos", {
-        params: { seccion: "terminado", fecha: today },
+        params: { seccion: "bloqueo de terminado", fecha: today },
       });
       const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
       if (Array.isArray(response.data)) {
@@ -291,7 +310,6 @@ const Totales_Terminado_Estacion = () => {
       console.error("Error al cargar las notas de turno:", error);
     }
   };
-  // Función para mostrar u ocultar el recuadro de nota de turno
   const toggleNotaTurno = (turno) => {
     if (turnoActivo === turno) {
       setTurnoActivo(null);
@@ -300,7 +318,6 @@ const Totales_Terminado_Estacion = () => {
       setEditingTurnoNota(notasTurnos[turno]?.comentario || "");
     }
   };
-  // Funciones para guardar y editar la nota de turno (POST/PUT)
   const handleGuardarNotaTurno = async (turno) => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -464,6 +481,9 @@ const Totales_Terminado_Estacion = () => {
                 <span className={getClassName(totalesPorTurno[turno], metasTotalesPorTurno[turno]) + " ml-1 font-bold"}>
                   {formatNumber(totalesPorTurno[turno])}
                 </span>{" "}
+                {notasTurnos[turno] && notasTurnos[turno].comentario ? (
+                  <FaComment size={12} className="inline ml-2 text-blue-500" />
+                ) : null}{" "}
                 / Meta Acumulada: {formatNumber(metasTotalesPorTurno[turno])} / Meta x Hora: {metasPorHora[turno]}
               </p>
               {turnoActivo === turno && (
@@ -623,7 +643,6 @@ const Totales_Terminado_Estacion = () => {
                     }
                     onClick={() => toggleNotaTurno(turno)}
                   >
-                    {/* Fila 1: Total */}
                     <p className="text-gray-600 text-sm md:text-base">
                       {turno === "nocturno" && "Total Nocturno:"}
                       {turno === "matutino" && "Total Matutino:"}
@@ -639,7 +658,6 @@ const Totales_Terminado_Estacion = () => {
                         {formatNumber(totalesPorTurno[turno])}
                       </span>
                     </p>
-                    {/* Fila 2: Meta acumulada y Meta x Hora */}
                     <div className="flex justify-between mt-1 text-gray-500 text-xs">
                       <p>Meta {turno.charAt(0).toUpperCase() + turno.slice(1)} Acumulada: {formatNumber(metasTotalesPorTurno[turno])}</p>
                       <p>Meta x Hora: {metasPorHora[turno]}</p>

@@ -3,6 +3,7 @@ import clienteAxios from "../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from "moment-timezone";
 import { formatNumber } from "../../helpers/formatNumber";
+import { FaComment } from "react-icons/fa"; // Importación del ícono
 moment.tz.setDefault("America/Mexico_City");
 const Totales_Recubrimiento_Estacion = () => {
   const location = useLocation();
@@ -145,11 +146,11 @@ const Totales_Recubrimiento_Estacion = () => {
         `${registro.fecha} ${registro.hour}`,
         "YYYY-MM-DD HH:mm:ss"
       );
-      // Turno Nocturno: 22:00 a 05:59 (se considera desde inicioHoy +8h)
+      // Turno Nocturno: (desde inicioHoy hasta inicioHoy + 8h)
       if (fechaHoraRegistro.isBetween(inicioHoy.clone(), inicioHoy.clone().add(8, "hours"), null, "[)")) {
         totales.nocturno += registro.hits;
       }
-      // Turno Matutino: 06:30 a 13:29
+      // Turno Matutino: 06:30 a 13:29 (inicioHoy + 8h30m hasta inicioHoy + 16h)
       else if (fechaHoraRegistro.isBetween(
         inicioHoy.clone().add(8, "hours").add(30, "minutes"), 
         inicioHoy.clone().add(16, "hours"), 
@@ -157,7 +158,7 @@ const Totales_Recubrimiento_Estacion = () => {
       )) {
         totales.matutino += registro.hits;
       }
-      // Turno Vespertino: 14:30 a 21:30
+      // Turno Vespertino: 14:30 a 21:30 (inicioHoy + 16h30m hasta inicioHoy + 23h30m)
       else if (fechaHoraRegistro.isBetween(
         inicioHoy.clone().add(16, "hours").add(30, "minutes"),
         inicioHoy.clone().add(23, "hours").add(30, "minutes"), 
@@ -413,18 +414,17 @@ const Totales_Recubrimiento_Estacion = () => {
           >
             <p className="text-gray-600 text-sm md:text-base">
               Total Nocturno Acumulado:{" "}
-              <span className="font-bold text-gray-700">{formatNumber(totalesPorTurno.nocturno)}</span>
+              <span className="font-bold text-gray-700">{formatNumber(totalesPorTurno.nocturno)}</span>{" "}
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "nocturno" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.nocturno ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -478,18 +478,17 @@ const Totales_Recubrimiento_Estacion = () => {
           >
             <p className="text-gray-600 text-sm md:text-base">
               Total Matutino Acumulado:{" "}
-              <span className="font-bold text-gray-700">{formatNumber(totalesPorTurno.matutino)}</span>
+              <span className="font-bold text-gray-700">{formatNumber(totalesPorTurno.matutino)}</span>{" "}
+              {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "matutino" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.matutino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -543,18 +542,17 @@ const Totales_Recubrimiento_Estacion = () => {
           >
             <p className="text-gray-600 text-sm md:text-base">
               Total Vespertino Acumulado:{" "}
-              <span className="font-bold text-gray-700">{formatNumber(totalesPorTurno.vespertino)}</span>
+              <span className="font-bold text-gray-700">{formatNumber(totalesPorTurno.vespertino)}</span>{" "}
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "vespertino" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.vespertino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -701,18 +699,17 @@ const Totales_Recubrimiento_Estacion = () => {
                 >
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Nocturno:</strong>{" "}
-                    <span>{formatNumber(totalesPorTurno.nocturno)}</span>
+                    <span>{formatNumber(totalesPorTurno.nocturno)}</span>{" "}
+                    {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
                   {turnoActivo === "nocturno" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.nocturno ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -766,18 +763,17 @@ const Totales_Recubrimiento_Estacion = () => {
                 >
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Matutino:</strong>{" "}
-                    <span>{formatNumber(totalesPorTurno.matutino)}</span>
+                    <span>{formatNumber(totalesPorTurno.matutino)}</span>{" "}
+                    {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
                   {turnoActivo === "matutino" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.matutino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -831,18 +827,17 @@ const Totales_Recubrimiento_Estacion = () => {
                 >
                   <p className="text-gray-600 text-sm md:text-base">
                     <strong>Total Vespertino:</strong>{" "}
-                    <span>{formatNumber(totalesPorTurno.vespertino)}</span>
+                    <span>{formatNumber(totalesPorTurno.vespertino)}</span>{" "}
+                    {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </p>
                   {turnoActivo === "vespertino" && (
                     <div
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.vespertino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
