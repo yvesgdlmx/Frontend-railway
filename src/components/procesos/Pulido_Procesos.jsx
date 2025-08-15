@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
+// Importamos el ícono de comentario.
+import { FaComment } from 'react-icons/fa';
 const Pulido_Procesos = () => {
   // Estados existentes
   const [totalHits, setTotalHits] = useState(0);
@@ -15,6 +17,7 @@ const Pulido_Procesos = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
+  
   // NUEVO: Estados para las notas por turno
   const [notasTurnos, setNotasTurnos] = useState({
     nocturno: null,
@@ -224,8 +227,7 @@ const Pulido_Procesos = () => {
       console.error("Error al editar la nota de turno:", error);
     }
   };
-  const getClassName = (hits, meta) =>
-    hits >= meta ? "text-green-700" : "text-red-700";
+  const getClassName = (hits, meta) => (hits >= meta ? "text-green-700" : "text-red-700");
   return (
     <div className='bg-white p-4 rounded-xl'>
       {/* Enlace para pantallas grandes */}
@@ -279,6 +281,9 @@ const Pulido_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
           {/* Matutino */}
@@ -289,6 +294,9 @@ const Pulido_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
+              {notasTurnos.matutino && notasTurnos.matutino.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
           {/* Vespertino */}
@@ -299,14 +307,16 @@ const Pulido_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
         </div>
-        {/* Ventana emergente para editar/agregar la nota */} 
+        {/* Ventana emergente para editar/agregar la nota */}
         {turnoActivo && (
           <div className="absolute z-10 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
             style={{
-              // Posicionar la ventana según el turno activo
               left: turnoActivo === "nocturno" ? "0" : turnoActivo === "matutino" ? "33%" : "auto",
               right: turnoActivo === "vespertino" ? "0" : "auto",
               top: "-55px",

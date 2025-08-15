@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
+// Se importa el ícono de comentario
+import { FaComment } from 'react-icons/fa';
 const Biselado_Procesos = () => {
   // Estados existentes para hits, metas y tiempos
   const [totalHits, setTotalHits] = useState(0);
@@ -120,7 +122,7 @@ const Biselado_Procesos = () => {
           metaAcumulada += Math.floor(horasTranscurridasVespertino) * sumaMetaVespertino;
         }
         setMeta(metaAcumulada);
-        // 8. Obtener el último registro para calcular la siguiente ventana de 30 minutos
+        // 8. Obtener el último registro para definir el corte de 30 minutos
         const ultimoRegistro = registros.reduce((ultimo, actual) => {
           const horaActual = moment.tz(
             `${actual.fecha} ${actual.hour}`,
@@ -272,6 +274,9 @@ const Biselado_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
           {/* Matutino */}
@@ -282,6 +287,9 @@ const Biselado_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
+              {notasTurnos.matutino && notasTurnos.matutino.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
           {/* Vespertino */}
@@ -292,6 +300,9 @@ const Biselado_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
         </div>

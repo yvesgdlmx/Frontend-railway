@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
+// Importa el ícono que representará el comentario
+import { FaComment } from 'react-icons/fa';
 const Tallado_Procesos = () => {
   // Estados existentes
   const [totalHits, setTotalHits] = useState(0);
@@ -15,6 +17,7 @@ const Tallado_Procesos = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
+  
   // NUEVO: Estados para las notas de turno
   const [notasTurnos, setNotasTurnos] = useState({
     nocturno: null,
@@ -276,12 +279,19 @@ const Tallado_Procesos = () => {
       <div className='flex items-center justify-between py-4 px-2 border-2 relative'>
         {/* Nocturno */}
         <div 
-          className="cursor-pointer"
+          className="cursor-pointer relative"
           onClick={() => toggleNotaTurno("nocturno")}
-          title={notasTurnos.nocturno && notasTurnos.nocturno.comentario ? notasTurnos.nocturno.comentario : "Haz click para agregar un comentario"}
+          title={notasTurnos.nocturno && notasTurnos.nocturno.comentario 
+            ? notasTurnos.nocturno.comentario 
+            : "Haz click para agregar un comentario"
+          }
         >
           <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
             Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
+            {/* Si existe comentario se muestra el ícono */}
+            {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
+              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+            )}
           </p>
           {turnoActivo === "nocturno" && (
             <div
@@ -332,12 +342,18 @@ const Tallado_Procesos = () => {
         </div>
         {/* Matutino */}
         <div 
-          className="cursor-pointer"
+          className="cursor-pointer relative"
           onClick={() => toggleNotaTurno("matutino")}
-          title={notasTurnos.matutino && notasTurnos.matutino.comentario ? notasTurnos.matutino.comentario : "Haz click para agregar un comentario"}
+          title={notasTurnos.matutino && notasTurnos.matutino.comentario 
+            ? notasTurnos.matutino.comentario
+            : "Haz click para agregar un comentario"
+          }
         >
           <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
             Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
+            {notasTurnos.matutino && notasTurnos.matutino.comentario && (
+              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+            )}
           </p>
           {turnoActivo === "matutino" && (
             <div
@@ -388,12 +404,18 @@ const Tallado_Procesos = () => {
         </div>
         {/* Vespertino */}
         <div 
-          className="cursor-pointer"
+          className="cursor-pointer relative"
           onClick={() => toggleNotaTurno("vespertino")}
-          title={notasTurnos.vespertino && notasTurnos.vespertino.comentario ? notasTurnos.vespertino.comentario : "Haz click para agregar un comentario"}
+          title={notasTurnos.vespertino && notasTurnos.vespertino.comentario 
+            ? notasTurnos.vespertino.comentario
+            : "Haz click para agregar un comentario"
+          }
         >
           <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
             Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
+            {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
+              <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+            )}
           </p>
           {turnoActivo === "vespertino" && (
             <div

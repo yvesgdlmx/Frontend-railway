@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../helpers/formatNumber';
+// Importamos el ícono de comentario de react‑icons
+import { FaComment } from 'react-icons/fa';
 const Produccion_Procesos = () => {
   // Estados para hits y tiempos
   const [totalHits, setTotalHits] = useState(0);
@@ -11,7 +13,6 @@ const Produccion_Procesos = () => {
   const [hitsMatutino, setHitsMatutino] = useState(0);
   const [hitsVespertino, setHitsVespertino] = useState(0);
   const [hitsNocturno, setHitsNocturno] = useState(0);
-  
   // Estados para las metas
   const [meta, setMeta] = useState(0); // Meta en vivo acumulada
   const [metaPorHora, setMetaPorHora] = useState(0); // Meta base por hora
@@ -26,6 +27,7 @@ const Produccion_Procesos = () => {
   });
   const [turnoActivo, setTurnoActivo] = useState(null);
   const [editingTurnoNota, setEditingTurnoNota] = useState("");
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -149,7 +151,7 @@ const Produccion_Procesos = () => {
       try {
         const today = moment().format("YYYY-MM-DD");
         const response = await clienteAxios.get("/notas/notas_turnos", {
-          params: { seccion: "producción", fecha: today },
+          params: { seccion: "produccion", fecha: today },
         });
         const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
         if (Array.isArray(response.data)) {
@@ -175,14 +177,14 @@ const Produccion_Procesos = () => {
       setEditingTurnoNota(notasTurnos[turno]?.comentario || "");
     }
   };
-  // Función para guardar una nueva nota
+  // Funciones para guardar y editar la nota de turno
   const handleGuardarNotaTurno = async (turno) => {
     try {
       const today = moment().format("YYYY-MM-DD");
       const payload = {
         fecha: today,
-        turno, // "nocturno", "matutino" o "vespertino"
-        seccion: "produccion",
+        turno,         // "nocturno", "matutino" o "vespertino"
+        seccion: "producción",
         comentario: editingTurnoNota,
       };
       const response = await clienteAxios.post("/notas/notas_turnos", payload);
@@ -195,7 +197,6 @@ const Produccion_Procesos = () => {
       console.error("Error al guardar la nota de turno:", error);
     }
   };
-  // Función para editar una nota existente
   const handleEditarNotaTurno = async (turno) => {
     try {
       const notaActual = notasTurnos[turno];
@@ -217,20 +218,32 @@ const Produccion_Procesos = () => {
       console.error("Error al editar la nota de turno:", error);
     }
   };
-  const getClassName = (hits, metaTurno) => 
+  const getClassName = (hits, metaTurno) =>
     hits >= metaTurno ? "text-green-700" : "text-red-700";
   return (
     <div className='bg-white p-4 rounded-xl'>
       <Link to='/totales_estacion#produccion' className='hidden lg:block'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
           <h2 className='text-white font-bold uppercase'>Producción</h2>
-          <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
+          <img 
+            src="/img/arrow.png" 
+            alt="ver" 
+            width={25} 
+            style={{ filter: 'invert(100%)' }} 
+            className='relative'
+          />
         </div>
       </Link>
       <Link to='/totales_estacion?seccion=produccion' className='block lg:hidden'>
         <div className='bg-blue-500 p-2 mb-2 flex items-center justify-between'>
           <h2 className='text-white font-bold uppercase'>Producción</h2>
-          <img src="/img/arrow.png" alt="ver" width={25} style={{ filter: 'invert(100%)' }} className='relative' />
+          <img 
+            src="/img/arrow.png" 
+            alt="ver" 
+            width={25} 
+            style={{ filter: 'invert(100%)' }} 
+            className='relative'
+          />
         </div>
       </Link>
       <p className='font-light mb-2'>Mostrando información del área de producción.</p>
@@ -258,6 +271,9 @@ const Produccion_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
           {/* Matutino */}
@@ -268,6 +284,9 @@ const Produccion_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
+              {notasTurnos.matutino && notasTurnos.matutino.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
           {/* Vespertino */}
@@ -278,6 +297,9 @@ const Produccion_Procesos = () => {
           >
             <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
               Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
+                <FaComment className="inline-block ml-1 text-blue-500" title="Este turno tiene comentario" />
+              )}
             </p>
           </div>
         </div>
