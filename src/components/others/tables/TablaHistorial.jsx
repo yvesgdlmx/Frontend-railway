@@ -1,15 +1,18 @@
 import React from "react";
 import moment from "moment";
 import { formatNumber } from "../../../helpers/formatNumber";
+import { FaComment } from "react-icons/fa";
 const TablaHistorial = ({ seccion, nombres, items, metas, notas = [] }) => {
   console.log("TablaHistorial -> seccion recibida:", seccion);
   console.log("TablaHistorial -> notas recibidas:", notas);
+  
   const getMetaNocturno = (machineName) =>
     Number(metas[machineName.trim()]?.meta_nocturno) || 0;
   const getMetaMatutino = (machineName) =>
     Number(metas[machineName.trim()]?.meta_matutino) || 0;
   const getMetaVespertino = (machineName) =>
     Number(metas[machineName.trim()]?.meta_vespertino) || 0;
+  
   const groupByName = (arr) => {
     const groups = {};
     nombres.forEach((machine) => {
@@ -37,7 +40,9 @@ const TablaHistorial = ({ seccion, nombres, items, metas, notas = [] }) => {
     return Object.values(groups);
   };
   const calcularTotalesPorTurno = (items) => {
-    let totalNocturno = 0, totalMatutino = 0, totalVespertino = 0;
+    let totalNocturno = 0,
+      totalMatutino = 0,
+      totalVespertino = 0;
     items.forEach((item) => {
       if (!item.hour) return;
       const [hrStr, minStr] = item.hour.split(":");
@@ -138,7 +143,13 @@ const TablaHistorial = ({ seccion, nombres, items, metas, notas = [] }) => {
                   </td>
                   <td className={`font-semibold px-6 py-4 whitespace-nowrap text-[11.5px] xl:text-[13px] ${getClassName(item.hits, metaJornada)}`}>
                     {formatNumber(item.hits)}
-                    <span className="text-gray-500"> / {formatNumber(metaJornada)}</span>
+                    {mensajeTurno(item.name.toLowerCase()) !== "No hay comentarios para este turno" && (
+                      <FaComment className="inline text-blue-500 ml-2" size={14} />
+                    )}
+                    <span className="text-gray-500">
+                      {" "}
+                      / {formatNumber(metaJornada)}
+                    </span>
                     <br />
                     <span className="text-[12.5px] text-gray-500">hits / meta</span>
                   </td>
@@ -175,6 +186,9 @@ const TablaHistorial = ({ seccion, nombres, items, metas, notas = [] }) => {
               <span className="text-gray-500">
                 / {formatNumber(metaNocturnoGeneral)}
               </span>
+              {mensajeTurno("nocturno") !== "No hay comentarios para este turno" && (
+                <FaComment className="inline text-blue-500 ml-4 mb-1" size={14} />
+              )}
             </p>
           </div>
           <div
@@ -189,6 +203,9 @@ const TablaHistorial = ({ seccion, nombres, items, metas, notas = [] }) => {
               <span className="text-gray-500">
                 / {formatNumber(metaMatutinoGeneral)}
               </span>
+              {mensajeTurno("matutino") !== "No hay comentarios para este turno" && (
+                <FaComment className="inline text-blue-500 ml-4 mb-1" size={14} />
+              )}
             </p>
           </div>
           <div
@@ -203,12 +220,20 @@ const TablaHistorial = ({ seccion, nombres, items, metas, notas = [] }) => {
               <span className="text-gray-500">
                 / {formatNumber(metaVespertinoGeneral)}
               </span>
+              {mensajeTurno("vespertino") !== "No hay comentarios para este turno" && (
+                <FaComment className="inline text-blue-500 ml-4 mb-1" size={14} />
+              )}
             </p>
           </div>
           <div className="text-center p-2 border border-gray-400 rounded">
             <p className="text-xs text-gray-600">Total General / Meta General</p>
             <p className="text-lg font-bold">
-              <span className={getClassName(totalNocturno + totalMatutino + totalVespertino, metaGeneral)}>
+              <span
+                className={getClassName(
+                  totalNocturno + totalMatutino + totalVespertino,
+                  metaGeneral
+                )}
+              >
                 {formatNumber(totalNocturno + totalMatutino + totalVespertino)}
               </span>{" "}
               <span className="text-gray-500">

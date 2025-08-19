@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import moment from "moment";
 import { formatNumber } from "../../../helpers/formatNumber";
 import { seccionesOrdenadas } from "../../../../utilidades/SeccionesOrdenadas";
+import { FaComment } from "react-icons/fa";
 const nombreMostrar = {
   "19 LENS LOG": "19 LENS LOG SF",
   "20 LENS LOG": "20 LENS LOG FIN"
@@ -238,18 +239,16 @@ const CardHistorial = ({
                       onClick={() => toggleTooltip(seccion, "nocturno")}
                     >
                       <span className="block text-gray-600">Nocturno</span>
-                      <span
-                        className={`font-bold ${getClassName(
-                          turnosSeccion.nocturno,
-                          metaNocturno
-                        )}`}
-                      >
+                      <span className={`font-bold ${getClassName(turnosSeccion.nocturno, metaNocturno)}`}>
                         {formatNumber(turnosSeccion.nocturno)}
                       </span>
                       <span className="inline text-gray-500 text-xs">
                         {" "}
                         / {formatNumber(metaNocturno)}
                       </span>
+                      {mensajeTurno(seccion, "nocturno") !== "No hay comentarios para este turno" && (
+                          <FaComment className="inline text-blue-500 ml-2 mb-1" size={14} />
+                        )}
                     </div>
                     {tooltipVisible[`${seccion}-nocturno`] && (
                       <div className="mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded">
@@ -264,18 +263,16 @@ const CardHistorial = ({
                       onClick={() => toggleTooltip(seccion, "matutino")}
                     >
                       <span className="block text-gray-600">Matutino</span>
-                      <span
-                        className={`font-bold ${getClassName(
-                          turnosSeccion.matutino,
-                          metaMatutino
-                        )}`}
-                      >
+                      <span className={`font-bold ${getClassName(turnosSeccion.matutino, metaMatutino)}`}>
                         {formatNumber(turnosSeccion.matutino)}
                       </span>
                       <span className="inline text-gray-500 text-xs">
                         {" "}
                         / {formatNumber(metaMatutino)}
                       </span>
+                      {mensajeTurno(seccion, "matutino") !== "No hay comentarios para este turno" && (
+                          <FaComment className="inline text-blue-500 ml-2 mb-1" size={14} />
+                        )}
                     </div>
                     {tooltipVisible[`${seccion}-matutino`] && (
                       <div className="mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded">
@@ -290,18 +287,16 @@ const CardHistorial = ({
                       onClick={() => toggleTooltip(seccion, "vespertino")}
                     >
                       <span className="block text-gray-600">Vespertino</span>
-                      <span
-                        className={`font-bold ${getClassName(
-                          turnosSeccion.vespertino,
-                          metaVespertino
-                        )}`}
-                      >
+                      <span className={`font-bold ${getClassName(turnosSeccion.vespertino, metaVespertino)}`}>
                         {formatNumber(turnosSeccion.vespertino)}
                       </span>
                       <span className="inline text-gray-500 text-xs">
                         {" "}
                         / {formatNumber(metaVespertino)}
                       </span>
+                       {mensajeTurno(seccion, "vespertino") !== "No hay comentarios para este turno" && (
+                          <FaComment className="inline text-blue-500 ml-2 mb-1" size={14} />
+                        )}
                     </div>
                     {tooltipVisible[`${seccion}-vespertino`] && (
                       <div className="mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded">
