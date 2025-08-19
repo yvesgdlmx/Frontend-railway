@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import clienteAxios from "../../../../config/clienteAxios";
 import moment from "moment-timezone";
 import { formatNumber } from "../../../helpers/formatNumber";
+import { FaComment } from "react-icons/fa";  // Importa el ícono
 // Configuramos moment para usar la zona horaria de México
 moment.tz.setDefault("America/Mexico_City");
 const Generado_Procesos_LA = () => {
@@ -17,6 +18,7 @@ const Generado_Procesos_LA = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
+  
   // Estados para las notas de turno
   const [notasTurnos, setNotasTurnos] = useState({
     nocturno: null,
@@ -346,6 +348,10 @@ const Generado_Procesos_LA = () => {
               {formatNumber(hitsNocturno)}
             </span>{" "}
             / <span>{formatNumber(metaNocturno)}</span>
+            {/* Se muestra el ícono si existe la nota */}
+            {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
+              <FaComment className="inline-block ml-1 text-blue-500" />
+            )}
           </p>
           {turnoActivo === "nocturno" && (
             <div
@@ -414,6 +420,9 @@ const Generado_Procesos_LA = () => {
               {formatNumber(hitsMatutino)}
             </span>{" "}
             / <span>{formatNumber(metaMatutino)}</span>
+            {notasTurnos.matutino && notasTurnos.matutino.comentario && (
+              <FaComment className="inline-block ml-1 text-blue-500" />
+            )}
           </p>
           {turnoActivo === "matutino" && (
             <div
@@ -482,6 +491,9 @@ const Generado_Procesos_LA = () => {
               {formatNumber(hitsVespertino)}
             </span>{" "}
             / <span>{formatNumber(metaVespertino)}</span>
+            {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
+              <FaComment className="inline-block ml-1 text-blue-500" />
+            )}
           </p>
           {turnoActivo === "vespertino" && (
             <div

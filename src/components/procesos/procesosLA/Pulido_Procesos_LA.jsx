@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../../helpers/formatNumber';
+import { FaComment } from 'react-icons/fa'; // Importamos el ícono de comentarios
 const Pulido_Procesos_LA = () => {
   // Estados generales del componente
   const [totalHits, setTotalHits] = useState(0);
@@ -129,7 +130,7 @@ const Pulido_Procesos_LA = () => {
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
           finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
-          finVespertino = ahora.clone().add(1, 'day').startOf('day').add(21, 'hours').add(30, 'minutes');
+          finVespertino = ahora.clone().add(1, 'day').startOf('day').add(22, 'hours');
         } else {
           // Jornada actual: se consideran turnos de hoy
           inicioNocturno = ahora.clone().subtract(1, 'day').startOf('day').add(22, 'hours');
@@ -280,18 +281,27 @@ const Pulido_Procesos_LA = () => {
            title={notasTurnos.nocturno && notasTurnos.nocturno.comentario ? notasTurnos.nocturno.comentario : "Haz click para agregar un comentario"}
         >
           Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
+          {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
+            <FaComment className="inline-block ml-1 text-blue-500" />
+          )}
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md cursor-pointer'
            onClick={() => toggleNotaTurno("matutino")}
            title={notasTurnos.matutino && notasTurnos.matutino.comentario ? notasTurnos.matutino.comentario : "Haz click para agregar un comentario"}
         >
           Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
+          {notasTurnos.matutino && notasTurnos.matutino.comentario && (
+            <FaComment className="inline-block ml-1 text-blue-500" />
+          )}
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md cursor-pointer'
            onClick={() => toggleNotaTurno("vespertino")}
            title={notasTurnos.vespertino && notasTurnos.vespertino.comentario ? notasTurnos.vespertino.comentario : "Haz click para agregar un comentario"}
         >
           Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
+          {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
+            <FaComment className="inline-block ml-1 text-blue-500" />
+          )}
         </p>
         {turnoActivo !== null && (
           <div

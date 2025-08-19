@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import clienteAxios from '../../../../config/clienteAxios';
 import moment from 'moment-timezone';
 import { formatNumber } from '../../../helpers/formatNumber';
+import { FaComment } from 'react-icons/fa'; // Importamos el ícono
 const Biselado_Procesos_LA = () => {
   // Estados generales del componente
   const [totalHits, setTotalHits] = useState(0);
@@ -15,6 +16,7 @@ const Biselado_Procesos_LA = () => {
   const [metaMatutino, setMetaMatutino] = useState(0);
   const [metaVespertino, setMetaVespertino] = useState(0);
   const [metaNocturno, setMetaNocturno] = useState(0);
+  
   // Estados para las notas de turno (se guardarán como "biselado-la")
   const [notasTurnos, setNotasTurnos] = useState({
     nocturno: null,
@@ -264,7 +266,6 @@ const Biselado_Procesos_LA = () => {
         </div>
       </Link>
       <p className='font-light mb-2'>Mostrando información del área de biselado.</p>
-      
       {/* Sección de información general */}
       <div className='flex items-center justify-between py-4 px-2 border-2'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md'>
@@ -277,26 +278,34 @@ const Biselado_Procesos_LA = () => {
           Meta en vivo: <span className='font-semibold xs:text-sm md:text-md'>{formatNumber(meta)}</span>
         </p>
       </div>
-      
       {/* Totales por turno con funcionalidad de notas */}
-      <div className='flex flex-col md:flex-row items-center justify-around py-4 px-2 border-2 relative'>
+      <div className='flex flex-col md:flex-row items-center justify-between py-4 px-2 border-2 relative'>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md cursor-pointer'
            onClick={() => toggleNotaTurno("nocturno")}
            title={notasTurnos.nocturno && notasTurnos.nocturno.comentario ? notasTurnos.nocturno.comentario : "Haz click para agregar un comentario"}
         >
           Nocturno: <span className={getClassName(hitsNocturno, metaNocturno)}>{formatNumber(hitsNocturno)}</span> / <span>{formatNumber(metaNocturno)}</span>
+          {notasTurnos.nocturno && notasTurnos.nocturno.comentario && (
+            <FaComment className="inline-block ml-1 text-blue-500" />
+          )}
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md cursor-pointer'
            onClick={() => toggleNotaTurno("matutino")}
            title={notasTurnos.matutino && notasTurnos.matutino.comentario ? notasTurnos.matutino.comentario : "Haz click para agregar un comentario"}
         >
           Matutino: <span className={getClassName(hitsMatutino, metaMatutino)}>{formatNumber(hitsMatutino)}</span> / <span>{formatNumber(metaMatutino)}</span>
+          {notasTurnos.matutino && notasTurnos.matutino.comentario && (
+            <FaComment className="inline-block ml-1 text-blue-500" />
+          )}
         </p>
         <p className='font-bold text-gray-700 xs:text-sm md:text-md cursor-pointer'
            onClick={() => toggleNotaTurno("vespertino")}
            title={notasTurnos.vespertino && notasTurnos.vespertino.comentario ? notasTurnos.vespertino.comentario : "Haz click para agregar un comentario"}
         >
           Vespertino: <span className={getClassName(hitsVespertino, metaVespertino)}>{formatNumber(hitsVespertino)}</span> / <span>{formatNumber(metaVespertino)}</span>
+          {notasTurnos.vespertino && notasTurnos.vespertino.comentario && (
+            <FaComment className="inline-block ml-1 text-blue-500" />
+          )}
         </p>
         {turnoActivo !== null && (
           <div

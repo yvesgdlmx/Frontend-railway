@@ -3,6 +3,8 @@ import clienteAxios from "../../../../config/clienteAxios";
 import { Link, useLocation } from "react-router-dom";
 import moment from "moment-timezone";
 import { formatNumber } from "../../../helpers/formatNumber";
+// NUEVO: Importar el icono de comentarios
+import { FaComment } from "react-icons/fa";
 moment.tz.setDefault("America/Mexico_City");
 const Totales_Biselado_EstacionLA = () => {
   const location = useLocation();
@@ -77,19 +79,28 @@ const Totales_Biselado_EstacionLA = () => {
     }
     return `${hora} - ${fin}`;
   };
-  // Obtener datos: metas, registros (hits), y notas (horas y turno)
+  // Obtener datos: metas, registros (hits) y notas (horas y turno)
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
         // 1. Obtener la meta de biselados desde '/metas/metas-biselados'
         const responseMetas = await clienteAxios("/metas/metas-biselados");
         const registrosMetas = responseMetas.data.registros;
-        const metasFiltradas = registrosMetas.filter(meta =>
-          patterns.some(pat => meta.name.startsWith(pat))
+        const metasFiltradas = registrosMetas.filter((meta) =>
+          patterns.some((pat) => meta.name.startsWith(pat))
         );
-        const sumaNocturno = metasFiltradas.reduce((acc, curr) => acc + curr.meta_nocturno, 0);
-        const sumaMatutino = metasFiltradas.reduce((acc, curr) => acc + curr.meta_matutino, 0);
-        const sumaVespertino = metasFiltradas.reduce((acc, curr) => acc + curr.meta_vespertino, 0);
+        const sumaNocturno = metasFiltradas.reduce(
+          (acc, curr) => acc + curr.meta_nocturno,
+          0
+        );
+        const sumaMatutino = metasFiltradas.reduce(
+          (acc, curr) => acc + curr.meta_matutino,
+          0
+        );
+        const sumaVespertino = metasFiltradas.reduce(
+          (acc, curr) => acc + curr.meta_vespertino,
+          0
+        );
         setMetasPorHora({
           nocturno: sumaNocturno,
           matutino: sumaMatutino,
@@ -112,9 +123,14 @@ const Totales_Biselado_EstacionLA = () => {
           finJornada.subtract(1, "day");
         }
         const registrosFiltrados = registrosAPI.filter((registro) => {
-          const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
-          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)") &&
-            patterns.some(pat => registro.name.startsWith(pat));
+          const fechaHoraRegistro = moment(
+            `${registro.fecha} ${registro.hour}`,
+            "YYYY-MM-DD HH:mm:ss"
+          );
+          return (
+            fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)") &&
+            patterns.some((pat) => registro.name.startsWith(pat))
+          );
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
@@ -132,32 +148,41 @@ const Totales_Biselado_EstacionLA = () => {
   const calcularTotalesPorTurno = (registros, inicioJornada) => {
     const totales = { nocturno: 0, matutino: 0, vespertino: 0 };
     registros.forEach((registro) => {
-      const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
+      const fechaHoraRegistro = moment(
+        `${registro.fecha} ${registro.hour}`,
+        "YYYY-MM-DD HH:mm:ss"
+      );
       // Turno Nocturno: de inicioJornada hasta inicioJornada + 8 horas
-      if (fechaHoraRegistro.isBetween(
+      if (
+        fechaHoraRegistro.isBetween(
           inicioJornada.clone(),
           inicioJornada.clone().add(8, "hours"),
           null,
           "[)"
-      )) {
+        )
+      ) {
         totales.nocturno += registro.hits;
       }
       // Turno Matutino: de inicioJornada + 8h 30min hasta inicioJornada + 16h
-      else if (fechaHoraRegistro.isBetween(
+      else if (
+        fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(8, "hours").add(30, "minutes"),
           inicioJornada.clone().add(16, "hours"),
           null,
           "[)"
-      )) {
+        )
+      ) {
         totales.matutino += registro.hits;
       }
       // Turno Vespertino: de inicioJornada + 16h 30min hasta inicioJornada + 23h 30min
-      else if (fechaHoraRegistro.isBetween(
+      else if (
+        fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(16, "hours").add(30, "minutes"),
           inicioJornada.clone().add(23, "hours").add(30, "minutes"),
           null,
           "[)"
-      )) {
+        )
+      ) {
         totales.vespertino += registro.hits;
       }
     });
@@ -167,7 +192,10 @@ const Totales_Biselado_EstacionLA = () => {
   const agruparHitsPorHora = () => {
     const hits = {};
     registros.forEach((registro) => {
-      const fechaHoraRegistro = moment(`${registro.fecha} ${registro.hour}`, "YYYY-MM-DD HH:mm:ss");
+      const fechaHoraRegistro = moment(
+        `${registro.fecha} ${registro.hour}`,
+        "YYYY-MM-DD HH:mm:ss"
+      );
       const horaFormateada = fechaHoraRegistro.format("HH:mm");
       hits[horaFormateada] = (hits[horaFormateada] || 0) + registro.hits;
     });
@@ -177,7 +205,12 @@ const Totales_Biselado_EstacionLA = () => {
   // Función para obtener el objeto moment correspondiente al bucket dada la hora y el inicio de la jornada
   const getBucketMoment = (horaStr, inicioJornada) => {
     const [h, m] = horaStr.split(":").map(Number);
-    let bucket = inicioJornada.clone().set({ hour: h, minute: m, second: 0, millisecond: 0 });
+    let bucket = inicioJornada.clone().set({
+      hour: h,
+      minute: m,
+      second: 0,
+      millisecond: 0,
+    });
     if (h < 22) {
       bucket.add(1, "day");
     }
@@ -192,7 +225,9 @@ const Totales_Biselado_EstacionLA = () => {
     const bucketInicio = getBucketMoment(horaStr, inicioJornada);
     const bucketFin = bucketInicio.clone().add(1, "hour");
     const margen = 5; // minutos
-    return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
+    return ahora.isAfter(bucketFin.clone().add(margen, "minutes"))
+      ? 0
+      : "";
   };
   // Armar columnas (buckets) a partir del orden fijo, filtrando las que retornen ""
   const columnas = ordenTurnos
@@ -208,34 +243,39 @@ const Totales_Biselado_EstacionLA = () => {
   // Definir el inicio de la jornada
   let inicioJornada = moment().startOf("day").add(22, "hours");
   if (moment().isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
-  // Función que dada una hora retorna la meta por hora según turno
+  // Función que dada una hora retorna la meta por hora según el turno
   const getMetaParaHora = (horaStr, inicioJornada) => {
     const bucketMoment = getBucketMoment(horaStr, inicioJornada);
-    if (bucketMoment.isBetween(
+    if (
+      bucketMoment.isBetween(
         inicioJornada.clone(),
         inicioJornada.clone().add(8, "hours"),
         null,
         "[)"
-    ))
+      )
+    )
       return metasPorHora.nocturno;
-    else if (bucketMoment.isBetween(
+    else if (
+      bucketMoment.isBetween(
         inicioJornada.clone().add(8, "hours").add(30, "minutes"),
         inicioJornada.clone().add(16, "hours"),
         null,
         "[)"
-    ))
+      )
+    )
       return metasPorHora.matutino;
-    else if (bucketMoment.isBetween(
+    else if (
+      bucketMoment.isBetween(
         inicioJornada.clone().add(16, "hours").add(30, "minutes"),
         inicioJornada.clone().add(23, "hours").add(30, "minutes"),
         null,
         "[)"
-    ))
+      )
+    )
       return metasPorHora.vespertino;
     return 0;
   };
   // --------------- FUNCIONALIDAD DE NOTAS POR HORA ---------------
-  // Mostrar u ocultar el recuadro de nota (por hora)
   const toggleNota = (hora) => {
     if (notaActiva === hora) {
       setNotaActiva(null);
@@ -244,7 +284,6 @@ const Totales_Biselado_EstacionLA = () => {
       setEditingNota(notas[hora]?.nota || "");
     }
   };
-  // Guardar nota (POST)
   const handleGuardarNota = async (hora) => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -264,7 +303,6 @@ const Totales_Biselado_EstacionLA = () => {
       console.error("Error al guardar la nota:", error);
     }
   };
-  // Editar nota (PUT)
   const handleEditarNota = async (hora) => {
     try {
       const notaActual = notas[hora];
@@ -308,7 +346,6 @@ const Totales_Biselado_EstacionLA = () => {
     }
   };
   // --------------- FUNCIONALIDAD DE NOTAS DE TURNO ---------------
-  // Cargar las notas de turno para la sección "biselado-la"
   const cargarNotasTurnos = async () => {
     try {
       const today = moment().format("YYYY-MM-DD");
@@ -328,7 +365,6 @@ const Totales_Biselado_EstacionLA = () => {
       console.error("Error al cargar las notas de turno:", error);
     }
   };
-  // Mostrar u ocultar el recuadro de nota del turno
   const toggleNotaTurno = (turno) => {
     if (turnoActivo === turno) {
       setTurnoActivo(null);
@@ -337,13 +373,12 @@ const Totales_Biselado_EstacionLA = () => {
       setEditingTurnoNota(notasTurnos[turno]?.comentario || "");
     }
   };
-  // Guardar la nota de turno (POST)
   const handleGuardarNotaTurno = async (turno) => {
     try {
       const today = moment().format("YYYY-MM-DD");
       const payload = {
         fecha: today,
-        turno, // "nocturno", "matutino", "vespertino"
+        turno,
         seccion: "biselado-la",
         comentario: editingTurnoNota,
       };
@@ -357,7 +392,6 @@ const Totales_Biselado_EstacionLA = () => {
       console.error("Error al guardar la nota de turno:", error);
     }
   };
-  // Editar la nota de turno (PUT)
   const handleEditarNotaTurno = async (turno) => {
     try {
       const notaActual = notasTurnos[turno];
@@ -508,19 +542,17 @@ const Totales_Biselado_EstacionLA = () => {
               <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
                 {formatNumber(totalesPorTurno.nocturno)}
               </span>{" "}
-              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora:{" "}
-              {metasPorHora.nocturno}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)} / Meta x Hora: {metasPorHora.nocturno}
+              {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "nocturno" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.nocturno ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -577,19 +609,17 @@ const Totales_Biselado_EstacionLA = () => {
               <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
                 {formatNumber(totalesPorTurno.matutino)}
               </span>{" "}
-              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora:{" "}
-              {metasPorHora.matutino}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)} / Meta x Hora: {metasPorHora.matutino}
+              {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "matutino" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.matutino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -646,19 +676,17 @@ const Totales_Biselado_EstacionLA = () => {
               <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
                 {formatNumber(totalesPorTurno.vespertino)}
               </span>{" "}
-              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora:{" "}
-              {metasPorHora.vespertino}
+              / Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)} / Meta x Hora: {metasPorHora.vespertino}
+              {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                <FaComment size={12} className="inline ml-2 text-blue-500" />
+              ) : null}
             </p>
             {turnoActivo === "vespertino" && (
               <div
                 className="absolute top-[-55px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
-                {notasTurnos.vespertino ? (
-                  <p></p>
-                ) : (
-                  <p>Agregar un comentario</p>
-                )}
+                {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                 <textarea
                   className="w-full h-16 p-1 border mb-2 text-xs"
                   value={editingTurnoNota}
@@ -732,7 +760,9 @@ const Totales_Biselado_EstacionLA = () => {
                     <span className="font-bold text-gray-700">{col.rango}:</span>
                     <span
                       className={`font-bold ${
-                        parseInt(col.valor, 10) >= metaCol ? "text-green-500" : "text-red-500"
+                        parseInt(col.valor, 10) >= metaCol
+                          ? "text-green-500"
+                          : "text-red-500"
                       }`}
                     >
                       {col.valor}
@@ -819,6 +849,9 @@ const Totales_Biselado_EstacionLA = () => {
                     <span className={getClassName(totalesPorTurno.nocturno, metasTotalesPorTurno.nocturno)}>
                       {formatNumber(totalesPorTurno.nocturno)}
                     </span>
+                    {notasTurnos.nocturno && notasTurnos.nocturno.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </div>
                   <div className="flex justify-between mt-1 text-gray-500 text-xs">
                     <div>Meta Acumulada: {formatNumber(metasTotalesPorTurno.nocturno)}</div>
@@ -829,11 +862,7 @@ const Totales_Biselado_EstacionLA = () => {
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.nocturno ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.nocturno ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -890,6 +919,9 @@ const Totales_Biselado_EstacionLA = () => {
                     <span className={getClassName(totalesPorTurno.matutino, metasTotalesPorTurno.matutino)}>
                       {formatNumber(totalesPorTurno.matutino)}
                     </span>
+                    {notasTurnos.matutino && notasTurnos.matutino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </div>
                   <div className="flex justify-between mt-1 text-gray-500 text-xs">
                     <div>Meta Acumulada: {formatNumber(metasTotalesPorTurno.matutino)}</div>
@@ -900,11 +932,7 @@ const Totales_Biselado_EstacionLA = () => {
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.matutino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.matutino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
@@ -961,6 +989,9 @@ const Totales_Biselado_EstacionLA = () => {
                     <span className={getClassName(totalesPorTurno.vespertino, metasTotalesPorTurno.vespertino)}>
                       {formatNumber(totalesPorTurno.vespertino)}
                     </span>
+                    {notasTurnos.vespertino && notasTurnos.vespertino.comentario ? (
+                      <FaComment size={12} className="inline ml-2 text-blue-500" />
+                    ) : null}
                   </div>
                   <div className="flex justify-between mt-1 text-gray-500 text-xs">
                     <div>Meta Acumulada: {formatNumber(metasTotalesPorTurno.vespertino)}</div>
@@ -971,11 +1002,7 @@ const Totales_Biselado_EstacionLA = () => {
                       className="absolute top-[-10px] left-0 z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {notasTurnos.vespertino ? (
-                        <p></p>
-                      ) : (
-                        <p>Agregar un comentario</p>
-                      )}
+                      {notasTurnos.vespertino ? <p></p> : <p>Agregar un comentario</p>}
                       <textarea
                         className="w-full h-12 p-1 border mb-2 text-xs"
                         value={editingTurnoNota}
