@@ -25,7 +25,7 @@ const ReporteTrabajosSinMovimientos = () => {
   // Valor ingresado para filtrar (input)
   const [filterValue, setFilterValue] = useState('');
   const [ultimaActualizacion, setUltimaActualizacion] = useState('');
-  const itemsPerPage = 10;
+  const itemsPerPage = 100;
   // Actualización de la hora y refresco automático
   useEffect(() => {
     const actualizarHora = () => {
