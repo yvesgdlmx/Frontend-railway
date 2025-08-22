@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Layout from './layouts/Layout';
 import ScrollToTop from './components/others/ScrollToTop';
 import { AuthProvider } from '../context/AuthProvider';
+import AppProviders from '../context/AppProviders';
 import AuthLayout from './layouts/AuthLayout';
 
 // Usar React.lazy para cargar componentes de forma asíncrona
@@ -48,50 +49,52 @@ function App() {
     <Router>
       <AuthProvider>
         <ScrollToTop />
-        <Suspense fallback={<div>Cargando...</div>}>
-          <Routes>
-            <Route path='/' element={<Layout />}>
-              <Route index element={<Procesos />} />
-              <Route path='/procesos_LA' element={<ProcesosLA />} />
-              <Route path='/totales_estacion' element={<Totales_Estacion />} />
-              <Route path='/totales_estacion_la' element={<Totales_Estacion_LA />} />
-              <Route path='/totales_surtido_maquina' element={<Totales_Surtido_Maquina2 />} />
-              <Route path='/totales_tallado_maquina' element={<Totales_Tallado_Maquina2 />} />
-              <Route path='/totales_generado_maquina' element={<Totales_Generado_Maquina2 />} />
-              <Route path='/totales_pulido_maquina' element={<Totales_Pulido_Maquina2 />} />
-              <Route path='/totales_engraver_maquina' element={<Totales_Engraver_Maquina2 />} />
-              <Route path='/totales_ar_maquina' element={<Totales_AR_Maquina2 />} />
-              <Route path='/totales_hardcoat_maquina' element={<Totales_HardCoat_Maquina2 />} />
-              <Route path='/totales_recubrimiento_maquina' element={<Totales_Recubrimiento_Maquina2 />} />
-              <Route path='/totales_desblocking_maquina' element={<Totales_Desbloqueo_Maquina2 />} />
-              <Route path='/totales_terminado_maquina' element={<Totales_Terminado_Maquina2 />} />
-              <Route path='/totales_biselado_maquina' element={<Totales_Biselado_Maquina2 />} />
-              <Route path='/totales_produccion_maquina' element={<Totales_Produccion_Maquina2 />} />
-              <Route path='/surtido_detallado' element={<Surtido_Detallado />} />
-              <Route path='/editar_metas' element={<EditarMetas/>}/>
-              <Route path='/historial_por_rangos' element={<Historial_Por_Rangos />} />
-              <Route path='/historial_por_dia' element={<Historial_Por_Dia />} />
-              <Route path='/tableros_tallado' element={<Tableros_Tallado />} />
-              <Route path='/tableros_terminado' element={<Tableros_Terminado />} />
-              <Route path='/tableros_tallado_terminado' element={<Tableros_Tallado_Terminado />} />
-              <Route path='/linea_automatica' element={<Linea_Automatica_Tableros/>} />
-              <Route path='/reportes' element={<Reporte />} />
-              <Route path='/reportes_antiguedad' element={<ReporteAntiguedad />} />
-              <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos />} />
-              <Route path='/reportes_wip_diario' element={<ReporteWipDiario />} />
-              <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
-              <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
-              <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
-              <Route path='/finanzas_facturas' element={<Facturas/>} />
-              <Route path='/historial_facturas' element={<HistorialFacturas/>} />
-              <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
-              <Route path='/cargar_media' element={<CargarMedia/>} />
-            </Route>
-            <Route path='/auth' element={<AuthLayout />}>
-              <Route index element={<Login />} />
-            </Route>
-          </Routes>
-        </Suspense>
+          <AppProviders>
+            <Suspense fallback={<div>Cargando...</div>}>
+              <Routes>
+                <Route path='/' element={<Layout />}>
+                  <Route index element={<Procesos />} />
+                  <Route path='/procesos_LA' element={<ProcesosLA />} />
+                  <Route path='/totales_estacion' element={<Totales_Estacion />} />
+                  <Route path='/totales_estacion_la' element={<Totales_Estacion_LA />} />
+                  <Route path='/totales_surtido_maquina' element={<Totales_Surtido_Maquina2 />} />
+                  <Route path='/totales_tallado_maquina' element={<Totales_Tallado_Maquina2 />} />
+                  <Route path='/totales_generado_maquina' element={<Totales_Generado_Maquina2 />} />
+                  <Route path='/totales_pulido_maquina' element={<Totales_Pulido_Maquina2 />} />
+                  <Route path='/totales_engraver_maquina' element={<Totales_Engraver_Maquina2 />} />
+                  <Route path='/totales_ar_maquina' element={<Totales_AR_Maquina2 />} />
+                  <Route path='/totales_hardcoat_maquina' element={<Totales_HardCoat_Maquina2 />} />
+                  <Route path='/totales_recubrimiento_maquina' element={<Totales_Recubrimiento_Maquina2 />} />
+                  <Route path='/totales_desblocking_maquina' element={<Totales_Desbloqueo_Maquina2 />} />
+                  <Route path='/totales_terminado_maquina' element={<Totales_Terminado_Maquina2 />} />
+                  <Route path='/totales_biselado_maquina' element={<Totales_Biselado_Maquina2 />} />
+                  <Route path='/totales_produccion_maquina' element={<Totales_Produccion_Maquina2 />} />
+                  <Route path='/surtido_detallado' element={<Surtido_Detallado />} />
+                  <Route path='/editar_metas' element={<EditarMetas/>}/>
+                  <Route path='/historial_por_rangos' element={<Historial_Por_Rangos />} />
+                  <Route path='/historial_por_dia' element={<Historial_Por_Dia />} />
+                  <Route path='/tableros_tallado' element={<Tableros_Tallado />} />
+                  <Route path='/tableros_terminado' element={<Tableros_Terminado />} />
+                  <Route path='/tableros_tallado_terminado' element={<Tableros_Tallado_Terminado />} />
+                  <Route path='/linea_automatica' element={<Linea_Automatica_Tableros/>} />
+                  <Route path='/reportes' element={<Reporte />} />
+                  <Route path='/reportes_antiguedad' element={<ReporteAntiguedad />} />
+                  <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos />} />
+                  <Route path='/reportes_wip_diario' element={<ReporteWipDiario />} />
+                  <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
+                  <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
+                  <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
+                  <Route path='/finanzas_facturas' element={<Facturas/>} />
+                  <Route path='/historial_facturas' element={<HistorialFacturas/>} />
+                  <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
+                  <Route path='/cargar_media' element={<CargarMedia/>} />
+                </Route>
+                <Route path='/auth' element={<AuthLayout />}>
+                  <Route index element={<Login />} />
+                </Route>
+              </Routes>
+            </Suspense>
+          </AppProviders>
       </AuthProvider>
     </Router>
   );
