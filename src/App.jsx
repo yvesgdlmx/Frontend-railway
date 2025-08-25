@@ -85,9 +85,11 @@ function App() {
                   <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
                   <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
                   <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
-                  <Route element={<ProtectedRoute/>}>
+                  <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                     <Route path='/finanzas_facturas' element={<Facturas/>} />
                     <Route path='/historial_facturas' element={<HistorialFacturas/>} />
+                  </Route>
+                  <Route element={<ProtectedRoute />}>
                     <Route path='/cargar_media' element={<CargarMedia/>} />
                     <Route path='/editar_metas' element={<EditarMetas/>}/>
                   </Route>

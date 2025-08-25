@@ -14,41 +14,51 @@ const DesktopMenu = ({
           <p className="uppercase">Avisos</p>
         </Link>
       )}
-      <Link to="/procesos_LA" onClick={handleMenuItemClick} className="uppercase">
+      <Link
+        to="/procesos_LA"
+        onClick={handleMenuItemClick}
+        className="uppercase"
+      >
         Producción LA
       </Link>
-      <Link to="/" onClick={handleMenuItemClick} className="uppercase">
+      <Link
+        to="/"
+        onClick={handleMenuItemClick}
+        className="uppercase"
+      >
         Producción
       </Link>
+      {/* Menú Finanzas visible únicamente para administradores */}
+      {auth && auth.id && auth.rol === "admin" && (
+        <div className="relative" ref={menuRefs.finanzas}>
+          <button
+            onClick={() => toggleMenu("finanzas")}
+            className="uppercase hover:text-gray-300"
+          >
+            Finanzas
+          </button>
+          {menuVisible === "finanzas" && (
+            <div className="absolute left-0 mt-2 w-48 bg-black bg-opacity-50 backdrop-blur-md border border-gray-700 rounded shadow-lg">
+              <ul>
+                <li>
+                  <Link
+                    to="/finanzas_facturas"
+                    onClick={handleMenuItemClick}
+                    className="block px-4 py-2 uppercase hover:bg-gray-600"
+                  >
+                    Facturas
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
       {auth && auth.id && (
         <>
-          <div className="relative" ref={menuRefs.finanzas}>
-            <button
-              onClick={() => toggleMenu("finanzas")}
-              className="uppercase hover:text-gray-300"
-            >
-              Finanzas
-            </button>
-            {menuVisible === "finanzas" && (
-              <div className="absolute left-0 mt-2 w-48 bg-black bg-opacity-50 backdrop-blur-md border border-gray-700 rounded shadow-lg">
-                <ul>
-                  <li>
-                    <Link
-                      to="/finanzas_facturas"
-                      onClick={handleMenuItemClick}
-                      className="block px-4 py-2 uppercase hover:bg-gray-600"
-                    >
-                      Facturas
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-          {/* Botón Metas modificado a Link directo */}
-          <Link 
-            to="/editar_metas" 
-            onClick={handleMenuItemClick} 
+          <Link
+            to="/editar_metas"
+            onClick={handleMenuItemClick}
             className="uppercase hover:text-gray-300"
             ref={menuRefs.metas}
           >
@@ -71,12 +81,9 @@ const DesktopMenu = ({
                 { to: "/tableros_terminado", label: "Tableros de Terminado" },
                 {
                   to: "/tableros_tallado_terminado",
-                  label: "Tallado y Terminado",
+                  label: "Tableros de Tallado y Terminado",
                 },
-                {
-                  to: "/surtido_detallado",
-                  label: "Surtido - Almacen",
-                },
+                { to: "/surtido_detallado", label: "Surtido - Almacen" },
               ].map((item, index) => (
                 <li key={index}>
                   <Link
@@ -104,10 +111,7 @@ const DesktopMenu = ({
             <ul>
               {[
                 { to: "/historial_por_dia", label: "Historial por Día" },
-                {
-                  to: "/historial_por_rangos",
-                  label: "Historial por Rango de Días",
-                },
+                { to: "/historial_por_rangos", label: "Historial por Rango de Días" },
               ].map((item, index) => (
                 <li key={index}>
                   <Link
@@ -135,18 +139,9 @@ const DesktopMenu = ({
             <ul>
               {[
                 { to: "/reportes", label: "WIP DETALLADO" },
-                {
-                  to: "/reportes_antiguedad",
-                  label: "ANTIGÜEDAD DE TRABAJOS",
-                },
-                {
-                  to: "/reportes_trabajos_nuevos",
-                  label: "TRABAJOS NUEVOS",
-                },
-                {
-                  to: "/reportes_wip_diario",
-                  label: "WIP DIARIO",
-                },
+                { to: "/reportes_antiguedad", label: "ANTIGÜEDAD DE TRABAJOS" },
+                { to: "/reportes_trabajos_nuevos", label: "TRABAJOS NUEVOS" },
+                { to: "/reportes_wip_diario", label: "WIP DIARIO" },
                 {
                   to: "/reportes_trabajos_enviados",
                   label: "TRABAJOS ENVIADOS",
@@ -175,11 +170,18 @@ const DesktopMenu = ({
         )}
       </div>
       {auth && auth.id ? (
-        <button onClick={handleLogout} className="uppercase hover:text-gray-300">
+        <button
+          onClick={handleLogout}
+          className="uppercase hover:text-gray-300"
+        >
           Logout
         </button>
       ) : (
-        <Link to="/auth" onClick={handleMenuItemClick} className="uppercase">
+        <Link
+          to="/auth"
+          onClick={handleMenuItemClick}
+          className="uppercase"
+        >
           Login
         </Link>
       )}
