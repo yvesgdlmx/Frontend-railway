@@ -5,6 +5,7 @@ import ScrollToTop from './components/others/ScrollToTop';
 import { AuthProvider } from '../context/AuthProvider';
 import AppProviders from '../context/AppProviders';
 import AuthLayout from './layouts/AuthLayout';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Usar React.lazy para cargar componentes de forma asíncrona
 const Login = lazy(() => import('./components/others/Login'));
@@ -70,7 +71,6 @@ function App() {
                   <Route path='/totales_biselado_maquina' element={<Totales_Biselado_Maquina2 />} />
                   <Route path='/totales_produccion_maquina' element={<Totales_Produccion_Maquina2 />} />
                   <Route path='/surtido_detallado' element={<Surtido_Detallado />} />
-                  <Route path='/editar_metas' element={<EditarMetas/>}/>
                   <Route path='/historial_por_rangos' element={<Historial_Por_Rangos />} />
                   <Route path='/historial_por_dia' element={<Historial_Por_Dia />} />
                   <Route path='/tableros_tallado' element={<Tableros_Tallado />} />
@@ -84,10 +84,13 @@ function App() {
                   <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
                   <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
                   <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
-                  <Route path='/finanzas_facturas' element={<Facturas/>} />
-                  <Route path='/historial_facturas' element={<HistorialFacturas/>} />
                   <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
-                  <Route path='/cargar_media' element={<CargarMedia/>} />
+                  <Route element={<ProtectedRoute/>}>
+                    <Route path='/finanzas_facturas' element={<Facturas/>} />
+                    <Route path='/historial_facturas' element={<HistorialFacturas/>} />
+                    <Route path='/cargar_media' element={<CargarMedia/>} />
+                    <Route path='/editar_metas' element={<EditarMetas/>}/>
+                  </Route>
                 </Route>
                 <Route path='/auth' element={<AuthLayout />}>
                   <Route index element={<Login />} />
