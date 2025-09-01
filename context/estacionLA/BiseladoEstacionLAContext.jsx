@@ -256,6 +256,26 @@ const BiseladoEstacionLAProvider = ({ children }) => {
       console.error("Error al editar la nota de turno:", error);
     }
   };
+
+  const cargarNotasTurnos = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas_turnos", {
+        params: { seccion: "biselado-la", fecha: today }
+      });
+      const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasTurnosMap[item.turno] = { id: item.id, comentario: item.comentario };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotasTurnos(notasTurnosMap);
+    } catch (error) {
+      console.error("Error al cargar las notas de turno:", error);
+    }
+  };
   // --- Efectos para obtener la información inicial ---
   useEffect(() => {
     const obtenerDatos = async () => {

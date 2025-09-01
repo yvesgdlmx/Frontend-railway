@@ -185,6 +185,27 @@ const GeneradoEstacionLAProvider = ({ children }) => {
       console.error("Error al editar la nota:", error);
     }
   };
+
+  // Cargar las notas de hora (GET)
+  const cargarNotas = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas", {
+        params: { seccion: "generado-la", fecha: today }
+      });
+      const notasMap = {};
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasMap[item.hora] = { id: item.id, nota: item.nota };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotas(notasMap);
+    } catch (error) {
+      console.error("Error al cargar las notas:", error);
+    }
+  };
   // Funciones para notas de turno
   const toggleNotaTurno = (turno) => {
     if (turnoActivo === turno) {
@@ -234,6 +255,27 @@ const GeneradoEstacionLAProvider = ({ children }) => {
       console.error("Error al editar la nota de turno:", error);
     }
   };
+
+  const cargarNotasTurnos = async () => {
+    try {
+      const today = moment().format("YYYY-MM-DD");
+      const response = await clienteAxios.get("/notas/notas_turnos", {
+        params: { seccion: "generado-la", fecha: today }
+      });
+      const notasTurnosMap = { nocturno: null, matutino: null, vespertino: null };
+      if (Array.isArray(response.data)) {
+        response.data.forEach((item) => {
+          notasTurnosMap[item.turno] = { id: item.id, comentario: item.comentario };
+        });
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+      }
+      setNotasTurnos(notasTurnosMap);
+    } catch (error) {
+      console.error("Error al cargar las notas de turno:", error);
+    }
+  };
+
   // Efecto para obtener datos (metas, registros, notas y notas de turno)
   useEffect(() => {
     const obtenerDatos = async () => {
