@@ -4,7 +4,7 @@ export const seccionesOrdenadas = [
   { seccion: "Generado", nombres: ["241 GENERATOR 1", "242 GENERATOR 2", "250 GENERATOR 3", "245 ORBIT 1 LA", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA", "247 SCHNIDER 1", "248 SCHNIDER 2"] },
   { seccion: "Pulido", nombres: ["255 POLISHR 1", "256 POLISHR 2", "257 POLISHR 3", "258 POLISHR 4", "259 POLISHR 5", "260 POLISHR 6", "261 POLISHR 7", "262 POLISHR 8", "265 POLISHR 12", "266 MULTIFLEX 1", "267 MULTIFLEX 2", "268 MULTIFLEX 3", "269 MULTIFLEX 4", "254 IFLEX SRVR"] },
   { seccion: "Engraver", nombres: ["270 ENGRVR 1", "271 ENGRVR 2", "272 ENGRVR 3", "273 ENGRVR 4"] },
-  { seccion: "Desbloqueo", nombres: ["320 DEBLOCKING 1"] },
+  { seccion: "Desbloqueo", nombres: ["400 DEBLOCKING 2"] },
   { seccion: "AR", nombres: ["52 FUSION", "53 1200 D", "54 OAC.120", "55 TLF 1200.1", "56 TLF 1200.2"] },
   { seccion: "Hardcoat", nombres: ["46 MR3.4", "48 MR3.1", "49 MR3.2", "50 MR3.3", "91 VELOCITY 1", "92 VELOCITY 2"] },
   { seccion: "Recubrimiento", nombres: ["60 AR ENTRADA", "61 AR SALIDA"] },

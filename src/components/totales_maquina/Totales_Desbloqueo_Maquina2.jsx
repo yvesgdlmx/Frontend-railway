@@ -61,7 +61,7 @@ const Totales_Desbloqueo_Maquina2 = () => {
   const [tableData, setTableData] = useState([]);
   const [metasMapping, setMetasMapping] = useState({});
   // Los registros de interés deben comenzar con "320 DEBLOCKING"
-  const validPrefixes = ["320 DEBLOCKING"];
+  const validPrefixes = ["400 DEBLOCKING"];
   // Columnas fijas (Nombre y Total acumulado)
   const fixedColumns = [
     { header: "Nombre", accessor: "nombre" },
