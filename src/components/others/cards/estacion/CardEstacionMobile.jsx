@@ -123,7 +123,7 @@ const CardEstacionMobile = ({
                 </p>
                 {turnoActivo === "nocturno" && (
                   <div
-                    className="absolute bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
+                    className="absolute z-50 bg-gray-100 p-4 border rounded shadow-md w-64 h-24 text-xs"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <textarea
@@ -207,7 +207,7 @@ const CardEstacionMobile = ({
                 </p>
                 {turnoActivo === "matutino" && (
                   <div
-                    className="absolute bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                    className="absolute z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <textarea
@@ -291,7 +291,7 @@ const CardEstacionMobile = ({
                 </p>
                 {turnoActivo === "vespertino" && (
                   <div
-                    className="absolute bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs"
+                    className="absolute z-50 bg-gray-100 p-4 border rounded shadow-md w-full sm:w-64 h-24 text-xs bottom-2"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <textarea
