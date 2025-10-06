@@ -108,8 +108,8 @@ const ReporteDeFlujo = () => {
     }
   });
 
-  // Ordenar fechas descendente
-  const fechasOrdenadas = Object.keys(datosPorDia).sort((a, b) => b.localeCompare(a));
+    // Ordenar fechas ascendente
+    const fechasOrdenadas = Object.keys(datosPorDia).sort((a, b) => a.localeCompare(b));
 
   // Calcular totales
   const calcularTotales = () => {
