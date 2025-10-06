@@ -158,6 +158,15 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                     Trabajos sin movimiento
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to={'/reportes_de_flujo'}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Reporte de flujo
+                  </Link>
+                </li>
               </ul>
             </li>
           </ul>

@@ -154,6 +154,10 @@ const DesktopMenu = ({
                   to: "/reportes_trabajos_sin_movimientos",
                   label: "TRABAJOS SIN MOVIMIENTOS",
                 },
+                {
+                  to: "/reportes_de_flujo",
+                  label: "REPORTE DE FLUJO",
+                }
               ].map((item, index) => (
                 <li key={index}>
                   <Link

@@ -189,6 +189,11 @@ const DesktopMenuWhite = () => {
                     <p className="block px-4 py-2 hover:bg-gray-100">Trabajos sin movimientos</p> 
                   </Link> 
                 </li> 
+                <li> 
+                  <Link to="/reportes_de_flujo" onClick={handleMenuItemClick}> 
+                    <p className="block px-4 py-2 hover:bg-gray-100">Reporte de flujo</p> 
+                  </Link> 
+                </li> 
               </ul> 
             </div> 
           )} 

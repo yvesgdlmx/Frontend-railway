@@ -121,6 +121,7 @@ const MobileMenu = ({
                   { to: "/reportes_trabajos_enviados", label: "TRABAJOS ENVIADOS" },
                   { to: "/reportes_resumen_trabajo", label: "RESUMEN DE TRABAJOS" },
                   { to: "/reportes_trabajos_sin_movimientos", label: "TRABAJOS SIN MOVIMIENTOS" },
+                  { to: "/reportes_de_flujo", label: "REPORTE DE FLUJO" },
                 ].map((item, index) => (
                   <li key={index}>
                     <Link
