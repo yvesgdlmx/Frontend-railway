@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import moment from "moment-timezone";
 import { formatNumber } from "../../helpers/formatNumber";
+import CardBonosProduccion from "../others/cards/CardBonosProduccion";
 
 const Totales_Produccion_Tableros = () => {
   const [totalesPorTurno, setTotalesPorTurno] = useState({
@@ -22,7 +23,6 @@ const Totales_Produccion_Tableros = () => {
         if (ahora.hour() >= 22) {
           fechaProduccion.add(1, "day");
         }
-        console.log("Fecha de producción considerada:", fechaProduccion.format("YYYY-MM-DD"));
 
         // Rango nocturno: del día anterior a las 22:00 hasta el día de producción a las 06:00.
         const nocturnoInicio = fechaProduccion.clone().subtract(1, "day").set({
@@ -37,8 +37,6 @@ const Totales_Produccion_Tableros = () => {
           second: 0,
           millisecond: 0,
         });
-        console.log("Nocturno Inicio:", nocturnoInicio.format("YYYY-MM-DD HH:mm:ss"));
-        console.log("Nocturno Fin:", nocturnoFin.format("YYYY-MM-DD HH:mm:ss"));
 
         // Rango matutino: de las 06:30 a las 14:29:59.999.
         const matutinoInicio = fechaProduccion.clone().set({
@@ -78,12 +76,8 @@ const Totales_Produccion_Tableros = () => {
           return celula === "32 JOB COMPLETE";
         });
 
-        console.log("Registros para la célula:", registrosFiltradosCelula.length);
-
         // Filtramos los registros que se encuentren en el rango extendido (nocturno + matutino + vespertino).
         const registrosFiltrados = registrosFiltradosCelula.filter((registro) => {
-          // IMPORTANTE: Verifica el formato de registro.fecha y registro.hour.  
-          // Si registro.hour viene como "23:00" y no "23:00:00", ajusta el formato.
           const formatoEsperado = "YYYY-MM-DD HH:mm:ss";
           const horaRegistro = registro.hour.length === 5 ? `${registro.hour}:00` : registro.hour;
           const fechaHoraRegistro = moment.tz(
@@ -91,20 +85,8 @@ const Totales_Produccion_Tableros = () => {
             formatoEsperado,
             "America/Mexico_City"
           );
-
-          // Log para ver cada registro
-          console.log(
-            "Registro:",
-            `${registro.fecha} ${horaRegistro}`,
-            "->",
-            fechaHoraRegistro.format("YYYY-MM-DD HH:mm:ss")
-          );
-
-          // Filtramos entre nocturnoInicio y vespertinoFin (intervalo amplio)
           return fechaHoraRegistro.isSameOrAfter(nocturnoInicio) && fechaHoraRegistro.isSameOrBefore(vespertinoFin);
         });
-
-        console.log("Registros filtrados totales:", registrosFiltrados.length);
 
         calcularTotalesPorTurno(registrosFiltrados, {
           nocturnoInicio,
@@ -133,34 +115,22 @@ const Totales_Produccion_Tableros = () => {
         formatoEsperado,
         "America/Mexico_City"
       );
-      console.log(
-        "Evaluando registro:",
-        fechaHoraRegistro.format("YYYY-MM-DD HH:mm:ss"),
-        "Hits:",
-        registro.hits
-      );
 
-      // Usamos isSameOrAfter / isBefore para controlar los límites
       if (
         fechaHoraRegistro.isSameOrAfter(rangos.nocturnoInicio) &&
         fechaHoraRegistro.isBefore(rangos.nocturnoFin)
       ) {
         totales.nocturno += parseInt(registro.hits || 0, 10);
-        console.log("Se suma a nocturno");
       } else if (
         fechaHoraRegistro.isSameOrAfter(rangos.matutinoInicio) &&
         fechaHoraRegistro.isBefore(rangos.matutinoFin)
       ) {
         totales.matutino += parseInt(registro.hits || 0, 10);
-        console.log("Se suma a matutino");
       } else if (
         fechaHoraRegistro.isSameOrAfter(rangos.vespertinoInicio) &&
         fechaHoraRegistro.isBefore(rangos.vespertinoFin)
       ) {
         totales.vespertino += parseInt(registro.hits || 0, 10);
-        console.log("Se suma a vespertino");
-      } else {
-        console.log("Registro fuera de rangos");
       }
     });
     setTotalesPorTurno(totales);
@@ -173,26 +143,29 @@ const Totales_Produccion_Tableros = () => {
 
   return (
     <div className="w-full min-h-screen bg-black flex items-center justify-center">
-      <div className="bg-gray-800 p-10 rounded-lg shadow-lg max-w-xl w-full text-white">
-        <h2 className="text-4xl font-bold mb-8 text-center text-yellow-400">Totales de Producción</h2>
-        <div className="mb-8">
-          <p className="text-3xl font-semibold">Total General:</p>
-          <p className="text-5xl font-bold text-yellow-400">{formatNumber(sumaTotalAcumulados)}</p>
+      <div className="flex flex-row gap-8">
+        <div className="bg-gray-800 p-10 rounded-lg shadow-lg max-w-xl w-full text-white">
+          <h2 className="text-4xl font-bold mb-8 text-center text-yellow-400">Totales de Producción</h2>
+          <div className="mb-8">
+            <p className="text-3xl font-semibold">Total General:</p>
+            <p className="text-5xl font-bold text-yellow-400">{formatNumber(sumaTotalAcumulados)}</p>
+          </div>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <span className="text-2xl">Nocturno:</span>
+              <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.nocturno)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-2xl">Matutino:</span>
+              <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.matutino)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-2xl">Vespertino:</span>
+              <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.vespertino)}</span>
+            </div>
+          </div>
         </div>
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <span className="text-2xl">Nocturno:</span>
-            <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.nocturno)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-2xl">Matutino:</span>
-            <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.matutino)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-2xl">Vespertino:</span>
-            <span className="text-3xl font-semibold">{formatNumber(totalesPorTurno.vespertino)}</span>
-          </div>
-        </div>
+        <CardBonosProduccion />
       </div>
     </div>
   );
