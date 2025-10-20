@@ -45,6 +45,7 @@ const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/Repo
 const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
 const CargarMedia = lazy(() => import('./paginas/CargarMedia'));
 const EditarMetas = lazy(() => import('./paginas/metas/EditarMetas'))
+const Pruebas = lazy(() => import('./paginas/Pruebas'));
 
 function App() {
   return (
@@ -87,6 +88,7 @@ function App() {
                   <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
                   <Route path='/reportes_de_flujo' element={<ReporteDeFlujo/>} />
                   <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
+                  <Route path='/pruebas' element={<Pruebas/>} />
                   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                     <Route path='/finanzas_facturas' element={<Facturas/>} />
                     <Route path='/historial_facturas' element={<HistorialFacturas/>} />
