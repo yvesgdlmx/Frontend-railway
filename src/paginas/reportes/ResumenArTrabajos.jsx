@@ -95,7 +95,7 @@ const ResumenArTrabajos = () => {
   return (
     <>
       <div className="mt-4 md:mt-0">
-        <Heading title="Reporte Resumen AR Trabajos" />
+         <Heading title="Reporte AR Por Área" />
       </div>
       <Actualizacion />
       <div className="min-h-screen bg-gray-50">
