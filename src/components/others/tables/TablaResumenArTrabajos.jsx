@@ -19,13 +19,13 @@ const TablaResumenArTrabajos = ({ datos, formatNumber }) => {
               En AR
             </th>
             <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Después de AR
+            </th>
+            <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Recalculando
             </th>
             <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Breakage
-            </th>
-            <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Después de AR
             </th>
             <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Total del Día
@@ -55,14 +55,14 @@ const TablaResumenArTrabajos = ({ datos, formatNumber }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
                   {formatNumber(fila.en_ar)}
                 </td>
+                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
+                  {formatNumber(fila.despues_de_ar)}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
                   {formatNumber(fila.recalculando)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
                   {formatNumber(fila.breakage)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
-                  {formatNumber(fila.despues_de_ar)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">
                   {formatNumber(totalDia)}
@@ -93,17 +93,17 @@ const TablaResumenArTrabajos = ({ datos, formatNumber }) => {
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {formatNumber(
+                datos.reduce((acc, curr) => acc + curr.despues_de_ar, 0)
+              )}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {formatNumber(
                 datos.reduce((acc, curr) => acc + curr.recalculando, 0)
               )}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {formatNumber(
                 datos.reduce((acc, curr) => acc + curr.breakage, 0)
-              )}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {formatNumber(
-                datos.reduce((acc, curr) => acc + curr.despues_de_ar, 0)
               )}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700 font-bold">

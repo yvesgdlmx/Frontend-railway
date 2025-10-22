@@ -208,6 +208,19 @@ const ResumenArTrabajos = () => {
                         </div>
                         <div className="bg-blue-50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
                           <span className="text-sm font-medium text-gray-600">
+                            Después de ar
+                          </span>
+                          <div className="text-2xl font-bold text-blue-700 mt-1">
+                            {formatNumber(
+                              bloque.datos.reduce(
+                                (acc, curr) => acc + curr.despues_de_ar,
+                                0
+                              )
+                            )}
+                          </div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
+                          <span className="text-sm font-medium text-gray-600">
                             Recalculando
                           </span>
                           <div className="text-2xl font-bold text-blue-700 mt-1">
@@ -227,19 +240,6 @@ const ResumenArTrabajos = () => {
                             {formatNumber(
                               bloque.datos.reduce(
                                 (acc, curr) => acc + curr.breakage,
-                                0
-                              )
-                            )}
-                          </div>
-                        </div>
-                        <div className="bg-blue-50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
-                          <span className="text-sm font-medium text-gray-600">
-                            Después de ar
-                          </span>
-                          <div className="text-2xl font-bold text-blue-700 mt-1">
-                            {formatNumber(
-                              bloque.datos.reduce(
-                                (acc, curr) => acc + curr.despues_de_ar,
                                 0
                               )
                             )}
