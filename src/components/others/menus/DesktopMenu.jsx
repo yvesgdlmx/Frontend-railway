@@ -151,6 +151,10 @@ const DesktopMenu = ({
                   label: "RESUMEN DE TRABAJOS",
                 },
                 {
+                  to: "/reportes_ar_resumen_trabajos",
+                  label: "RESUMEN AR POR ÁREA",
+                },
+                {
                   to: "/reportes_trabajos_sin_movimientos",
                   label: "TRABAJOS SIN MOVIMIENTOS",
                 },

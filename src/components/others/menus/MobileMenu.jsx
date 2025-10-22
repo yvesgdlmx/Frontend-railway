@@ -120,6 +120,7 @@ const MobileMenu = ({
                   { to: "/reportes_wip_diario", label: "WIP DIARIO" },
                   { to: "/reportes_trabajos_enviados", label: "TRABAJOS ENVIADOS" },
                   { to: "/reportes_resumen_trabajo", label: "RESUMEN DE TRABAJOS" },
+                   { to: "/reportes_ar_resumen_trabajos", label: "RESUMEN AR POR ÁREA" },
                   { to: "/reportes_trabajos_sin_movimientos", label: "TRABAJOS SIN MOVIMIENTOS" },
                   { to: "/reportes_de_flujo", label: "REPORTE DE FLUJO" },
                 ].map((item, index) => (
