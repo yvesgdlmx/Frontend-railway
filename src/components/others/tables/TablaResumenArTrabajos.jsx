@@ -25,13 +25,16 @@ const TablaResumenArTrabajos = ({ datos, formatNumber }) => {
               Breakage
             </th>
             <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Después de AR
+            </th>
+            <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Total del Día
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {datos.map((fila, index) => {
-            const totalDia = fila.en_ar + fila.antes_de_ar + fila.sin_surtir + fila.recalculando + fila.breakage;
+            const totalDia = fila.en_ar + fila.antes_de_ar + fila.sin_surtir + fila.recalculando + fila.breakage + fila.despues_de_ar;
             
             return (
               <tr
@@ -57,6 +60,9 @@ const TablaResumenArTrabajos = ({ datos, formatNumber }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
                   {formatNumber(fila.breakage)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
+                  {formatNumber(fila.despues_de_ar)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">
                   {formatNumber(totalDia)}
@@ -95,10 +101,15 @@ const TablaResumenArTrabajos = ({ datos, formatNumber }) => {
                 datos.reduce((acc, curr) => acc + curr.breakage, 0)
               )}
             </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {formatNumber(
+                datos.reduce((acc, curr) => acc + curr.despues_de_ar, 0)
+              )}
+            </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700 font-bold">
               {formatNumber(
                 datos.reduce((acc, curr) => {
-                  const totalDia = curr.en_ar + curr.antes_de_ar + curr.sin_surtir + curr.recalculando + curr.breakage;
+                  const totalDia = curr.en_ar + curr.antes_de_ar + curr.sin_surtir + curr.recalculando + curr.breakage + curr.despues_de_ar;
                   return acc + totalDia;
                 }, 0)
               )}
