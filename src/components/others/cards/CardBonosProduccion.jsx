@@ -16,31 +16,35 @@ const CardBonosProduccion = () => {
         // Configurar moment en español de forma global
         moment.locale('es');
 
-        // Calcular el rango de la semana actual
+        // Calcular el rango: sábado 22:00 -> siguiente sábado 21:59:59
         const ahora = moment().tz("America/Mexico_City");
-        let inicioSemana, finSemana;
+        const sabadoEstaSemana = ahora.clone().startOf('week').add(6, 'days'); // sábado 00:00
+        const sabadoEstaSemana22 = sabadoEstaSemana.clone().add(22, 'hours'); // sábado 22:00
 
-        if (ahora.day() === 0 && ahora.hour() < 22) {
-          inicioSemana = ahora.clone().subtract(1, "week").startOf("week").add(22, "hours");
+        let inicioSemana;
+        if (ahora.isBefore(sabadoEstaSemana22)) {
+          inicioSemana = sabadoEstaSemana22.clone().subtract(1, 'week'); // sábado 22:00 anterior
         } else {
-          inicioSemana = ahora.clone().startOf("week").add(22, "hours");
+          inicioSemana = sabadoEstaSemana22; // sábado 22:00 actual
         }
-        finSemana = inicioSemana.clone().add(7, "days").subtract(1, "seconds");
+        const finSemana = inicioSemana.clone().add(7, 'days').subtract(1, 'seconds'); // siguiente sábado 21:59:59
 
-        // Mapear días y meses manualmente en español
+        // Mapear días y meses manualmente en español (opcional, moment también los da)
         const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
                        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
         const inicioFormateado = `${diasSemana[inicioSemana.day()]} ${inicioSemana.date()} de ${meses[inicioSemana.month()]}`;
         const finFormateado = `${diasSemana[finSemana.day()]} ${finSemana.date()} de ${meses[finSemana.month()]}`;
-        
+
         setRangoSemana(`${inicioFormateado} a las 22:00 hasta ${finFormateado} a las 21:59`);
 
-        // Filtrar registros: solo los de la semana actual y del domingo anterior desde las 22:00
+        // Filtrar registros entre inicioSemana y finSemana
         const registrosFiltrados = registros.filter((registro) => {
+          const hora = registro.hour || "";
+          const horaCompleta = hora.length === 5 ? hora + ":00" : hora; // si viene "HH:mm" -> "HH:mm:00"
           const fechaHora = moment.tz(
-            `${registro.fecha} ${registro.hour.length === 5 ? registro.hour + ":00" : registro.hour}`,
+            `${registro.fecha} ${horaCompleta}`,
             "YYYY-MM-DD HH:mm:ss",
             "America/Mexico_City"
           );
