@@ -165,11 +165,10 @@ const Totales_Produccion_Tableros = () => {
             </div>
           </div>
         </div>
-       {/*<CardBonosProduccion />*/}
+        <CardBonosProduccion />
       </div>
     </div>
   );
 };
-
 
 export default Totales_Produccion_Tableros;
