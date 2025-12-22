@@ -47,6 +47,7 @@ const CargarMedia = lazy(() => import('./paginas/CargarMedia'));
 const EditarMetas = lazy(() => import('./paginas/metas/EditarMetas'))
 const ResumenArTrabajos = lazy(() => import('./paginas/reportes/ResumenArTrabajos'));
 const Pruebas = lazy(() => import('./paginas/Pruebas'));
+const ResumenDeResultado = lazy(() => import('./paginas/finanzas/ResumenDeResultado'))
 
 
 function App() {
@@ -95,6 +96,7 @@ function App() {
                   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                     <Route path='/finanzas_facturas' element={<Facturas/>} />
                     <Route path='/historial_facturas' element={<HistorialFacturas/>} />
+                    <Route path='/resumen_de_resultado' element={<ResumenDeResultado/>} />
                   </Route>
                   <Route element={<ProtectedRoute />}>
                     <Route path='/cargar_media' element={<CargarMedia/>} />

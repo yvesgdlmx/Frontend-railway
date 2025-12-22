@@ -23,6 +23,7 @@ import { RecubrimientoEstacionProvider } from "./estacion/RecubrimientoEstacionP
 import { BiseladoEstacionLAProvider } from "./estacionLA/BiseladoEstacionLAContext";
 import { GeneradoEstacionLAProvider } from "./estacionLA/GeneradoEstacionLAContext";
 import { PulidoEstacionLAProvider } from "./estacionLA/PulidoEstacionLAContext";
+import { ResumenResultadosProvider } from "./reportes/ResumenResultadosProvider";
 
 const AppProviders = ({ children }) => {
   return (
@@ -50,7 +51,9 @@ const AppProviders = ({ children }) => {
                                               <BiseladoEstacionLAProvider>
                                                 <GeneradoEstacionLAProvider>
                                                   <PulidoEstacionLAProvider>
-                                                    {children}
+                                                    <ResumenResultadosProvider>
+                                                      {children}
+                                                    </ResumenResultadosProvider>
                                                   </PulidoEstacionLAProvider>
                                                 </GeneradoEstacionLAProvider>
                                               </BiseladoEstacionLAProvider>
