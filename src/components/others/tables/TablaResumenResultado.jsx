@@ -2,17 +2,17 @@ import React, { useRef, useEffect, useState } from 'react'
 
 const TablaResumenResultado = ({ datos }) => {
   const formatNumber = (num) => {
-    if (num === null || num === undefined) return 'SIN MAILOUT'
+    if (num === null || num === undefined) return '0'
     return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   const formatInteger = (num) => {
-    if (num === null || num === undefined) return 'SIN MAILOUT'
+    if (num === null || num === undefined) return '0'
     return Math.round(num).toLocaleString('es-MX')
   }
 
   const formatCurrency = (num) => {
-    if (num === null || num === undefined) return 'SIN MAILOUT'
+    if (num === null || num === undefined) return '0'
     return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
