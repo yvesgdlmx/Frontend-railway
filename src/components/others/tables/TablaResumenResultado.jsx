@@ -1,18 +1,31 @@
 import React, { useRef, useEffect, useState } from 'react'
 
 const TablaResumenResultado = ({ datos }) => {
-  const formatNumber = (num) => {
-    if (num === null || num === undefined) return '0'
+  // Verificar si una fecha es del día actual
+  const esHoy = (fecha) => {
+    const hoy = new Date();
+    const fechaRegistro = new Date(fecha + 'T00:00:00');
+    return fechaRegistro.toDateString() === hoy.toDateString();
+  }
+
+  const formatNumber = (num, fecha) => {
+    if (num === null || num === undefined) {
+      return esHoy(fecha) ? 'ESPERANDO...' : '0';
+    }
     return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
-  const formatInteger = (num) => {
-    if (num === null || num === undefined) return '0'
+  const formatInteger = (num, fecha) => {
+    if (num === null || num === undefined) {
+      return esHoy(fecha) ? 'ESPERANDO...' : '0';
+    }
     return Math.round(num).toLocaleString('es-MX')
   }
 
-  const formatCurrency = (num) => {
-    if (num === null || num === undefined) return '0'
+  const formatCurrency = (num, fecha) => {
+    if (num === null || num === undefined) {
+      return esHoy(fecha) ? 'ESPERANDO...' : '0';
+    }
     return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
@@ -192,30 +205,30 @@ const TablaResumenResultado = ({ datos }) => {
             <tr key={index} className={`border-t border-gray-200 hover:bg-blue-100 ${index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}`}>
               <td className="py-3 px-5 border border-white sticky left-0 bg-inherit z-10 font-bold whitespace-nowrap bg-yellow-100 text-orange-400">{fila.semana}</td>
               <td className="py-3 px-5 border border-white sticky left-[73px] bg-inherit z-10 font-bold whitespace-nowrap bg-yellow-100 text-orange-400">{fila.diario}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.metaSF)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.realSF)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferenciaSF)}`}>{formatInteger(fila.diferenciaSF)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoSF)}`}>{formatInteger(fila.acumuladoSF)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.metaF)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.realF)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferenciaF)}`}>{formatInteger(fila.diferenciaF)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoF)}`}>{formatInteger(fila.acumuladoF)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.proyectadoSuma)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.realSuma)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.trabajosNocturno)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.trabajosMat)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.trabajosVesp)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaNocturno)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaMat)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaVesp)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorNocturno)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorMat)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorVesp)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.factProyect)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.facturacionReal)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferencia2)}`}>{formatCurrency(fila.diferencia2)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoMensual)}`}>{formatCurrency(fila.acumuladoMensual)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoAnual)}`}>{formatCurrency(fila.acumuladoAnual)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.metaSF, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.realSF, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferenciaSF)}`}>{formatInteger(fila.diferenciaSF, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoSF)}`}>{formatInteger(fila.acumuladoSF, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.metaF, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.realF, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferenciaF)}`}>{formatInteger(fila.diferenciaF, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoF)}`}>{formatInteger(fila.acumuladoF, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.proyectadoSuma, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.realSuma, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.trabajosNocturno, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.trabajosMat, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.trabajosVesp, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaNocturno, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaMat, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaVesp, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorNocturno, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorMat, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorVesp, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.factProyect, fila.diario)}</td>
+              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.facturacionReal, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferencia2)}`}>{formatCurrency(fila.diferencia2, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoMensual)}`}>{formatCurrency(fila.acumuladoMensual, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoAnual)}`}>{formatCurrency(fila.acumuladoAnual, fila.diario)}</td>
             </tr>
           ))}
         </tbody>
