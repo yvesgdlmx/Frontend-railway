@@ -15,7 +15,6 @@ const ResumenDeResultado = () => {
     modalAsistenciasOpen,
     abrirModalMetasDiarias,
     cerrarModalMetasDiarias,
-    abrirModalAsistencias,
     cerrarModalAsistencias
   } = useResumenResultados();
   const [fechaBusqueda, setFechaBusqueda] = useState('');
@@ -78,17 +77,6 @@ const ResumenDeResultado = () => {
 
         {/* Botones de configuración */}
         <div className="flex gap-3 w-full sm:w-auto">
-          <button
-            onClick={abrirModalAsistencias}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 
-                     hover:from-purple-700 hover:to-purple-800 text-white rounded-lg font-semibold 
-                     transition-all duration-200 shadow-lg hover:shadow-xl 
-                     transform hover:-translate-y-0.5 flex-1 sm:flex-none justify-center"
-          >
-            <UserGroupIcon className="h-5 w-5" />
-            <span>Asistencias</span>
-          </button>
-
           <button
             onClick={abrirModalMetasDiarias}
             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 

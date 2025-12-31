@@ -1,11 +1,11 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import useAuth from '../../../../hooks/useAuth';
+import React from "react";
+import { Link } from "react-router-dom";
+import useAuth from "../../../../hooks/useAuth";
 const MobileMenuWhite = ({ closeMobileMenu }) => {
   const { auth, cerrarSesionAuth } = useAuth();
   const handleLogout = () => {
     cerrarSesionAuth();
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     closeMobileMenu();
   };
   const handleClick = () => {
@@ -16,9 +16,22 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
       <div className="bg-white w-80 h-full shadow-lg overflow-y-auto transform transition-transform duration-300 ease-in-out">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-2xl font-semibold text-gray-800">Menú</h2>
-          <button onClick={closeMobileMenu} className="text-gray-600 hover:text-gray-800 transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+          <button
+            onClick={closeMobileMenu}
+            className="text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
             </svg>
           </button>
         </div>
@@ -27,7 +40,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
             {auth && auth.id && (
               <li>
                 <Link
-                  to={'/cargar_media'}
+                  to={"/cargar_media"}
                   onClick={handleClick}
                   className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-6"
                 >
@@ -37,7 +50,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
             )}
             <li>
               <Link
-                to={'/procesos_LA'}
+                to={"/procesos_LA"}
                 onClick={handleClick}
                 className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-6"
               >
@@ -46,24 +59,52 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
             </li>
             <li>
               <Link
-                to={'/'}
+                to={"/"}
                 onClick={handleClick}
                 className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors ml-6"
               >
                 Producción
               </Link>
             </li>
+            <li>
+              <p className="flex items-center p-3 text-gray-700 font-semibold">
+                Mermas
+              </p>
+              <ul className="ml-6 mt-2 space-y-2">
+                <li>
+                  <Link
+                    to={"/mermas_por_hora"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    mermas por hora
+                  </Link>
+                </li>
+              </ul>
+            </li>
             {auth && auth.id && (
-              <li>
-                {/* Enlace directo para "Metas" a la ruta "/editar_metas" */}
-                <Link
-                  to="/editar_metas"
-                  onClick={handleClick}
-                  className="flex items-center py-3 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors ml-3"
-                >
-                  Metas
-                </Link>
-              </li>
+              <>
+                <li>
+                  {/* Enlace directo para "Metas" a la ruta "/editar_metas" */}
+                  <Link
+                    to="/editar_metas"
+                    onClick={handleClick}
+                    className="flex items-center py-3 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors ml-3"
+                  >
+                    Metas
+                  </Link>
+                </li>
+                <li>
+                  {/* Enlace directo para "Metas" a la ruta "/editar_metas" */}
+                  <Link
+                    to="/asistencias"
+                    onClick={handleClick}
+                    className="flex items-center py-3 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors ml-3"
+                  >
+                    Asistencias
+                  </Link>
+                </li>
+              </>
             )}
             <li>
               <p className="flex items-center p-3 text-gray-700 font-semibold">
@@ -72,7 +113,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
               <ul className="ml-6 mt-2 space-y-2">
                 <li>
                   <Link
-                    to={'/historial_por_dia'}
+                    to={"/historial_por_dia"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -81,7 +122,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/historial_por_rangos'}
+                    to={"/historial_por_rangos"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -97,7 +138,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
               <ul className="ml-6 mt-2 space-y-2">
                 <li>
                   <Link
-                    to={'/reportes'}
+                    to={"/reportes"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -106,7 +147,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/reportes_antiguedad'}
+                    to={"/reportes_antiguedad"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -115,7 +156,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/reportes_trabajos_nuevos'}
+                    to={"/reportes_trabajos_nuevos"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -124,7 +165,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/reportes_wip_diario'}
+                    to={"/reportes_wip_diario"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -133,7 +174,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/reportes_trabajos_enviados'}
+                    to={"/reportes_trabajos_enviados"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -142,16 +183,16 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/reportes_resumen_trabajo'}
+                    to={"/reportes_resumen_trabajo"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     Resumen de trabajos
                   </Link>
                 </li>
-                 <li>
+                <li>
                   <Link
-                    to={'/reportes_ar_resumen_trabajos'}
+                    to={"/reportes_ar_resumen_trabajos"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -160,7 +201,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/reportes_trabajos_sin_movimientos'}
+                    to={"/reportes_trabajos_sin_movimientos"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -169,7 +210,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
-                    to={'/reportes_de_flujo'}
+                    to={"/reportes_de_flujo"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -190,7 +231,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
             </button>
           ) : (
             <Link
-              to={'/auth'}
+              to={"/auth"}
               onClick={handleClick}
               className="block w-full py-2 px-4 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors"
             >

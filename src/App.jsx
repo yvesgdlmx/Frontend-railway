@@ -48,6 +48,7 @@ const EditarMetas = lazy(() => import('./paginas/metas/EditarMetas'))
 const ResumenArTrabajos = lazy(() => import('./paginas/reportes/ResumenArTrabajos'));
 const Pruebas = lazy(() => import('./paginas/Pruebas'));
 const ResumenDeResultado = lazy(() => import('./paginas/finanzas/ResumenDeResultado'))
+const Asistencias = lazy(() => import('./paginas/metas/Asistencias'));
 
 
 function App() {
@@ -101,6 +102,7 @@ function App() {
                   <Route element={<ProtectedRoute />}>
                     <Route path='/cargar_media' element={<CargarMedia/>} />
                     <Route path='/editar_metas' element={<EditarMetas/>}/>
+                    <Route path='/asistencias' element={<Asistencias/>}/>
                   </Route>
                 </Route>
                 <Route path='/auth' element={<AuthLayout />}>

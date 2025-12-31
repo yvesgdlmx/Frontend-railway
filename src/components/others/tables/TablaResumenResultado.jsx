@@ -12,6 +12,7 @@ const TablaResumenResultado = ({ datos }) => {
     if (num === null || num === undefined) {
       return esHoy(fecha) ? 'ESPERANDO...' : '0';
     }
+    if (num === 0) return '0.00';
     return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
@@ -35,6 +36,16 @@ const TablaResumenResultado = ({ datos }) => {
     return num > 0 
       ? 'text-green-500 font-bold bg-green-200' 
       : 'text-red-500 font-bold bg-red-200'
+  }
+
+  // Función para obtener clase de color para indicadores
+  const getIndicadorColorClass = (num) => {
+    // Si es null, undefined o 0 → ROJO
+    if (num === null || num === undefined || num === 0) return 'text-red-500 font-bold bg-red-200'
+    // Si es mayor a 4.0 → VERDE
+    if (num > 4.0) return 'text-green-500 font-bold bg-green-200'
+    // Si es mayor a 0 pero menor o igual a 4.0 → ROJO
+    return 'text-red-500 font-bold bg-red-200'
   }
 
   // Sticky header logic
@@ -221,9 +232,9 @@ const TablaResumenResultado = ({ datos }) => {
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaNocturno, fila.diario)}</td>
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaMat, fila.diario)}</td>
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaVesp, fila.diario)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorNocturno, fila.diario)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorMat, fila.diario)}</td>
-              <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatNumber(fila.indicadorVesp, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getIndicadorColorClass(fila.indicadorNocturno)}`}>{formatNumber(fila.indicadorNocturno, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getIndicadorColorClass(fila.indicadorMat)}`}>{formatNumber(fila.indicadorMat, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getIndicadorColorClass(fila.indicadorVesp)}`}>{formatNumber(fila.indicadorVesp, fila.diario)}</td>
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.factProyect, fila.diario)}</td>
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.facturacionReal, fila.diario)}</td>
               <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferencia2)}`}>{formatCurrency(fila.diferencia2, fila.diario)}</td>

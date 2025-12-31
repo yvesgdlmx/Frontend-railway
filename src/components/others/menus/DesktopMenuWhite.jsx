@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'; 
 import { Link } from 'react-router-dom'; 
 import useAuth from '../../../../hooks/useAuth'; 
+
 const DesktopMenuWhite = () => { 
   const [menuVisible, setMenuVisible] = useState(''); 
   const menuRefs = { 
@@ -9,12 +10,15 @@ const DesktopMenuWhite = () => {
     metas: useRef(null), 
     tableros: useRef(null), 
     historial: useRef(null), 
-    reportes: useRef(null) 
+    reportes: useRef(null),
+    asistencias: useRef(null),
   }; 
   const { auth, cerrarSesionAuth } = useAuth(); 
+  
   const toggleMenu = (menu) => { 
     setMenuVisible((prevMenu) => (prevMenu === menu ? '' : menu)); 
   }; 
+  
   const handleClickOutside = (event) => { 
     const isClickInsideAnyMenu = Object.keys(menuRefs).some( 
       (menu) => menuRefs[menu].current && menuRefs[menu].current.contains(event.target) 
@@ -23,17 +27,21 @@ const DesktopMenuWhite = () => {
       setMenuVisible(''); 
     } 
   }; 
+  
   useEffect(() => { 
     document.addEventListener('mousedown', handleClickOutside); 
     return () => document.removeEventListener('mousedown', handleClickOutside); 
   }, []); 
+  
   const handleMenuItemClick = () => { 
     setMenuVisible(''); 
   }; 
+  
   const handleLogout = () => { 
     cerrarSesionAuth(); 
     localStorage.removeItem('token'); 
   }; 
+  
   return ( 
     <nav className="hidden lg:block"> 
       <div className="flex gap-8 font-semibold uppercase text-sm text-gray-500"> 
@@ -42,12 +50,15 @@ const DesktopMenuWhite = () => {
             <p className="uppercase">Avisos</p> 
           </Link> 
         )} 
+        
         <Link to="/procesos_LA"> 
           <p>Producción LA</p> 
         </Link> 
+        
         <Link to="/"> 
           <p>Producción</p> 
         </Link> 
+        
         {auth && auth.id && auth.rol === 'admin' && ( 
           <div className="relative" ref={menuRefs.finanzas}> 
             <button 
@@ -69,23 +80,44 @@ const DesktopMenuWhite = () => {
                       <p className="block px-4 py-2 hover:bg-gray-100">Historial por rangos</p> 
                     </Link> 
                   </li> 
+                  <li> 
+                    <Link to="/resumen_de_resultado" onClick={handleMenuItemClick}> 
+                      <p className="block px-4 py-2 hover:bg-gray-100">Resumen de resultados</p> 
+                    </Link> 
+                  </li> 
                 </ul> 
               </div> 
             )} 
           </div> 
         )} 
+        
         {auth && auth.id && ( 
-          <> 
-            <Link 
-              to="/editar_metas" 
-              onClick={handleMenuItemClick} 
-              className="uppercase hover:text-gray-300" 
-              ref={menuRefs.metas} 
+          <div className="relative" ref={menuRefs.metas}> 
+            <button 
+              onClick={() => toggleMenu('metas')} 
+              className="hover:text-gray-900 focus:outline-none uppercase" 
             > 
               Metas 
-            </Link> 
-          </> 
+            </button> 
+            {menuVisible === 'metas' && ( 
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg"> 
+                <ul className="py-1 text-slate-700"> 
+                  <li> 
+                    <Link to="/editar_metas" onClick={handleMenuItemClick}> 
+                      <p className="block px-4 py-2 hover:bg-gray-100">Metas de Producción</p> 
+                    </Link> 
+                  </li> 
+                  <li> 
+                    <Link to="/asistencias" onClick={handleMenuItemClick}> 
+                      <p className="block px-4 py-2 hover:bg-gray-100">Captura de Asistencias</p> 
+                    </Link> 
+                  </li> 
+                </ul> 
+              </div> 
+            )} 
+          </div> 
         )} 
+        
         <div className="relative" ref={menuRefs.tableros}> 
           <button 
             onClick={() => toggleMenu('tableros')} 
@@ -120,6 +152,7 @@ const DesktopMenuWhite = () => {
             </div> 
           )} 
         </div> 
+        
         <div className="relative" ref={menuRefs.historial}> 
           <button 
             onClick={() => toggleMenu('historial')} 
@@ -144,6 +177,7 @@ const DesktopMenuWhite = () => {
             </div> 
           )} 
         </div> 
+        
         <div className="relative" ref={menuRefs.reportes}> 
           <button 
             onClick={() => toggleMenu('reportes')} 
@@ -183,7 +217,7 @@ const DesktopMenuWhite = () => {
                   <Link to="/reportes_resumen_trabajo" onClick={handleMenuItemClick}> 
                     <p className="block px-4 py-2 hover:bg-gray-100">Resumen de trabajos</p> 
                   </Link> 
-                </li>
+                </li> 
                 <li> 
                   <Link to="/reportes_ar_resumen_trabajos" onClick={handleMenuItemClick}> 
                     <p className="block px-4 py-2 hover:bg-gray-100">Resumen AR por área</p> 
@@ -203,6 +237,7 @@ const DesktopMenuWhite = () => {
             </div> 
           )} 
         </div> 
+        
         {auth && auth.id ? ( 
           <button 
             onClick={handleLogout} 
@@ -219,4 +254,5 @@ const DesktopMenuWhite = () => {
     </nav> 
   ); 
 }; 
+
 export default DesktopMenuWhite;
