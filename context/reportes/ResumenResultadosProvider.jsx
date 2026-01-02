@@ -10,29 +10,28 @@ const ResumenResultadosProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [modalMetasDiariasOpen, setModalMetasDiariasOpen] = useState(false);
   const [modalAsistenciasOpen, setModalAsistenciasOpen] = useState(false);
+  const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
 
-  const obtenerDatos = async () => {
+  const obtenerDatos = async (anio = anioSeleccionado) => {
     try {
       setLoading(true);
       
-      // Obtener datos de resumen
-      const { data } = await clienteAxios.get('/reportes/resumen_resultados');
+      // Obtener datos de resumen con filtro de año usando params
+      const { data } = await clienteAxios.get(`/reportes/resumen_resultados/${anio}`);
       
-      // 🆕 FILTRAR SOLO REGISTROS HASTA HOY (INCLUSIVE)
+      // Filtrar solo registros hasta hoy (inclusive)
       const fechaActual = new Date();
-      fechaActual.setHours(0, 0, 0, 0); // Resetear a medianoche para comparación exacta
+      fechaActual.setHours(0, 0, 0, 0);
       
       const registrosFiltrados = data.filter(registro => {
         const fechaRegistro = new Date(registro.diario + 'T00:00:00');
-        return fechaRegistro <= fechaActual; // Solo registros <= fecha actual
+        return fechaRegistro <= fechaActual;
       });
       
-      // Ordenar por fecha para calcular correctamente
       const datosOrdenados = [...registrosFiltrados].sort((a, b) => 
         new Date(a.diario) - new Date(b.diario)
       );
 
-      // Variables para acumulados
       let acumuladoSFMensual = 0;
       let acumuladoFMensual = 0;
       let acumuladoFacturacionMensual = 0;
@@ -41,20 +40,17 @@ const ResumenResultadosProvider = ({ children }) => {
       let mesActual = null;
       let anioActual = null;
 
-      // Mapear los datos de la API a la estructura que espera la tabla
       const datosMapeados = datosOrdenados.map(registro => {
         const fechaRegistro = new Date(registro.diario + 'T00:00:00');
         const mesRegistro = `${fechaRegistro.getFullYear()}-${fechaRegistro.getMonth()}`;
         const anioRegistro = fechaRegistro.getFullYear();
         
-        // Reiniciar acumulados mensuales si cambió el mes
         if (mesActual !== null && mesActual !== mesRegistro) {
           acumuladoSFMensual = 0;
           acumuladoFMensual = 0;
           acumuladoFacturacionMensual = 0;
         }
         
-        // Reiniciar acumulado anual si cambió el año
         if (anioActual !== null && anioActual !== anioRegistro) {
           acumuladoFacturacionAnual = 0;
         }
@@ -62,12 +58,10 @@ const ResumenResultadosProvider = ({ children }) => {
         mesActual = mesRegistro;
         anioActual = anioRegistro;
 
-        // AHORA LAS METAS VIENEN DIRECTAMENTE DEL REGISTRO
         const metaSF = registro.meta_sf || null;
         const metaF = registro.meta_f || null;
         const metaFacturacion = registro.fact_proyect || null;
 
-        // Calcular diferencias SF y F
         const diferenciaSF = registro.real_sf && metaSF 
           ? registro.real_sf - metaSF 
           : 0;
@@ -76,54 +70,45 @@ const ResumenResultadosProvider = ({ children }) => {
           ? registro.real_f - metaF 
           : 0;
 
-        // Sumar al acumulado mensual SF y F
         acumuladoSFMensual += diferenciaSF;
         acumuladoFMensual += diferenciaF;
 
-        // Calcular proyectadoSuma (META SF + META F)
         const proyectadoSuma = (metaSF !== null && metaF !== null) 
           ? metaSF + metaF 
           : null;
 
-        // Calcular diferencia de facturación
         const diferenciaFacturacion = registro.facturacion_real && metaFacturacion
           ? parseFloat(registro.facturacion_real) - metaFacturacion
           : 0;
 
-        // Sumar al acumulado mensual y anual de facturación
         acumuladoFacturacionMensual += diferenciaFacturacion;
         acumuladoFacturacionAnual += diferenciaFacturacion;
 
-        // CÁLCULO DE INDICADORES DE PRODUCTIVIDAD
-        
-        // Indicador Nocturno = (Trabajos Nocturno / Asistencia Nocturno) / 8 horas
         const indicadorNocturno = (registro.trabajos_nocturno > 0 && registro.asistencia_nocturno > 0)
           ? (registro.trabajos_nocturno / registro.asistencia_nocturno) / 8
           : null;
 
-        // Indicador Matutino = (Trabajos Mat / Asistencia Mat) / 8 horas
         const indicadorMat = (registro.trabajos_mat > 0 && registro.asistencia_mat > 0)
           ? (registro.trabajos_mat / registro.asistencia_mat) / 8
           : null;
 
-        // Indicador Vespertino = (Trabajos Vesp / Asistencia Vesp) / 7 horas
         const indicadorVesp = (registro.trabajos_vesp > 0 && registro.asistencia_vesp > 0)
           ? (registro.trabajos_vesp / registro.asistencia_vesp) / 7
           : null;
 
-        const registroMapeado = {
+        return {
           id: registro.id,
           semana: registro.semana,
           diario: registro.diario,
-          metaSF: metaSF,
+          metaSF,
           realSF: registro.real_sf,
-          diferenciaSF: diferenciaSF,
+          diferenciaSF,
           acumuladoSF: acumuladoSFMensual,
-          metaF: metaF,
+          metaF,
           realF: registro.real_f,
-          diferenciaF: diferenciaF,
+          diferenciaF,
           acumuladoF: acumuladoFMensual,
-          proyectadoSuma: proyectadoSuma,
+          proyectadoSuma,
           realSuma: registro.real_suma,
           trabajosNocturno: registro.trabajos_nocturno,
           trabajosMat: registro.trabajos_mat,
@@ -131,17 +116,15 @@ const ResumenResultadosProvider = ({ children }) => {
           asistenciaNocturno: registro.asistencia_nocturno,
           asistenciaMat: registro.asistencia_mat,
           asistenciaVesp: registro.asistencia_vesp,
-          indicadorNocturno: indicadorNocturno,
-          indicadorMat: indicadorMat,
-          indicadorVesp: indicadorVesp,
+          indicadorNocturno,
+          indicadorMat,
+          indicadorVesp,
           factProyect: metaFacturacion,
           facturacionReal: registro.facturacion_real,
           diferencia2: diferenciaFacturacion,
           acumuladoMensual: acumuladoFacturacionMensual,
           acumuladoAnual: acumuladoFacturacionAnual
         };
-
-        return registroMapeado;
       });
 
       setDatos(datosMapeados);
@@ -152,9 +135,9 @@ const ResumenResultadosProvider = ({ children }) => {
     }
   };
 
-  const obtenerTodosLosDatos = async () => {
+  const obtenerTodosLosDatos = async (anio = anioSeleccionado) => {
     try {
-      const { data } = await clienteAxios.get('/reportes/resumen_resultados/todos');
+      const { data } = await clienteAxios.get(`/reportes/resumen_resultados/todos/${anio}`);
 
       const datosMapeados = data.map(registro => ({
         id: registro.id,
@@ -167,10 +150,10 @@ const ResumenResultadosProvider = ({ children }) => {
         realF: registro.real_f,
         trabajosNocturno: registro.trabajos_nocturno,
         trabajosMat: registro.trabajos_mat,
-        trabajosVesp: registro.trabajosVesp,
+        trabajosVesp: registro.trabajos_vesp,
         asistenciaNocturno: registro.asistencia_nocturno,
         asistenciaMat: registro.asistencia_mat,
-        asistenciaVesp: registro.asistenciaVesp
+        asistenciaVesp: registro.asistencia_vesp
       }))
 
       setTodosLosDatos(datosMapeados);
@@ -180,9 +163,13 @@ const ResumenResultadosProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    obtenerDatos();
-    obtenerTodosLosDatos();
-  }, []);
+    obtenerDatos(anioSeleccionado);
+    obtenerTodosLosDatos(anioSeleccionado);
+  }, [anioSeleccionado]);
+
+  const cambiarAnio = (nuevoAnio) => {
+    setAnioSeleccionado(nuevoAnio);
+  };
 
   const abrirModalMetasDiarias = () => setModalMetasDiariasOpen(true);
   const cerrarModalMetasDiarias = () => setModalMetasDiariasOpen(false);
@@ -204,8 +191,8 @@ const ResumenResultadosProvider = ({ children }) => {
         showConfirmButton: false
       });
 
-      await obtenerDatos();
-      await obtenerTodosLosDatos();
+      await obtenerDatos(anioSeleccionado);
+      await obtenerTodosLosDatos(anioSeleccionado);
       return true;
       
     } catch (error) {
@@ -233,8 +220,8 @@ const ResumenResultadosProvider = ({ children }) => {
         showConfirmButton: false
       });
 
-      await obtenerDatos();
-      await obtenerTodosLosDatos();
+      await obtenerDatos(anioSeleccionado);
+      await obtenerTodosLosDatos(anioSeleccionado);
       return true;
       
     } catch (error) {
@@ -251,15 +238,15 @@ const ResumenResultadosProvider = ({ children }) => {
   return (
     <ResumenResultadosContext.Provider
       value={{
-        // Estados
         datos,
         todosLosDatos,
         loading,
         modalMetasDiariasOpen,
         modalAsistenciasOpen,
-        // Funciones
+        anioSeleccionado,
         obtenerDatos,
         obtenerTodosLosDatos,
+        cambiarAnio,
         abrirModalMetasDiarias,
         cerrarModalMetasDiarias,
         actualizarMetasDiarias,
