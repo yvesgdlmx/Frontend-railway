@@ -88,8 +88,11 @@ const ResumenResultadosProvider = ({ children }) => {
           ? (registro.trabajos_nocturno / registro.asistencia_nocturno) / 8
           : null;
 
-        const indicadorMat = (registro.trabajos_mat > 0 && registro.asistencia_mat > 0)
-          ? (registro.trabajos_mat / registro.asistencia_mat) / 8
+        // Combinar indicadores nocturno y matutino
+        const trabajosNocturnoMat = registro.trabajos_nocturno + registro.trabajos_mat;
+        const asistenciaNocturnoMat = registro.asistencia_nocturno + registro.asistencia_mat;
+        const indicadorNocturnoMat = (trabajosNocturnoMat > 0 && asistenciaNocturnoMat > 0)
+          ? (trabajosNocturnoMat / asistenciaNocturnoMat) / 16
           : null;
 
         const indicadorVesp = (registro.trabajos_vesp > 0 && registro.asistencia_vesp > 0)
@@ -117,7 +120,7 @@ const ResumenResultadosProvider = ({ children }) => {
           asistenciaMat: registro.asistencia_mat,
           asistenciaVesp: registro.asistencia_vesp,
           indicadorNocturno,
-          indicadorMat,
+          indicadorNocturnoMat,
           indicadorVesp,
           factProyect: metaFacturacion,
           facturacionReal: registro.facturacion_real,

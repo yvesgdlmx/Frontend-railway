@@ -161,14 +161,14 @@ const TablaResumenResultado = ({ datos }) => {
               <th style={{ width: colWidths[10] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">PROYECTADO SUMA</th>
               <th style={{ width: colWidths[11] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">REAL SUMA</th>
               <th style={{ width: colWidths[12] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS NOCTURNO</th>
-              <th style={{ width: colWidths[13] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS MAT</th>
-              <th style={{ width: colWidths[14] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS VESP</th>
+              <th style={{ width: colWidths[13] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS MATUTINO</th>
+              <th style={{ width: colWidths[14] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS VESPERTINO</th>
               <th style={{ width: colWidths[15] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA NOCTURNO</th>
-              <th style={{ width: colWidths[16] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA MAT</th>
-              <th style={{ width: colWidths[17] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA VESP</th>
-              <th style={{ width: colWidths[18] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">INDICADOR NOCTURNO</th>
-              <th style={{ width: colWidths[19] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">INDICADOR MAT</th>
-              <th style={{ width: colWidths[20] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">INDICADOR VESP</th>
+              <th style={{ width: colWidths[16] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA MATUTINO</th>
+              <th style={{ width: colWidths[17] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA VESPERTINO</th>
+              <th style={{ width: colWidths[18] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">OHO NOCTURNO</th>
+              <th style={{ width: colWidths[19] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">OHO MATUTINO</th>
+              <th style={{ width: colWidths[20] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">OHO VESPERTINO</th>
               <th style={{ width: colWidths[21] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">FACT PROYECT</th>
               <th style={{ width: colWidths[22] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">FACTURACIÓN REAL</th>
               <th style={{ width: colWidths[23] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIFERENCIA</th>
@@ -196,14 +196,14 @@ const TablaResumenResultado = ({ datos }) => {
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">PROYECTADO SUMA</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">REAL SUMA</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS NOCTURNO</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS MAT</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS VESP</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS MATUTINO</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">TRABAJOS VESPERTINO</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA NOCTURNO</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA MAT</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA VESP</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">INDICADOR NOCTURNO</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">INDICADOR MAT</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">INDICADOR VESP</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA MATUTINO</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ASISTENCIA VESPERTINO</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">OHO NOCTURNO</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">OHO MATUTINO</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">OHO VESPERTINO</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">FACT PROYECT</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">FACTURACIÓN REAL</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIFERENCIA</th>
@@ -233,7 +233,7 @@ const TablaResumenResultado = ({ datos }) => {
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaMat, fila.diario)}</td>
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatInteger(fila.asistenciaVesp, fila.diario)}</td>
               <td className={`py-3 px-5 border whitespace-nowrap ${getIndicadorColorClass(fila.indicadorNocturno)}`}>{formatNumber(fila.indicadorNocturno, fila.diario)}</td>
-              <td className={`py-3 px-5 border whitespace-nowrap ${getIndicadorColorClass(fila.indicadorMat)}`}>{formatNumber(fila.indicadorMat, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getIndicadorColorClass(fila.indicadorNocturnoMat)}`}>{formatNumber(fila.indicadorNocturnoMat, fila.diario)}</td>
               <td className={`py-3 px-5 border whitespace-nowrap ${getIndicadorColorClass(fila.indicadorVesp)}`}>{formatNumber(fila.indicadorVesp, fila.diario)}</td>
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.factProyect, fila.diario)}</td>
               <td className="py-3 px-5 border text-gray-500 whitespace-nowrap">{formatCurrency(fila.facturacionReal, fila.diario)}</td>
