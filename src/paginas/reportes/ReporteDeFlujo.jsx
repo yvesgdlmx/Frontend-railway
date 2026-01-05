@@ -6,9 +6,9 @@ import TablaFlujoWip from "../../components/others/tables/TablaFlujoWip";
 
 // Opciones para los selects
 const opcionesAnios = [
+  { value: "2026", label: "2026" },
   { value: "2025", label: "2025" },
   { value: "2024", label: "2024" },
-  { value: "2023", label: "2023" },
 ];
 const opcionesMeses = [
   { value: "01", label: "Enero" },
