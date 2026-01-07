@@ -126,11 +126,11 @@ const CardResumenResultado = ({ datos }) => {
               <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">(Finished (F) + Semi-finished (SF))</h4>
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center">
-                  <p className="text-xs text-gray-500 mb-1">Proyectado (F) + (SF)</p>
+                  <p className="text-xs text-gray-500 mb-1">Proyectado</p>
                   <p className="text-lg font-semibold text-gray-700">{formatInteger(fila.proyectadoSuma, fila.diario)}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-gray-500 mb-1">Real (F) + (SF)</p>
+                  <p className="text-xs text-gray-500 mb-1">Real</p>
                   <p className="text-lg font-semibold text-gray-700">{formatInteger(fila.realSuma, fila.diario)}</p>
                 </div>
               </div>
