@@ -3,11 +3,10 @@ import { format, parseISO, differenceInDays, endOfWeek, eachWeekOfInterval, star
 import { es } from 'date-fns/locale';
 import { formatNumber } from '../../../helpers/formatNumber';
 
-const agruparPorSemana = (registros, mes) => {
-  if (!registros || registros.length === 0 || !mes) return [];
-  const año = new Date().getFullYear();
-  const fechaInicio = startOfMonth(new Date(año, mes - 1, 1));
-  const fechaFin = endOfMonth(new Date(año, mes - 1, 1));
+const agruparPorSemana = (registros, mes, anio) => {
+  if (!registros || registros.length === 0 || !mes || !anio) return [];
+  const fechaInicio = startOfMonth(new Date(anio, mes - 1, 1));
+  const fechaFin = endOfMonth(new Date(anio, mes - 1, 1));
   const semanas = eachWeekOfInterval(
     { start: fechaInicio, end: fechaFin },
     { weekStartsOn: 1 }
@@ -31,8 +30,9 @@ const agruparPorSemana = (registros, mes) => {
   });
   return semanas;
 };
-const CardRepoAntiguedad = ({ registros, mes }) => {
-  const semanasAgrupadas = agruparPorSemana(registros, mes);
+
+const CardRepoAntiguedad = ({ registros, mes, anio }) => {
+  const semanasAgrupadas = agruparPorSemana(registros, mes, anio);
   return (
     <div className="mt-8 mb-8 bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-semibold mb-4 text-blue-600">Resumen Semanal</h3>

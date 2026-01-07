@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import clienteAxios from '../../../config/clienteAxios';
-import { format, parseISO, differenceInDays, startOfWeek, endOfWeek, eachWeekOfInterval, startOfMonth, endOfMonth } from 'date-fns';
+import { format, parseISO, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Heading from '../../components/others/Heading';
 import { formatNumber } from '../../helpers/formatNumber';
@@ -11,21 +11,34 @@ import TablaRepoAntiguedad from '../../components/others/tables/TablaRepoAntigue
 const ReporteAntiguedad = () => {
   const [registros, setRegistros] = useState([]);
   const [mes, setMes] = useState('');
+  const [anio, setAnio] = useState('');
   const [totalRegistrosAntiguos, setTotalRegistrosAntiguos] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // Definición de nombres de meses
+
   const nombresMeses = {
     '1': 'Enero', '2': 'Febrero', '3': 'Marzo', '4': 'Abril',
     '5': 'Mayo', '6': 'Junio', '7': 'Julio', '8': 'Agosto',
     '9': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
   };
-  // Convertir el objeto nombresMeses en un arreglo de opciones para react‑select
+
   const optionsMeses = Object.entries(nombresMeses).map(([value, label]) => ({
     value,
     label,
   }));
-  // Estilos personalizados para react‑select
+
+  // Generar opciones de años (últimos 5 años + año actual + próximos 2)
+  const generarOpcionesAnios = () => {
+    const anioActual = new Date().getFullYear();
+    const anios = [];
+    for (let i = anioActual - 1; i <= anioActual + 2; i++) {
+      anios.push({ value: i.toString(), label: i.toString() });
+    }
+    return anios.reverse();
+  };
+
+  const optionsAnios = generarOpcionesAnios();
+
   const customStyles = {
     control: (provided) => ({
       ...provided,
@@ -49,7 +62,7 @@ const ReporteAntiguedad = () => {
       zIndex: 9999,
     }),
   };
-  // Función para agrupar registros por día
+
   const agruparPorDia = (registros) => {
     if (!registros || registros.length === 0) return [];
     const dias = {};
@@ -62,50 +75,58 @@ const ReporteAntiguedad = () => {
     });
     return Object.entries(dias);
   };
-  // Al montar el componente, se establece el mes actual
+
   useEffect(() => {
     const mesActual = new Date().getMonth() + 1;
+    const anioActual = new Date().getFullYear();
     setMes(mesActual.toString());
+    setAnio(anioActual.toString());
   }, []);
-  // Obtener datos cada vez que se actualice el mes
+
   useEffect(() => {
     const obtenerDatos = async () => {
-      if (mes) {
+      if (mes && anio) {
         setLoading(true);
         setError('');
         try {
-          const { data } = await clienteAxios.get(`/reportes/reportes/antiguedad/${mes}`);
+          const { data } = await clienteAxios.get(`/reportes/reportes/antiguedad/${mes}/${anio}`);
           if (data.registros && data.registros.length > 0) {
             setRegistros(data.registros);
             calcularTotalRegistrosAntiguos(data.registros);
           } else {
             setRegistros([]);
             setTotalRegistrosAntiguos(0);
-            setError(`No se encontraron registros para el mes de ${nombresMeses[mes]}`);
+            setError(`No se encontraron registros para ${nombresMeses[mes]} ${anio}`);
           }
         } catch (error) {
           console.error("Error al obtener datos:", error);
           setRegistros([]);
           setTotalRegistrosAntiguos(0);
-          setError(`Error al obtener los datos del mes de ${nombresMeses[mes]}`);
+          setError(`Error al obtener los datos de ${nombresMeses[mes]} ${anio}`);
         } finally {
           setLoading(false);
         }
       } else {
         setRegistros([]);
         setTotalRegistrosAntiguos(0);
-        setError('Por favor, seleccione un mes para ver los registros');
+        setError('Por favor, seleccione mes y año para ver los registros');
       }
     };
     obtenerDatos();
-  }, [mes]);
-  // Actualizar el estado cuando se seleccione un mes mediante react‑select
+  }, [mes, anio]);
+
   const handleMesChange = (selectedOption) => {
     setRegistros([]);
     setTotalRegistrosAntiguos(0);
     setMes(selectedOption.value);
   };
-  // Calcular el total de registros "antiguos" (diferencia de días mayor o igual a 3)
+
+  const handleAnioChange = (selectedOption) => {
+    setRegistros([]);
+    setTotalRegistrosAntiguos(0);
+    setAnio(selectedOption.value);
+  };
+
   const calcularTotalRegistrosAntiguos = (registros) => {
     const total = registros.reduce((acc, registro) => {
       const dias = differenceInDays(parseISO(registro.today), parseISO(registro.enter_date)) - 1;
@@ -116,12 +137,10 @@ const ReporteAntiguedad = () => {
     }, 0);
     setTotalRegistrosAntiguos(total);
   };
+
   const diasAgrupados = agruparPorDia(registros);
-    diasAgrupados.sort((a, b) => {
-      // a[0] y b[0] son las fechas en formato 'yyyy-MM-dd'
-      return new Date(b[0]) - new Date(a[0]);
-    });
-    
+  diasAgrupados.sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
   return (
     <>
       <div className="mt-6 md:mt-0">
@@ -129,16 +148,30 @@ const ReporteAntiguedad = () => {
       </div>
       <div className="mx-auto p-4 bg-gray-50 min-h-screen">
         <div className="mx-auto">
-          {/* Select de react‑select para seleccionar el mes */}
-          <div className="w-full lg:w-1/3 mb-6">
-            <Select
-              value={optionsMeses.find(option => option.value === mes) || null}
-              onChange={handleMesChange}
-              options={optionsMeses}
-              placeholder="Selecciona un mes"
-              styles={customStyles}
-            />
+          {/* Selects para mes y año */}
+          <div className="flex flex-col lg:flex-row gap-4 w-full lg:w-2/3 mb-6">
+            <div className="w-full lg:w-1/2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Mes</label>
+              <Select
+                value={optionsMeses.find(option => option.value === mes) || null}
+                onChange={handleMesChange}
+                options={optionsMeses}
+                placeholder="Selecciona un mes"
+                styles={customStyles}
+              />
+            </div>
+            <div className="w-full lg:w-1/2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Año</label>
+              <Select
+                value={optionsAnios.find(option => option.value === anio) || null}
+                onChange={handleAnioChange}
+                options={optionsAnios}
+                placeholder="Selecciona un año"
+                styles={customStyles}
+              />
+            </div>
           </div>
+
           {loading && (
             <p className="text-center text-gray-600">Cargando datos...</p>
           )}
@@ -181,7 +214,7 @@ const ReporteAntiguedad = () => {
                   </div>
                 ))}
               </div>
-              <CardRepoAntiguedad registros={registros} mes={mes} />
+              <CardRepoAntiguedad registros={registros} mes={mes} anio={anio} />
             </>
           )}
         </div>

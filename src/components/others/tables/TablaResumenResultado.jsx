@@ -149,7 +149,7 @@ const TablaResumenResultado = ({ datos }) => {
           <thead>
             <tr className="bg-blue-500 text-white">
               <th style={{ width: colWidths[0] }} className="py-4 px-6 text-left font-semibold border-l first:border-l-0 text-sm whitespace-nowrap">SEMANA</th>
-              <th style={{ width: colWidths[1] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIARIO</th>
+              <th style={{ width: colWidths[1] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">FECHA</th>
               <th style={{ width: colWidths[2] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">META SF</th>
               <th style={{ width: colWidths[3] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">REAL SF</th>
               <th style={{ width: colWidths[4] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIFERENCIA</th>
@@ -184,7 +184,7 @@ const TablaResumenResultado = ({ datos }) => {
         <thead>
           <tr className="bg-blue-500 text-white">
             <th className="py-4 px-6 text-left font-semibold border-l first:border-l-0 text-sm whitespace-nowrap">SEMANA</th>
-            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIARIO</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">FECHA</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">META SF</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">REAL SF</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIFERENCIA</th>

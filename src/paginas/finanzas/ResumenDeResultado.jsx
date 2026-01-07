@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Select from 'react-select'
 import TablaResumenResultado from '../../components/others/tables/TablaResumenResultado'
+import CardResumenResultado from '../../components/others/cards/CardResumenResultado'
 import Heading from '../../components/others/Heading'
 import ModalMetasResultados from '../../components/modals/ModalMetasResultados'
 import ModalAsistencias from '../../components/modals/ModalAsistencias'
 import useResumenResultados from '../../../hooks/reportes/useResumenResultados'
-import { Cog6ToothIcon, CalendarIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Cog6ToothIcon, CalendarIcon, XMarkIcon, TableCellsIcon, RectangleStackIcon } from '@heroicons/react/24/outline'
 
 const ResumenDeResultado = () => {
   const { 
@@ -21,6 +22,29 @@ const ResumenDeResultado = () => {
   } = useResumenResultados();
   
   const [fechaBusqueda, setFechaBusqueda] = useState('');
+  const [vistaActual, setVistaActual] = useState('tabla');
+  const [esPantallaGrande, setEsPantallaGrande] = useState(window.innerWidth >= 1024);
+
+  // Detectar tamaño de pantalla y cambiar vista automáticamente
+  useEffect(() => {
+    const handleResize = () => {
+      const esGrande = window.innerWidth >= 1024;
+      setEsPantallaGrande(esGrande);
+      
+      // Solo cambiar automáticamente la vista si NO es pantalla grande
+      if (!esGrande) {
+        setVistaActual('cards');
+      }
+    };
+
+    // Ejecutar al montar
+    handleResize();
+
+    // Escuchar cambios de tamaño
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Generar opciones de años (últimos 5 años + próximo año)
   const generarOpcionesAnios = () => {
@@ -136,6 +160,29 @@ const ResumenDeResultado = () => {
 
         {/* Botones de configuración */}
         <div className="flex gap-3 w-full lg:w-auto lg:mt-6">
+          {/* Botón para cambiar vista - SOLO en pantallas grandes */}
+          {esPantallaGrande && (
+            <button
+              onClick={() => setVistaActual(vistaActual === 'tabla' ? 'cards' : 'tabla')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 
+                       hover:from-gray-700 hover:to-gray-800 text-white rounded-lg font-semibold 
+                       transition-all duration-200 shadow-lg hover:shadow-xl 
+                       transform hover:-translate-y-0.5 justify-center"
+            >
+              {vistaActual === 'tabla' ? (
+                <>
+                  <RectangleStackIcon className="h-5 w-5" />
+                  <span>Vista Cards</span>
+                </>
+              ) : (
+                <>
+                  <TableCellsIcon className="h-5 w-5" />
+                  <span>Vista Tabla</span>
+                </>
+              )}
+            </button>
+          )}
+
           <button
             onClick={abrirModalMetasDiarias}
             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 
@@ -197,10 +244,14 @@ const ResumenDeResultado = () => {
         </div>
       )}
       
-      {/* Tabla con sombra mejorada */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-        <TablaResumenResultado datos={datosFiltrados} />
-      </div>
+      {/* Vista condicional: Tabla o Cards */}
+      {vistaActual === 'tabla' ? (
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+          <TablaResumenResultado datos={datosFiltrados} />
+        </div>
+      ) : (
+        <CardResumenResultado datos={datosFiltrados} />
+      )}
       
       <ModalMetasResultados 
         isOpen={modalMetasDiariasOpen}
