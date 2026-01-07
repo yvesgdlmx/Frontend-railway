@@ -97,7 +97,7 @@ const ResumenDeResultado = () => {
   }
 
   return (
-    <div className='p-6 space-y-6'>
+    <div className='p-0.5 space-y-6'>
       {/* Heading con diseño mejorado */}
       <div className="border-b border-gray-200 pb-4">
         <Heading title={'Resumen de resultados'}/>
