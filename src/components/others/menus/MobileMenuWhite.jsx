@@ -1,16 +1,20 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../../../../hooks/useAuth";
+
 const MobileMenuWhite = ({ closeMobileMenu }) => {
   const { auth, cerrarSesionAuth } = useAuth();
+  
   const handleLogout = () => {
     cerrarSesionAuth();
     localStorage.removeItem("token");
     closeMobileMenu();
   };
+  
   const handleClick = () => {
     closeMobileMenu();
   };
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-end transition-opacity duration-300">
       <div className="bg-white w-80 h-full shadow-lg overflow-y-auto transform transition-transform duration-300 ease-in-out">
@@ -66,6 +70,42 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 Producción
               </Link>
             </li>
+            {auth && auth.id && auth.rol === 'admin' && (
+              <li>
+                <p className="flex items-center p-3 text-gray-700 font-semibold">
+                  Finanzas
+                </p>
+                <ul className="ml-6 mt-2 space-y-2">
+                  <li>
+                    <Link
+                      to={"/finanzas_facturas"}
+                      onClick={handleClick}
+                      className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Facturas
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to={"/historial_facturas"}
+                      onClick={handleClick}
+                      className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Historial por rangos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to={"/resumen_de_resultado"}
+                      onClick={handleClick}
+                      className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Resumen de resultados
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+            )}
             <li>
               <p className="flex items-center p-3 text-gray-700 font-semibold">
                 Mermas
@@ -77,35 +117,81 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    mermas por hora
+                    Mermas por hora
                   </Link>
                 </li>
               </ul>
             </li>
             {auth && auth.id && (
-              <>
-                <li>
-                  {/* Enlace directo para "Metas" a la ruta "/editar_metas" */}
-                  <Link
-                    to="/editar_metas"
-                    onClick={handleClick}
-                    className="flex items-center py-3 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors ml-3"
-                  >
-                    Metas
-                  </Link>
-                </li>
-                <li>
-                  {/* Enlace directo para "Metas" a la ruta "/editar_metas" */}
-                  <Link
-                    to="/asistencias"
-                    onClick={handleClick}
-                    className="flex items-center py-3 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors ml-3"
-                  >
-                    Asistencias
-                  </Link>
-                </li>
-              </>
+              <li>
+                <p className="flex items-center p-3 text-gray-700 font-semibold">
+                  Metas
+                </p>
+                <ul className="ml-6 mt-2 space-y-2">
+                  <li>
+                    <Link
+                      to="/editar_metas"
+                      onClick={handleClick}
+                      className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Metas de Producción
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/asistencias"
+                      onClick={handleClick}
+                      className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Captura de Asistencias
+                    </Link>
+                  </li>
+                </ul>
+              </li>
             )}
+            <li>
+              <p className="flex items-center p-3 text-gray-700 font-semibold">
+                Tableros
+              </p>
+              <ul className="ml-6 mt-2 space-y-2">
+                <li>
+                  <Link
+                    to={"/tableros_tallado"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Tableros de tallado
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to={"/tableros_terminado"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Tableros de terminado
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to={"/tableros_tallado_terminado"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Tableros de tallado y terminado
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to={"/surtido_detallado"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Surtido - Almacen
+                  </Link>
+                </li>
+              </ul>
+            </li>
             <li>
               <p className="flex items-center p-3 text-gray-700 font-semibold">
                 Historial
@@ -160,7 +246,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    trabajos nuevos
+                    Trabajos nuevos
                   </Link>
                 </li>
                 <li>
@@ -169,7 +255,7 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    wip diario
+                    WIP diario
                   </Link>
                 </li>
                 <li>
@@ -243,4 +329,5 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
     </div>
   );
 };
+
 export default MobileMenuWhite;
