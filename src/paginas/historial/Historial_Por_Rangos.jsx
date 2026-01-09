@@ -13,7 +13,8 @@ const Historial_Por_Rangos = () => {
   const defaultEnd = moment().subtract(1, "day");
   const defaultStart = moment().subtract(2, "day");
   // Datos para los selectores
-  const anios = Array.from(new Set([defaultStart.year(), defaultEnd.year()]));
+  const currentYear = moment().year();
+  const anios = [currentYear - 2, currentYear - 1, currentYear];
   const meses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const dias = Array.from({ length: 31 }, (_, index) => index + 1);
   const anioOptions = anios.map((anio) => ({ value: anio, label: anio.toString() }));

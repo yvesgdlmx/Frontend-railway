@@ -9,11 +9,11 @@ import Alerta from "../../components/others/alertas/Alerta";
 import Heading from "../../components/others/Heading";
 const Historial_Por_Dia = () => {
   // Para pruebas forzamos la fecha a 2025/08/12 (debido a que tus notas de ejemplo tienen esa fecha)
-  const [selectedYear, setSelectedYear] = useState(2025);
+  const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedMonth, setSelectedMonth] = useState(8);
   const [selectedDay, setSelectedDay] = useState(12);
   // Datos para los selectores
-  const anios = [2025, 2024];
+  const anios = [2026, 2025, 2024];
   const meses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const dias = Array.from({ length: 31 }, (_, index) => index + 1);
   const anioOptions = anios.map((anio) => ({ value: anio, label: anio.toString() }));
