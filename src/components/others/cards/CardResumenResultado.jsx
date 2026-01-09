@@ -180,6 +180,10 @@ const CardResumenResultado = ({ datos }) => {
                       <p className="text-xs">Acum. Fact. Anual</p>
                       <p className="font-bold">{formatCurrency(fila.acumuladoAnual, fila.diario)}</p>
                     </div>
+                    <div className={`p-2 rounded-lg col-span-2 ${getColorClass(fila.acumuladoQuincenal)}`}>
+                      <p className="text-xs">Acum. Fact. Quincenal (Q{fila.quincena})</p>
+                      <p className="font-bold">{formatCurrency(fila.acumuladoQuincenal, fila.diario)}</p>
+                    </div>
                   </div>
                 </div>
 

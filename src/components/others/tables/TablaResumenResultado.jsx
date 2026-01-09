@@ -174,6 +174,7 @@ const TablaResumenResultado = ({ datos }) => {
               <th style={{ width: colWidths[23] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIFERENCIA</th>
               <th style={{ width: colWidths[24] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ACUMULADO MENSUAL</th>
               <th style={{ width: colWidths[25] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ACUMULADO ANUAL</th>
+              <th style={{ width: colWidths[26] }} className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ACUMULADO QUINCENAL</th>
             </tr>
           </thead>
         </table>
@@ -209,6 +210,7 @@ const TablaResumenResultado = ({ datos }) => {
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">DIFERENCIA</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ACUMULADO MENSUAL</th>
             <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ACUMULADO ANUAL</th>
+            <th className="py-4 px-6 text-left font-semibold border-l text-sm whitespace-nowrap">ACUMULADO QUINCENAL</th>
           </tr>
         </thead>
           <tbody className="text-md text-center">
@@ -240,6 +242,7 @@ const TablaResumenResultado = ({ datos }) => {
               <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.diferencia2)}`}>{formatCurrency(fila.diferencia2, fila.diario)}</td>
               <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoMensual)}`}>{formatCurrency(fila.acumuladoMensual, fila.diario)}</td>
               <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoAnual)}`}>{formatCurrency(fila.acumuladoAnual, fila.diario)}</td>
+              <td className={`py-3 px-5 border whitespace-nowrap ${getColorClass(fila.acumuladoQuincenal)}`}>{formatCurrency(fila.acumuladoQuincenal, fila.diario)}</td>
             </tr>
           ))}
         </tbody>

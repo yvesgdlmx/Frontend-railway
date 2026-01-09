@@ -12,6 +12,15 @@ const ResumenResultadosProvider = ({ children }) => {
   const [modalAsistenciasOpen, setModalAsistenciasOpen] = useState(false);
   const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
 
+  // Función para obtener número de semana del año
+  const getWeekNumber = (date) => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  };
+
   const obtenerDatos = async (anio = anioSeleccionado) => {
     try {
       setLoading(true);
@@ -36,15 +45,23 @@ const ResumenResultadosProvider = ({ children }) => {
       let acumuladoFMensual = 0;
       let acumuladoFacturacionMensual = 0;
       let acumuladoFacturacionAnual = 0;
+      let acumuladoFacturacionQuincenal = 0;
       
       let mesActual = null;
       let anioActual = null;
+      let quincenaActual = null;
 
       const datosMapeados = datosOrdenados.map(registro => {
         const fechaRegistro = new Date(registro.diario + 'T00:00:00');
         const mesRegistro = `${fechaRegistro.getFullYear()}-${fechaRegistro.getMonth()}`;
         const anioRegistro = fechaRegistro.getFullYear();
         
+        // Calcular quincena (cada 2 semanas)
+        const numeroSemana = getWeekNumber(fechaRegistro);
+        const numeroQuincena = Math.ceil(numeroSemana / 2);
+        const quincenaKey = `${fechaRegistro.getFullYear()}-${numeroQuincena}`;
+        
+        // Reiniciar acumulados según corresponda
         if (mesActual !== null && mesActual !== mesRegistro) {
           acumuladoSFMensual = 0;
           acumuladoFMensual = 0;
@@ -54,9 +71,14 @@ const ResumenResultadosProvider = ({ children }) => {
         if (anioActual !== null && anioActual !== anioRegistro) {
           acumuladoFacturacionAnual = 0;
         }
+
+        if (quincenaActual !== null && quincenaActual !== quincenaKey) {
+          acumuladoFacturacionQuincenal = 0;
+        }
         
         mesActual = mesRegistro;
         anioActual = anioRegistro;
+        quincenaActual = quincenaKey;
 
         const metaSF = registro.meta_sf || null;
         const metaF = registro.meta_f || null;
@@ -83,6 +105,7 @@ const ResumenResultadosProvider = ({ children }) => {
 
         acumuladoFacturacionMensual += diferenciaFacturacion;
         acumuladoFacturacionAnual += diferenciaFacturacion;
+        acumuladoFacturacionQuincenal += diferenciaFacturacion;
 
         const indicadorNocturno = (registro.trabajos_nocturno > 0 && registro.asistencia_nocturno > 0)
           ? (registro.trabajos_nocturno / registro.asistencia_nocturno) / 8
@@ -103,6 +126,7 @@ const ResumenResultadosProvider = ({ children }) => {
           id: registro.id,
           semana: registro.semana,
           diario: registro.diario,
+          quincena: numeroQuincena,
           metaSF,
           realSF: registro.real_sf,
           diferenciaSF,
@@ -126,7 +150,8 @@ const ResumenResultadosProvider = ({ children }) => {
           facturacionReal: registro.facturacion_real,
           diferencia2: diferenciaFacturacion,
           acumuladoMensual: acumuladoFacturacionMensual,
-          acumuladoAnual: acumuladoFacturacionAnual
+          acumuladoAnual: acumuladoFacturacionAnual,
+          acumuladoQuincenal: acumuladoFacturacionQuincenal
         };
       });
 
