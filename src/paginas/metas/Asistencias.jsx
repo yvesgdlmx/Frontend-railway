@@ -185,111 +185,232 @@ const Asistencias = () => {
 
           {/* Tabla de Asistencias por Día */}
           {mesSeleccionado && diasDelMes.length > 0 ? (
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                      <th className="py-3 px-4 text-left font-semibold text-sm w-8">✓</th>
-                      <th className="py-3 px-4 text-left font-semibold text-sm">Fecha</th>
-                      <th className="py-3 px-4 text-center font-semibold text-sm">Asistencia Nocturno</th>
-                      <th className="py-3 px-4 text-center font-semibold text-sm">Asistencia Matutino</th>
-                      <th className="py-3 px-4 text-center font-semibold text-sm">Asistencia Vespertino</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {diasDelMes.map((dia, index) => {
-                      const asistenciasActuales = asistenciasPorDia[dia.id] || {
-                        asistencia_nocturno: 0,
-                        asistencia_mat: 0,
-                        asistencia_vesp: 0,
-                      };
-                      
-                      const esCompleto = tieneAsistenciasCompletas(dia);
+            <>
+              {/* Vista de Tabla (Oculta en móvil, visible en tablet y escritorio) */}
+              <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                        <th className="py-3 px-4 text-left font-semibold text-sm w-8">✓</th>
+                        <th className="py-3 px-4 text-left font-semibold text-sm">Fecha</th>
+                        <th className="py-3 px-4 text-center font-semibold text-sm">Asistencia Nocturno</th>
+                        <th className="py-3 px-4 text-center font-semibold text-sm">Asistencia Matutino</th>
+                        <th className="py-3 px-4 text-center font-semibold text-sm">Asistencia Vespertino</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {diasDelMes.map((dia, index) => {
+                        const asistenciasActuales = asistenciasPorDia[dia.id] || {
+                          asistencia_nocturno: 0,
+                          asistencia_mat: 0,
+                          asistencia_vesp: 0,
+                        };
+                        
+                        const esCompleto = tieneAsistenciasCompletas(dia);
 
-                      return (
-                        <tr 
-                          key={dia.id}
-                          className={`border-t hover:bg-blue-50 transition-colors ${
-                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                          }`}
-                        >
-                          <td className="py-3 px-4 text-center">
-                            {esCompleto ? (
-                              <span className="text-lg" title="Asistencias completas">✅</span>
-                            ) : (
-                              <span className="text-lg" title="Sin asistencias">🔴</span>
-                            )}
-                          </td>
+                        return (
+                          <tr 
+                            key={dia.id}
+                            className={`border-t hover:bg-blue-50 transition-colors ${
+                              index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                            }`}
+                          >
+                            <td className="py-3 px-4 text-center">
+                              {esCompleto ? (
+                                <span className="text-lg" title="Asistencias completas">✅</span>
+                              ) : (
+                                <span className="text-lg" title="Sin asistencias">🔴</span>
+                              )}
+                            </td>
 
-                          <td className="py-3 px-4">
-                            <div className="font-semibold text-gray-800 text-sm">
-                              {dia.diario}
-                            </div>
-                            <div className="text-xs text-gray-500 capitalize">
-                              {formatearFecha(dia.diario)}
-                            </div>
-                          </td>
+                            <td className="py-3 px-4">
+                              <div className="font-semibold text-gray-800 text-sm">
+                                {dia.diario}
+                              </div>
+                              <div className="text-xs text-gray-500 capitalize">
+                                {formatearFecha(dia.diario)}
+                              </div>
+                            </td>
 
-                          <td className="py-3 px-4">
-                            <input
-                              type="number"
-                              min="0"
-                              value={asistenciasActuales.asistencia_nocturno}
-                              onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_nocturno', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg 
-                                       text-center focus:ring-2 focus:ring-blue-500 
-                                       focus:border-blue-500 font-semibold text-gray-700
-                                       hover:border-blue-400 transition-colors"
-                              placeholder="0"
-                            />
-                          </td>
+                            <td className="py-3 px-4">
+                              <input
+                                type="number"
+                                min="0"
+                                value={asistenciasActuales.asistencia_nocturno}
+                                onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_nocturno', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg 
+                                         text-center focus:ring-2 focus:ring-blue-500 
+                                         focus:border-blue-500 font-semibold text-gray-700
+                                         hover:border-blue-400 transition-colors"
+                                placeholder="0"
+                              />
+                            </td>
 
-                          <td className="py-3 px-4">
-                            <input
-                              type="number"
-                              min="0"
-                              value={asistenciasActuales.asistencia_mat}
-                              onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_mat', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg 
-                                       text-center focus:ring-2 focus:ring-blue-500 
-                                       focus:border-blue-500 font-semibold text-gray-700
-                                       hover:border-blue-400 transition-colors"
-                              placeholder="0"
-                            />
-                          </td>
+                            <td className="py-3 px-4">
+                              <input
+                                type="number"
+                                min="0"
+                                value={asistenciasActuales.asistencia_mat}
+                                onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_mat', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg 
+                                         text-center focus:ring-2 focus:ring-blue-500 
+                                         focus:border-blue-500 font-semibold text-gray-700
+                                         hover:border-blue-400 transition-colors"
+                                placeholder="0"
+                              />
+                            </td>
 
-                          <td className="py-3 px-4">
-                            <input
-                              type="number"
-                              min="0"
-                              value={asistenciasActuales.asistencia_vesp}
-                              onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_vesp', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg 
-                                       text-center focus:ring-2 focus:ring-blue-500 
-                                       focus:border-blue-500 font-semibold text-gray-700
-                                       hover:border-blue-400 transition-colors"
-                              placeholder="0"
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            <td className="py-3 px-4">
+                              <input
+                                type="number"
+                                min="0"
+                                value={asistenciasActuales.asistencia_vesp}
+                                onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_vesp', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg 
+                                         text-center focus:ring-2 focus:ring-blue-500 
+                                         focus:border-blue-500 font-semibold text-gray-700
+                                         hover:border-blue-400 transition-colors"
+                                placeholder="0"
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">✅</span>
+                    <span className="text-gray-600">Asistencias completas</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">🔴</span>
+                    <span className="text-gray-600">Sin asistencias o incompletas</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center gap-4 text-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base">✅</span>
-                  <span className="text-gray-600">Asistencias completas</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base">🔴</span>
-                  <span className="text-gray-600">Sin asistencias o incompletas</span>
+              {/* Vista de Cards (Visible en móvil, oculta en tablet y escritorio) */}
+              <div className="md:hidden space-y-4">
+                {diasDelMes.map((dia, index) => {
+                  const asistenciasActuales = asistenciasPorDia[dia.id] || {
+                    asistencia_nocturno: 0,
+                    asistencia_mat: 0,
+                    asistencia_vesp: 0,
+                  };
+                  
+                  const esCompleto = tieneAsistenciasCompletas(dia);
+
+                  return (
+                    <div 
+                      key={dia.id}
+                      className="bg-white border-2 border-gray-200 rounded-xl shadow-md overflow-hidden"
+                    >
+                      {/* Header de la Card */}
+                      <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 flex justify-between items-center">
+                        <div>
+                          <div className="text-white font-bold text-sm">
+                            {dia.diario}
+                          </div>
+                          <div className="text-blue-100 text-xs capitalize">
+                            {formatearFecha(dia.diario)}
+                          </div>
+                        </div>
+                        <div className="text-2xl">
+                          {esCompleto ? '✅' : '🔴'}
+                        </div>
+                      </div>
+
+                      {/* Body de la Card */}
+                      <div className="p-4 space-y-4">
+                        {/* Nocturno */}
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-2 uppercase">
+                            🌙 Turno Nocturno
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={asistenciasActuales.asistencia_nocturno}
+                            onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_nocturno', e.target.value)}
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg 
+                                     text-center focus:ring-2 focus:ring-blue-500 
+                                     focus:border-blue-500 font-bold text-gray-700 text-lg
+                                     hover:border-blue-400 transition-colors"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        {/* Matutino */}
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-2 uppercase">
+                            ☀️ Turno Matutino
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={asistenciasActuales.asistencia_mat}
+                            onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_mat', e.target.value)}
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg 
+                                     text-center focus:ring-2 focus:ring-blue-500 
+                                     focus:border-blue-500 font-bold text-gray-700 text-lg
+                                     hover:border-blue-400 transition-colors"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        {/* Vespertino */}
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-2 uppercase">
+                            🌆 Turno Vespertino
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={asistenciasActuales.asistencia_vesp}
+                            onChange={(e) => handleAsistenciaChange(dia.id, 'asistencia_vesp', e.target.value)}
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg 
+                                     text-center focus:ring-2 focus:ring-blue-500 
+                                     focus:border-blue-500 font-bold text-gray-700 text-lg
+                                     hover:border-blue-400 transition-colors"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Footer de la Card */}
+                      <div className="bg-gray-50 px-4 py-2 border-t border-gray-200">
+                        <div className="flex items-center justify-between text-xs text-gray-600">
+                          <span className="font-medium">Día {index + 1} de {diasDelMes.length}</span>
+                          <span className={`px-2 py-1 rounded-full font-semibold ${
+                            esCompleto ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {esCompleto ? 'Completo' : 'Pendiente'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Leyenda para móvil */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">✅</span>
+                      <span className="text-gray-700 font-medium">Asistencias completas</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🔴</span>
+                      <span className="text-gray-700 font-medium">Sin asistencias o incompletas</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           ) : mesSeleccionado ? (
             <div className="text-center py-12 text-gray-400">
               <CalendarDaysIcon className="h-16 w-16 mx-auto mb-3 opacity-50" />
