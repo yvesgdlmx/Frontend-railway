@@ -9,7 +9,7 @@ const opcionesAnios = [
   { value: "2026", label: "2026" },
   { value: "2025", label: "2025" },
   { value: "2024", label: "2024" },
-];
+]; 
 const opcionesMeses = [
   { value: "01", label: "Enero" },
   { value: "02", label: "Febrero" },
@@ -80,7 +80,32 @@ const ReporteDeFlujo = () => {
       const respuesta = await clienteAxios.get(
         `/reportes/reportes/wiptotal/rango/${anioInicio.value}/${mesInicio.value}/${diaInicio.value}/${anioFin.value}/${mesFin.value}/${diaFin.value}`
       );
-      setRegistros(respuesta.data.registros);
+      
+      // Asegurar que las fechas se mantengan como strings YYYY-MM-DD
+      // Esto previene problemas de conversión de zona horaria
+      const registrosConFechasCorregidas = respuesta.data.registros.map(registro => {
+        let fechaCorregida = registro.fecha;
+        
+        // Si la fecha es un objeto Date, convertirla a string local
+        if (registro.fecha instanceof Date) {
+          const d = registro.fecha;
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          fechaCorregida = `${year}-${month}-${day}`;
+        } 
+        // Si es un string ISO con hora (YYYY-MM-DDTHH:mm:ss), extraer solo la fecha
+        else if (typeof fechaCorregida === 'string' && fechaCorregida.includes('T')) {
+          fechaCorregida = fechaCorregida.split('T')[0];
+        }
+        
+        return {
+          ...registro,
+          fecha: fechaCorregida
+        };
+      });
+      
+      setRegistros(registrosConFechasCorregidas);
     } catch (error) {
       console.error("Error al obtener los datos:", error);
     }
