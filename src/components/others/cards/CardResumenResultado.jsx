@@ -62,9 +62,13 @@ const CardResumenResultado = ({ datos }) => {
     }))
   }
 
+  const datosOrdenados = [...datos].sort((a, b) =>
+    new Date(b.diario) -  new Date(a.diario)
+  )
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {datos.map((fila, index) => (
+      {datosOrdenados.map((fila, index) => (
         <div 
           key={index} 
           className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300"
