@@ -80,7 +80,7 @@ const ResumenArTrabajos = () => {
 
   // Opciones para react-select
   const anioOptions = Array.from({ length: 2 }, (_, i) => {
-    const year = 2025 - i;
+    const year = 2026 - i;
     return { value: year, label: year.toString() };
   });
   const mesOptions = Array.from({ length: 12 }, (_, i) => {
