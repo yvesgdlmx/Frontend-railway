@@ -7,7 +7,9 @@ const ResumenResultadosContext = createContext();
 const ResumenResultadosProvider = ({ children }) => {
   const [datos, setDatos] = useState([]);
   const [todosLosDatos, setTodosLosDatos] = useState([]);
+  const [porcentajesMensuales, setPorcentajesMensuales] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingPorcentajes, setLoadingPorcentajes] = useState(true);
   const [modalMetasDiariasOpen, setModalMetasDiariasOpen] = useState(false);
   const [modalAsistenciasOpen, setModalAsistenciasOpen] = useState(false);
   const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
@@ -25,10 +27,8 @@ const ResumenResultadosProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      // Obtener datos de resumen con filtro de año usando params
       const { data } = await clienteAxios.get(`/reportes/resumen_resultados/${anio}`);
       
-      // Filtrar solo registros hasta hoy (inclusive)
       const fechaActual = new Date();
       fechaActual.setHours(0, 0, 0, 0);
       
@@ -56,12 +56,10 @@ const ResumenResultadosProvider = ({ children }) => {
         const mesRegistro = `${fechaRegistro.getFullYear()}-${fechaRegistro.getMonth()}`;
         const anioRegistro = fechaRegistro.getFullYear();
         
-        // Calcular quincena (cada 2 semanas)
         const numeroSemana = getWeekNumber(fechaRegistro);
         const numeroQuincena = Math.ceil(numeroSemana / 2);
         const quincenaKey = `${fechaRegistro.getFullYear()}-${numeroQuincena}`;
         
-        // Reiniciar acumulados según corresponda
         if (mesActual !== null && mesActual !== mesRegistro) {
           acumuladoSFMensual = 0;
           acumuladoFMensual = 0;
@@ -111,7 +109,6 @@ const ResumenResultadosProvider = ({ children }) => {
           ? (registro.trabajos_nocturno / registro.asistencia_nocturno) / 8
           : null;
 
-        // Combinar indicadores nocturno y matutino
         const trabajosNocturnoMat = registro.trabajos_nocturno + registro.trabajos_mat;
         const asistenciaNocturnoMat = registro.asistencia_nocturno + registro.asistencia_mat;
         const indicadorNocturnoMat = (trabajosNocturnoMat > 0 && asistenciaNocturnoMat > 0)
@@ -190,9 +187,22 @@ const ResumenResultadosProvider = ({ children }) => {
     }
   }
 
+  const obtenerPorcentajesMensuales = async (anio = anioSeleccionado) => {
+    try {
+      setLoadingPorcentajes(true);
+      const { data } = await clienteAxios.get(`/reportes/resumen_resultados/porcentajes/${anio}`);
+      setPorcentajesMensuales(data);
+      setLoadingPorcentajes(false);
+    } catch (error) {
+      console.error('❌ Error al obtener porcentajes mensuales:', error);
+      setLoadingPorcentajes(false);
+    }
+  }
+
   useEffect(() => {
     obtenerDatos(anioSeleccionado);
     obtenerTodosLosDatos(anioSeleccionado);
+    obtenerPorcentajesMensuales(anioSeleccionado);
   }, [anioSeleccionado]);
 
   const cambiarAnio = (nuevoAnio) => {
@@ -221,6 +231,7 @@ const ResumenResultadosProvider = ({ children }) => {
 
       await obtenerDatos(anioSeleccionado);
       await obtenerTodosLosDatos(anioSeleccionado);
+      await obtenerPorcentajesMensuales(anioSeleccionado);
       return true;
       
     } catch (error) {
@@ -268,12 +279,15 @@ const ResumenResultadosProvider = ({ children }) => {
       value={{
         datos,
         todosLosDatos,
+        porcentajesMensuales,
         loading,
+        loadingPorcentajes,
         modalMetasDiariasOpen,
         modalAsistenciasOpen,
         anioSeleccionado,
         obtenerDatos,
         obtenerTodosLosDatos,
+        obtenerPorcentajesMensuales,
         cambiarAnio,
         abrirModalMetasDiarias,
         cerrarModalMetasDiarias,
