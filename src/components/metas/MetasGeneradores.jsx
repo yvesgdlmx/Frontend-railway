@@ -47,8 +47,8 @@ const MetasGeneradores = () => {
   };
   return (
     <div className="p-4 w-full bg-white shadow rounded">
-      <h2 className="text-xl font-semibold mb-2 text-center text-gray-500">
-        Metas Generado
+      <h2 className="text-xl font-semibold mb-2 text-center text-gray-500 uppercase">
+        Metas Generadores
       </h2>
       {/* Se utiliza el componente TablaMetas reutilizable */}
       <TablaMetas metas={metas} handleInputChange={handleInputChange} />

@@ -46,8 +46,8 @@ const MetasBiselados = () => {
   };
   return (
     <div className="p-4 w-full bg-white shadow rounded">
-      <h2 className="text-xl font-semibold mb-2 text-center text-gray-500">
-        Metas Biselado
+      <h2 className="text-xl font-semibold mb-2 text-center text-gray-500 uppercase">
+        Metas Biseladoras
       </h2>
       <TablaMetas metas={metas} handleInputChange={handleInputChange} />
       <div className="mt-4 text-right">
