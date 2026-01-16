@@ -23,6 +23,10 @@ const Totales_Terminado_Tableros = () => {
     "280 FINBLKR 1",
     "281 FINBLKR 2",
     "282 FINBLKR 3",
+    "283 FINBLKR 4",
+    "277 FINBLKR M1",
+    "278 FINBLKR M2",
+    "279 FINBLKR M3",
     "285 C6 WECO"
   ].map(n => n.trim().toUpperCase());
   // Definición de los intervalos fijos en el orden solicitado

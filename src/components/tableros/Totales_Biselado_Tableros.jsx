@@ -25,6 +25,11 @@ const Totales_Biselado_Tableros = () => {
   const [totalesAcumulados, setTotalesAcumulados] = useState({});
   // Orden de las máquinas (células) de interés (normalizadas)
   const ordenCelulas = [
+    "228 DOUBLER 2",
+    "229 DOUBLER 3",
+    "230 DOUBLER 4",
+    "231 DOUBLER 5",
+    "232 DOUBLER 6",
     "298 DOUBLER",
     "299 BISPHERA",
     "300 EDGER 1",
@@ -38,6 +43,8 @@ const Totales_Biselado_Tableros = () => {
     "308 EDGER 9",
     "309 EDGER 10",
     "310 EDGER 11",
+    "311 EDGER 12",
+    "313 EDGER 13"
   ].map(n => n.trim().toUpperCase());
   // Arreglo fijo de intervalos en el orden requerido
   const fixedHoras = [

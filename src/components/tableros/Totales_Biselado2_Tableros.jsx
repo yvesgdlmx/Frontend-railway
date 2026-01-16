@@ -69,8 +69,6 @@ const Totales_Biselado2_Tableros = () => {
   const [totalGeneral, setTotalGeneral] = useState(0);
   // Orden de las máquinas (células) de biseladoras (máquinas distintas)
   const ordenCelulas = [
-    "311 EDGER 12",
-    "313 EDGER 13",
     "314 EDGER 14",
     "316 EDGER 15",
     "317 EDGER 16",
@@ -82,6 +80,7 @@ const Totales_Biselado2_Tableros = () => {
     "332 EDGER 22",
     "333 EDGER 23",
     "334 EDGER 24",
+    "335 EDGER TRZ",
     "336 EDGER 25",
     "337 EDGER 26",
     "338 EDGER 28",

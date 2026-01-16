@@ -32,8 +32,8 @@ const Totales_Pulido_Tableros = () => {
   });
   // Máquinas de interés (normalizadas)
   const ordenCelulas = [
-    "254 IFLEX SRVR",
     "255 POLISHR 1",
+    "256 POLISHR 2",
     "257 POLISHR 3",
     "258 POLISHR 4",
     "259 POLISHR 5",
@@ -44,7 +44,8 @@ const Totales_Pulido_Tableros = () => {
     "266 MULTIFLEX 1",
     "267 MULTIFLEX 2",
     "268 MULTIFLEX 3",
-    "269 MULTIFLEX 4"
+    "269 MULTIFLEX 4",
+    "254 IFLEX SRVR"
   ].map(n => n.trim().toUpperCase());
   // Arreglo de intervalos fijos en el orden solicitado
   const fixedHoras = [
