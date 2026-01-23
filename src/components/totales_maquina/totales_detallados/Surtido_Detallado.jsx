@@ -331,22 +331,6 @@ const Surtido_Detallado = () => {
         )}
         {vistaActiva === "surtido" ? (
           <>
-            {isFullScreen && ultimoGrupo && (
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-indigo-50 border border-indigo-200 rounded-lg shadow-lg p-4 max-w-lg w-full">
-                <div className="flex justify-center">
-                  <svg className="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4a8 8 0 100 16 8 8 0 000-16z" />
-                  </svg>
-                </div>
-                <div className="text-center mt-2">
-                  <p className="text-xl font-bold text-indigo-600">Último registro</p>
-                  <p className="text-gray-700">
-                    {ultimoGrupo.range} (<span className="font-semibold">{ultimoGrupo.totalHits} hits</span>)
-                  </p>
-                </div>
-              </div>
-            )}
             {renderTurnoTables()}
           </>
         ) : (
