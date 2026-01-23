@@ -5,6 +5,7 @@ import Heading from '../../others/Heading';
 import Actualizacion from '../../others/Actualizacion';
 import SelectAnioMesDia from '../../others/html_personalizado/SelectAnioMesDia';
 import { groupByHour, TurnoTable } from './Surtido_Helpers';
+import Totales_Produccion_Tableros from '../../tableros/Totales_Produccion_Tableros';
 // Cabecera de la tabla
 const columns = [
   { header: 'Hora', accessor: 'hora' },
@@ -20,9 +21,26 @@ const Surtido_Detallado = () => {
   const [ultimoGrupo, setUltimoGrupo] = useState(null);
   const [metaTotal, setMetaTotal] = useState(null); 
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [vistaActiva, setVistaActiva] = useState("surtido");
+  const [contador, setContador] = useState(30);
   const currentTime = moment.tz("America/Mexico_City");
   // Usamos una ref para mantener estable el contenedor fullscreen
   const fullscreenRef = useRef(null);
+  // Efecto para intercalar entre vistas cada 30 segundos en fullscreen
+  useEffect(() => {
+    if (isFullScreen) {
+      const interval = setInterval(() => {
+        setContador(prev => {
+          if (prev <= 1) {
+            setVistaActiva(prevVista => prevVista === "surtido" ? "produccion" : "surtido");
+            return 30;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isFullScreen]);
   // Inicializamos los selectores de fecha
   useEffect(() => {
     const now = new Date();
@@ -292,25 +310,48 @@ const Surtido_Detallado = () => {
           width: isFullScreen ? '100%' : 'auto',
           position: 'relative'
         }}
-        className="p-4 bg-white"
+        className={`p-4 ${isFullScreen ? 'bg-black' : 'bg-white'}`}
       >
-        {isFullScreen && ultimoGrupo && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-indigo-50 border border-indigo-200 rounded-lg shadow-lg p-4 max-w-lg w-full">
-            <div className="flex justify-center">
-              <svg className="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4a8 8 0 100 16 8 8 0 000-16z" />
-              </svg>
-            </div>
-            <div className="text-center mt-2">
-              <p className="text-xl font-bold text-indigo-600">Último registro</p>
-              <p className="text-gray-700">
-                {ultimoGrupo.range} (<span className="font-semibold">{ultimoGrupo.totalHits} hits</span>)
-              </p>
-            </div>
+        {isFullScreen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              fontSize: "20px",
+              fontWeight: "bold",
+              color: "#FFF",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              padding: "10px 15px",
+              borderRadius: "5px",
+            }}
+          >
+            Cambio en: {contador}s
           </div>
         )}
-        {renderTurnoTables()}
+        {vistaActiva === "surtido" ? (
+          <>
+            {isFullScreen && ultimoGrupo && (
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-indigo-50 border border-indigo-200 rounded-lg shadow-lg p-4 max-w-lg w-full">
+                <div className="flex justify-center">
+                  <svg className="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4a8 8 0 100 16 8 8 0 000-16z" />
+                  </svg>
+                </div>
+                <div className="text-center mt-2">
+                  <p className="text-xl font-bold text-indigo-600">Último registro</p>
+                  <p className="text-gray-700">
+                    {ultimoGrupo.range} (<span className="font-semibold">{ultimoGrupo.totalHits} hits</span>)
+                  </p>
+                </div>
+              </div>
+            )}
+            {renderTurnoTables()}
+          </>
+        ) : (
+          <Totales_Produccion_Tableros />
+        )}
       </div>
     </>
   );
