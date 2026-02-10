@@ -13,7 +13,13 @@ const obtenerFechaConNombre = (fecha) => {
 };
 
 const PorcentajeDeCumplimiento = () => {
-  const { porcentajesMensuales, loadingPorcentajes, anioSeleccionado, cambiarAnio } = useResumenResultados()
+  const { 
+    porcentajesMensuales, 
+    porcentajesMensualesProyectados,
+    loadingPorcentajes, 
+    anioSeleccionado, 
+    cambiarAnio 
+  } = useResumenResultados()
 
   const aniosDisponibles = [2024, 2025, 2026, 2027]
   const fechaActualFormateada = obtenerFechaConNombre(new Date());
@@ -30,15 +36,14 @@ const PorcentajeDeCumplimiento = () => {
   const mesActual = new Date().getMonth() + 1;
   const anioActual = new Date().getFullYear();
 
-  // Filtrar: mes actual vs otros meses
-  // Solo mostrar "Mes Actual" si el año seleccionado es el año actual
+  // Usar datos proyectados para el mes actual
   const datosMesActual = anioSeleccionado === anioActual 
-    ? porcentajesMensuales.find(mes => mes.mes === mesActual && parseInt(mes.anio) === anioSeleccionado)
+    ? porcentajesMensualesProyectados.find(mes => mes.mes === mesActual && parseInt(mes.anio) === anioSeleccionado)
     : null;
 
   const otrosMeses = anioSeleccionado === anioActual
     ? porcentajesMensuales.filter(mes => !(mes.mes === mesActual && parseInt(mes.anio) === anioSeleccionado))
-    : porcentajesMensuales; // Si no es el año actual, mostrar todos los meses
+    : porcentajesMensuales;
 
   return (
     <>
@@ -81,12 +86,17 @@ const PorcentajeDeCumplimiento = () => {
 
               {datosMesActual ? (
                 <>
-                  {/* Nombre del mes actual */}
+                  {/* Nombre del mes actual + Indicador de datos proyectados */}
                   <div className="grid grid-cols-1 gap-4 mt-2">
                     <div className="bg-gray-100 p-3 rounded-lg text-center">
                       <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">
                         {datosMesActual.nombreMes} {datosMesActual.anio}
                       </p>
+                      {datosMesActual.esProyectado && (
+                        <p className="text-xs text-blue-600 font-semibold mt-1">
+                          📊 Datos proyectados hasta el día {datosMesActual.diasTranscurridos} de {datosMesActual.diasTotales}
+                        </p>
+                      )}
                       <p className={`text-3xl md:text-4xl font-bold ${
                         parseFloat(datosMesActual.porcentaje) >= 100 
                           ? 'text-green-600' 
@@ -100,13 +110,18 @@ const PorcentajeDeCumplimiento = () => {
                     </div>
                   </div>
 
-                  {/* Metas SF */}
+                  {/* Metas SF - CON PROYECCIÓN */}
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="bg-blue-50 p-3 rounded-lg text-center border border-blue-200">
                       <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Meta SF</p>
                       <p className="text-xl md:text-2xl font-semibold text-blue-700">
                         {datosMesActual.metaSF.toLocaleString('es-MX')}
                       </p>
+                      {datosMesActual.esProyectado && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          (Original: {datosMesActual.metaSFOriginal.toLocaleString('es-MX')})
+                        </p>
+                      )}
                     </div>
                     <div className={`p-3 rounded-lg text-center ${
                       datosMesActual.realSF >= datosMesActual.metaSF 
@@ -124,13 +139,18 @@ const PorcentajeDeCumplimiento = () => {
                     </div>
                   </div>
 
-                  {/* Metas F */}
+                  {/* Metas F - CON PROYECCIÓN */}
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="bg-blue-50 p-3 rounded-lg text-center border border-blue-200">
                       <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Meta F</p>
                       <p className="text-xl md:text-2xl font-semibold text-blue-700">
                         {datosMesActual.metaF.toLocaleString('es-MX')}
                       </p>
+                      {datosMesActual.esProyectado && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          (Original: {datosMesActual.metaFOriginal.toLocaleString('es-MX')})
+                        </p>
+                      )}
                     </div>
                     <div className={`p-3 rounded-lg text-center ${
                       datosMesActual.realF >= datosMesActual.metaF 
@@ -163,17 +183,17 @@ const PorcentajeDeCumplimiento = () => {
                     </div>
                     <div>
                       <div className={`p-3 rounded-lg text-center ${
-                        datosMesActual.realTotal >= datosMesActual.metaTotal 
+                        datosMesActual.realSF + datosMesActual.realF >= datosMesActual.metaTotal 
                           ? 'bg-green-50 border border-green-200' 
                           : 'bg-red-50 border border-red-200'
                       }`}>
                         <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Real Total</p>
                         <p className={`text-xl md:text-2xl font-semibold ${
-                          datosMesActual.realTotal >= datosMesActual.metaTotal 
+                          datosMesActual.realSF + datosMesActual.realF >= datosMesActual.metaTotal 
                             ? 'text-green-700' 
                             : 'text-red-700'
                         }`}>
-                          {datosMesActual.realTotal.toLocaleString('es-MX')}
+                          {(datosMesActual.realSF + datosMesActual.realF).toLocaleString('es-MX')}
                         </p>
                       </div>
                       <div className="mt-1 text-center text-xs text-gray-500">
@@ -202,7 +222,7 @@ const PorcentajeDeCumplimiento = () => {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center mt-6">
                   <p className="text-yellow-700 font-semibold text-lg">
                     {anioSeleccionado === anioActual 
-                      ? `No hay datos disponibles para ${new Date(anioActual, mesActual - 1).toLocaleDateString('es-ES', { month: 'long' })} ${anioSeleccionado}`
+                      ? `No hay datos disponibles para ${new Date(anioActual, mesActual - 1).toLocaleDateString('es-ES', { month: 'long' })} ${anioActual}`
                       : `El mes actual no pertenece al año ${anioSeleccionado}`
                     }
                   </p>
@@ -223,8 +243,8 @@ const PorcentajeDeCumplimiento = () => {
               <h2 className="text-xl font-semibold text-gray-500 mb-2 text-center uppercase">
                 Cumplimiento Anual {anioSeleccionado}
               </h2>
-              {porcentajesMensuales.length > 0 ? (
-                <GraficaCumplimientoMensual datos={porcentajesMensuales} />
+              {porcentajesMensualesProyectados.length > 0 ? (
+                <GraficaCumplimientoMensual datos={porcentajesMensualesProyectados} />
               ) : (
                 <div className="h-[400px] flex items-center justify-center text-gray-400">
                   Sin datos para graficar

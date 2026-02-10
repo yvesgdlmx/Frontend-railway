@@ -8,6 +8,7 @@ const ResumenResultadosProvider = ({ children }) => {
   const [datos, setDatos] = useState([]);
   const [todosLosDatos, setTodosLosDatos] = useState([]);
   const [porcentajesMensuales, setPorcentajesMensuales] = useState([]);
+  const [porcentajesMensualesProyectados, setPorcentajesMensualesProyectados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingPorcentajes, setLoadingPorcentajes] = useState(true);
   const [modalMetasDiariasOpen, setModalMetasDiariasOpen] = useState(false);
@@ -21,6 +22,51 @@ const ResumenResultadosProvider = ({ children }) => {
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  };
+
+  // Función para calcular metas reales hasta el día actual
+  const calcularMetasHastaHoy = (datosDiarios, mes, anio) => {
+    const hoy = new Date();
+    const hoyMes = hoy.getMonth() + 1;
+    const hoyAnio = hoy.getFullYear();
+
+    // Solo aplicar si es el mes actual
+    if (mes !== hoyMes || anio !== hoyAnio) {
+      return null; // Retorna null si no es el mes actual
+    }
+
+    const diaActual = hoy.getDate();
+
+    // Filtrar datos hasta el día actual del mes actual
+    const datosHastaHoy = datosDiarios.filter(registro => {
+      const fechaRegistro = new Date(registro.diario + 'T00:00:00');
+      return (
+        fechaRegistro.getMonth() + 1 === mes &&
+        fechaRegistro.getFullYear() === anio &&
+        fechaRegistro.getDate() <= diaActual
+      );
+    });
+
+    // Sumar las metas hasta hoy
+    const metaSFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.meta_sf || 0), 0);
+    const metaFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.meta_f || 0), 0);
+    const metaTotalHastaHoy = metaSFHastaHoy + metaFHastaHoy;
+
+    // Sumar los reales hasta hoy
+    const realSFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.real_sf || 0), 0);
+    const realFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.real_f || 0), 0);
+    const realTotalHastaHoy = realSFHastaHoy + realFHastaHoy;
+
+    return {
+      metaSF: metaSFHastaHoy,
+      metaF: metaFHastaHoy,
+      metaTotal: metaTotalHastaHoy,
+      realSF: realSFHastaHoy,
+      realF: realFHastaHoy,
+      realTotal: realTotalHastaHoy,
+      diaActual,
+      diasTotalesMes: new Date(anio, mes, 0).getDate()
+    };
   };
 
   const obtenerDatos = async (anio = anioSeleccionado) => {
@@ -191,7 +237,45 @@ const ResumenResultadosProvider = ({ children }) => {
     try {
       setLoadingPorcentajes(true);
       const { data } = await clienteAxios.get(`/reportes/resumen_resultados/porcentajes/${anio}`);
+      const { data: datosDiarios } = await clienteAxios.get(`/reportes/resumen_resultados/${anio}`);
+      
       setPorcentajesMensuales(data);
+      
+      // Generar versión con metas hasta hoy
+      const datosProyectados = data.map(mes => {
+        const metasHastaHoy = calcularMetasHastaHoy(datosDiarios, mes.mes, parseInt(mes.anio));
+        
+        if (!metasHastaHoy) {
+          return mes; // Si no es mes actual, retorna sin cambios
+        }
+
+        // Recalcular porcentaje
+        const porcentajeHastaHoy = metasHastaHoy.metaTotal > 0 
+          ? ((metasHastaHoy.realTotal / metasHastaHoy.metaTotal) * 100).toFixed(2)
+          : 0;
+
+        const diferencia = metasHastaHoy.realTotal - metasHastaHoy.metaTotal;
+
+        return {
+          ...mes,
+          metaSF: metasHastaHoy.metaSF,
+          metaF: metasHastaHoy.metaF,
+          metaTotal: metasHastaHoy.metaTotal,
+          realSF: metasHastaHoy.realSF,
+          realF: metasHastaHoy.realF,
+          realTotal: metasHastaHoy.realTotal,
+          diferencia,
+          porcentaje: porcentajeHastaHoy,
+          metaSFOriginal: mes.metaSF,
+          metaFOriginal: mes.metaF,
+          metaTotalOriginal: mes.metaTotal,
+          diaActual: metasHastaHoy.diaActual,
+          diasTotalesMes: metasHastaHoy.diasTotalesMes,
+          esProyectado: true
+        };
+      });
+      
+      setPorcentajesMensualesProyectados(datosProyectados);
       setLoadingPorcentajes(false);
     } catch (error) {
       console.error('❌ Error al obtener porcentajes mensuales:', error);
@@ -280,6 +364,7 @@ const ResumenResultadosProvider = ({ children }) => {
         datos,
         todosLosDatos,
         porcentajesMensuales,
+        porcentajesMensualesProyectados,
         loading,
         loadingPorcentajes,
         modalMetasDiariasOpen,
