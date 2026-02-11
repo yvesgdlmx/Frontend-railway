@@ -92,11 +92,6 @@ const PorcentajeDeCumplimiento = () => {
                       <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">
                         {datosMesActual.nombreMes} {datosMesActual.anio}
                       </p>
-                      {datosMesActual.esProyectado && (
-                        <p className="text-xs text-blue-600 font-semibold mt-1">
-                          📊 Datos proyectados hasta el día {datosMesActual.diasTranscurridos} de {datosMesActual.diasTotales}
-                        </p>
-                      )}
                       <p className={`text-3xl md:text-4xl font-bold ${
                         parseFloat(datosMesActual.porcentaje) >= 100 
                           ? 'text-green-600' 
@@ -119,7 +114,7 @@ const PorcentajeDeCumplimiento = () => {
                       </p>
                       {datosMesActual.esProyectado && (
                         <p className="text-xs text-gray-500 mt-1">
-                          (Original: {datosMesActual.metaSFOriginal.toLocaleString('es-MX')})
+                          (Meta Mensual: {datosMesActual.metaSFOriginal.toLocaleString('es-MX')})
                         </p>
                       )}
                     </div>
@@ -148,7 +143,7 @@ const PorcentajeDeCumplimiento = () => {
                       </p>
                       {datosMesActual.esProyectado && (
                         <p className="text-xs text-gray-500 mt-1">
-                          (Original: {datosMesActual.metaFOriginal.toLocaleString('es-MX')})
+                          (Meta Mensual: {datosMesActual.metaFOriginal.toLocaleString('es-MX')})
                         </p>
                       )}
                     </div>
@@ -176,6 +171,11 @@ const PorcentajeDeCumplimiento = () => {
                         <p className="text-xl md:text-2xl font-semibold text-blue-700">
                           {datosMesActual.metaTotal.toLocaleString('es-MX')}
                         </p>
+                        {datosMesActual.esProyectado && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            (Meta Mensual: {datosMesActual.metaTotalOriginal.toLocaleString('es-MX')})
+                          </p>
+                        )}
                       </div>
                       <div className="mt-1 text-center text-xs text-gray-500">
                         ({datosMesActual.metaSF.toLocaleString('es-MX')} + {datosMesActual.metaF.toLocaleString('es-MX')})
@@ -188,7 +188,7 @@ const PorcentajeDeCumplimiento = () => {
                           : 'bg-red-50 border border-red-200'
                       }`}>
                         <p className="text-xs md:text-sm font-medium text-gray-600 uppercase">Real Total</p>
-                        <p className={`text-xl md:text-2xl font-semibold ${
+                        <p className={`pb-5 text-xl md:text-2xl font-semibold ${
                           datosMesActual.realSF + datosMesActual.realF >= datosMesActual.metaTotal 
                             ? 'text-green-700' 
                             : 'text-red-700'
