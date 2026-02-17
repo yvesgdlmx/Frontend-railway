@@ -27,13 +27,13 @@ const Totales_Generado_Tableros = () => {
   const ordenCelulas = [
     "241 GENERATOR 1",
     "242 GENERATOR 2",
-    "250 GENERATOR 3",
-    "239 ORBIT 6 LA", 
-    "240 ORBIT 5 LA",
+    "250 GENERATOR 3", 
     "245 ORBIT 1 LA",
     "246 ORBIT 2 LA",
     "244 ORBIT 3 LA",
     "243 ORBIT 4 LA",
+    "240 ORBIT 5 LA",
+    "239 ORBIT 6 LA",
     "247 SCHNIDER 1",
     "248 SCHNIDER 2"
   ].map(n => n.trim().toUpperCase());
