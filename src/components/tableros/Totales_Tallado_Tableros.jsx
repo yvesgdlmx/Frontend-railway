@@ -21,6 +21,7 @@ const Totales_Tallado_Tableros = () => {
   const [horasUnicas, setHorasUnicas] = useState([]);
   const ordenCelulas = [
     "219 OPTECH BLK 1",
+    "218 OPTECH BLK 2", 
     "220 SRFBLK 1",
     "221 SRFBLK 2",
     "222 SRFBLK 3",
