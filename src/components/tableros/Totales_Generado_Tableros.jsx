@@ -28,6 +28,8 @@ const Totales_Generado_Tableros = () => {
     "241 GENERATOR 1",
     "242 GENERATOR 2",
     "250 GENERATOR 3",
+    "239 ORBIT 6 LA", 
+    "240 ORBIT 5 LA",
     "245 ORBIT 1 LA",
     "246 ORBIT 2 LA",
     "244 ORBIT 3 LA",
