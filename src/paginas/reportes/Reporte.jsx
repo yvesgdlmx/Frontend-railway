@@ -68,6 +68,7 @@ const agruparDatos = (registros) => {
     totalesFinishedSemifinished.semifinished += s_count;
   });
 
+  
    // Clasificación de estaciones
   Object.entries(totalesPorEstacion).forEach(([estacion, datos]) => {
     if (['19 LENS LOG-SF', '20 LENS LOG-FIN'].includes(estacion)) {
