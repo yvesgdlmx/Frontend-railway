@@ -95,11 +95,11 @@ function App() {
                   <Route path='/reportes_de_flujo' element={<ReporteDeFlujo/>} />
                   <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
                   <Route path='/pruebas' element={<Pruebas/>} />
+                  <Route path='/porcentaje_de_cumplimiento' element={<PorcentajeDeCumplimiento/>}/>
                   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                     <Route path='/finanzas_facturas' element={<Facturas/>} />
                     <Route path='/historial_facturas' element={<HistorialFacturas/>} />
                     <Route path='/resumen_de_resultado' element={<ResumenDeResultado/>} />
-                    <Route path='/porcentaje_de_cumplimiento' element={<PorcentajeDeCumplimiento/>}/>
                   </Route>
                   <Route element={<ProtectedRoute />}>
                     <Route path='/cargar_media' element={<CargarMedia/>} />

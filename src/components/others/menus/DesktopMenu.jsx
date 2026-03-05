@@ -161,6 +161,10 @@ const DesktopMenu = ({
                 {
                   to: "/reportes_de_flujo",
                   label: "REPORTE DE FLUJO",
+                },
+                {
+                  to: "/porcentaje_de_cumplimiento",
+                  label: "PORCENTAJE DE CUMPLIMIENTO",
                 }
               ].map((item, index) => (
                 <li key={index}>

@@ -123,6 +123,7 @@ const MobileMenu = ({
                    { to: "/reportes_ar_resumen_trabajos", label: "RESUMEN AR POR ÁREA" },
                   { to: "/reportes_trabajos_sin_movimientos", label: "TRABAJOS SIN MOVIMIENTOS" },
                   { to: "/reportes_de_flujo", label: "REPORTE DE FLUJO" },
+                  { to: "/porcentaje_de_cumplimiento", label: "PORCENTAJE DE CUMPLIMIENTO" },
                 ].map((item, index) => (
                   <li key={index}>
                     <Link

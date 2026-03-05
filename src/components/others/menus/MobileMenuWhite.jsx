@@ -303,6 +303,15 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                     Reporte de flujo
                   </Link>
                 </li>
+                 <li>
+                  <Link
+                    to={"/porcentaje_de_cumplimiento"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Porcentaje de cumplimiento
+                  </Link>
+                </li>
               </ul>
             </li>
           </ul>

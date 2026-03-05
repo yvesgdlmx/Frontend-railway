@@ -233,6 +233,11 @@ const DesktopMenuWhite = () => {
                     <p className="block px-4 py-2 hover:bg-gray-100">Reporte de flujo</p> 
                   </Link> 
                 </li> 
+                <li> 
+                  <Link to="/porcentaje_de_cumplimiento" onClick={handleMenuItemClick}> 
+                    <p className="block px-4 py-2 hover:bg-gray-100">Porcentaje de cumplimiento</p> 
+                  </Link> 
+                </li> 
               </ul> 
             </div> 
           )} 
