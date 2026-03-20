@@ -26,48 +26,53 @@ const ResumenResultadosProvider = ({ children }) => {
 
   // Función para calcular metas reales hasta el día actual
   const calcularMetasHastaHoy = (datosDiarios, mes, anio) => {
-    const hoy = new Date();
-    const hoyMes = hoy.getMonth() + 1;
-    const hoyAnio = hoy.getFullYear();
+  const hoy = new Date();
+  const hoyMes = hoy.getMonth() + 1;
+  const hoyAnio = hoy.getFullYear();
 
-    // Solo aplicar si es el mes actual
-    if (mes !== hoyMes || anio !== hoyAnio) {
-      return null; // Retorna null si no es el mes actual
-    }
+  if (mes !== hoyMes || anio !== hoyAnio) {
+    return null;
+  }
 
-    const diaActual = hoy.getDate();
+  const horaActual = hoy.getHours();
+  let diaLimite = hoy.getDate();
 
-    // Filtrar datos hasta el día actual del mes actual
-    const datosHastaHoy = datosDiarios.filter(registro => {
-      const fechaRegistro = new Date(registro.diario + 'T00:00:00');
-      return (
-        fechaRegistro.getMonth() + 1 === mes &&
-        fechaRegistro.getFullYear() === anio &&
-        fechaRegistro.getDate() <= diaActual
-      );
-    });
+  // Antes de las 22:00, solo suma hasta el día anterior
+  if (horaActual < 22) {
+    diaLimite = diaLimite - 1;
+  }
 
-    // Sumar las metas hasta hoy
-    const metaSFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.meta_sf || 0), 0);
-    const metaFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.meta_f || 0), 0);
-    const metaTotalHastaHoy = metaSFHastaHoy + metaFHastaHoy;
+  // Filtrar datos hasta el día límite
+  const datosHastaHoy = datosDiarios.filter(registro => {
+    const fechaRegistro = new Date(registro.diario + 'T00:00:00');
+    return (
+      fechaRegistro.getMonth() + 1 === mes &&
+      fechaRegistro.getFullYear() === anio &&
+      fechaRegistro.getDate() <= diaLimite
+    );
+  });
 
-    // Sumar los reales hasta hoy
-    const realSFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.real_sf || 0), 0);
-    const realFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.real_f || 0), 0);
-    const realTotalHastaHoy = realSFHastaHoy + realFHastaHoy;
+  // Sumar las metas hasta el día límite
+  const metaSFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.meta_sf || 0), 0);
+  const metaFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.meta_f || 0), 0);
+  const metaTotalHastaHoy = metaSFHastaHoy + metaFHastaHoy;
 
-    return {
-      metaSF: metaSFHastaHoy,
-      metaF: metaFHastaHoy,
-      metaTotal: metaTotalHastaHoy,
-      realSF: realSFHastaHoy,
-      realF: realFHastaHoy,
-      realTotal: realTotalHastaHoy,
-      diaActual,
-      diasTotalesMes: new Date(anio, mes, 0).getDate()
-    };
+  // Sumar los reales hasta el día límite
+  const realSFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.real_sf || 0), 0);
+  const realFHastaHoy = datosHastaHoy.reduce((sum, reg) => sum + (reg.real_f || 0), 0);
+  const realTotalHastaHoy = realSFHastaHoy + realFHastaHoy;
+
+  return {
+    metaSF: metaSFHastaHoy,
+    metaF: metaFHastaHoy,
+    metaTotal: metaTotalHastaHoy,
+    realSF: realSFHastaHoy,
+    realF: realFHastaHoy,
+    realTotal: realTotalHastaHoy,
+    diaActual: diaLimite,
+    diasTotalesMes: new Date(anio, mes, 0).getDate()
   };
+};
 
   const obtenerDatos = async (anio = anioSeleccionado) => {
     try {
