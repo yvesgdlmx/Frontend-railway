@@ -102,7 +102,7 @@ const GeneradoLaProvider = ({ children }) => {
     const fetchData = async () => {
       try {
         // Patrones de las máquinas deseadas para este módulo
-        const patterns = ["245 ORBIT", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA"];
+        const patterns = ["245 ORBIT", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA", "240 ORBIT 5 LA", "239 ORBIT 6 LA" ];
         // 1. Obtener y filtrar las metas
         const responseMetas = await clienteAxios.get("/metas/metas-generadores");
         const metasFiltradas = responseMetas.data.registros.filter((meta) =>

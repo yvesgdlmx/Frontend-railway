@@ -104,7 +104,9 @@ const PulidoLaProvider = ({ children }) => {
           "266 MULTIFLEX 1",
           "267 MULTIFLEX 2",
           "268 MULTIFLEX 3",
-          "269 MULTIFLEX 4"
+          "269 MULTIFLEX 4",
+          "274 MULTIFLEX 5",
+          "275 MULTIFLEX 6"
         ];
         // 1. Obtener las metas y filtrarlas
         const responseMetas = await clienteAxios.get("/metas/metas-pulidos");
