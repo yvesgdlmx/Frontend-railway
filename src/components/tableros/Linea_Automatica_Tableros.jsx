@@ -16,7 +16,7 @@ const Linea_Automatica_Tableros = () => {
       metaEndpoint: "/metas/metas-generadores",
       dataEndpoint: "/generadores/generadores/actualdia",
       seccion: "Generado",
-      filtro: ["245 ORBIT 1 LA", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA"],
+      filtro: ["245 ORBIT 1 LA", "246 ORBIT 2 LA", "244 ORBIT 3 LA", "243 ORBIT 4 LA", "240 ORBIT 5 LA", "239 ORBIT 6 LA"],
     },
     {
       key: "pulido",
@@ -24,7 +24,7 @@ const Linea_Automatica_Tableros = () => {
       metaEndpoint: "/metas/metas-pulidos",
       dataEndpoint: "/pulido/pulido/actualdia",
       seccion: "Pulido",
-      filtro: ["266 MULTIFLEX 1", "267 MULTIFLEX 2", "268 MULTIFLEX 3", "269 MULTIFLEX 4"],
+      filtro: ["266 MULTIFLEX 1", "267 MULTIFLEX 2", "268 MULTIFLEX 3", "269 MULTIFLEX 4", "274 MULTIFLEX 5", "275 MULTIFLEX 6"],
     },
     {
       key: "biselado",

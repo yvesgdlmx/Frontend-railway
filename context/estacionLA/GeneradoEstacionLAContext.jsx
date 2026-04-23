@@ -45,6 +45,8 @@ const GeneradoEstacionLAProvider = ({ children }) => {
     "246 ORBIT 2 LA",
     "244 ORBIT 3 LA",
     "243 ORBIT 4 LA",
+    "240 ORBIT 5 LA",
+    "239 ORBIT 6 LA"
   ];
   // Función para calcular el rango de hora (bucket de 1 hora)
   const calcularRangoHoras = (hora) => {

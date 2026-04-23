@@ -47,7 +47,9 @@ const PulidoEstacionLAProvider = ({ children }) => {
     "266 MULTIFLEX 1",
     "267 MULTIFLEX 2",
     "268 MULTIFLEX 3",
-    "269 MULTIFLEX 4"
+    "269 MULTIFLEX 4",
+    "274 MULTIFLEX 5",
+    "275 MULTIFLEX 6"
   ];
   // Ref para hacer scroll si es necesario
   const generadoRef = useRef(null);
