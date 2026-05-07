@@ -1,6 +1,9 @@
+// ReporteTrabajosSinMovimientos.jsx
+
 import React, { useState, useEffect } from 'react';
 import moment from 'moment-timezone';
 import clienteAxios from '../../../config/clienteAxios';
+
 import Heading from '../../components/others/Heading';
 import Paginador from '../../components/others/Paginador';
 import TablaGenerica from '../../components/others/TablaGenerica';
@@ -11,7 +14,10 @@ import FiltrosCustom from '../../components/others/html_personalizado/FiltrosCus
 const ReporteTrabajosSinMovimientos = () => {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  // Opciones para el filtro
+
+  const itemsPerPage = 100;
+
+  // Opciones de filtros
   const filterOptions = [
     { value: 'enterDate', label: 'Enter Date' },
     { value: 'trayNumber', label: 'Tray Number' },
@@ -20,39 +26,54 @@ const ReporteTrabajosSinMovimientos = () => {
     { value: 'division', label: 'Division' },
     { value: 'fs', label: 'F/S' },
   ];
-  // Campo seleccionado para filtrar (por defecto tomamos el primero)
-  const [selectedFilterField, setSelectedFilterField] = useState(filterOptions[0]);
-  // Valor ingresado para filtrar (input)
-  const [filterValue, setFilterValue] = useState('');
+
+  // NUEVO ESTADO DE FILTROS
+  const [filters, setFilters] = useState([
+    {
+      field: filterOptions[0],
+      value: '',
+    },
+  ]);
+
   const [ultimaActualizacion, setUltimaActualizacion] = useState('');
-  const itemsPerPage = 100;
-  // Actualización de la hora y refresco automático
+
+  // Actualización automática
   useEffect(() => {
     const actualizarHora = () => {
       const ahora = new Date();
+
       ahora.setMinutes(35, 0, 0);
+
       const horaFormateada = ahora.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
       });
+
       setUltimaActualizacion(horaFormateada);
     };
+
     const verificarYActualizar = () => {
       const ahora = new Date();
+
       if (ahora.getMinutes() === 35) {
         actualizarHora();
         window.location.reload();
       }
     };
+
     actualizarHora();
+
     const intervalo = setInterval(verificarYActualizar, 60000);
+
     return () => clearInterval(intervalo);
   }, []);
-  // Obtención de datos desde el endpoint
+
+  // Obtener datos
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await clienteAxios.get('/reportes/reportes/movimientos');
+
         const registros = response.data.registros.map((registro) => ({
           id: registro.id,
           enterDate: registro.enter_date,
@@ -68,36 +89,51 @@ const ReporteTrabajosSinMovimientos = () => {
           transcurrido: registro.transcurrido,
           diaYHora: `${moment(registro.dia_actual).format('DD/MM/YYYY')} ${registro.hora_actual}`,
         }));
+
         setData(registros);
       } catch (error) {
         console.error('Error al obtener datos:', error);
       }
     };
+
     fetchData();
   }, []);
-  // Reiniciamos la página actual al cambiar el filtro
+
+  // Reiniciar paginación al cambiar filtros
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedFilterField, filterValue]);
-  // Filtrado según el campo y el valor ingresado
+  }, [filters]);
+
+  // FILTRADO MÚLTIPLE
   const filteredData = data.filter((registro) => {
-    if (filterValue === '') return true;
-    return registro[selectedFilterField.value]
-      .toString()
-      .toLowerCase()
-      .includes(filterValue.toLowerCase());
+    return filters.every((filter) => {
+      if (!filter.value) return true;
+
+      const fieldValue = registro[filter.field.value];
+
+      if (fieldValue === null || fieldValue === undefined) {
+        return false;
+      }
+
+      return fieldValue.toString().toLowerCase().includes(filter.value.toLowerCase());
+    });
   });
-  // Paginación
+
+  // PAGINACIÓN
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
   const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
-  // Columnas de la tabla
+
+  // COLUMNAS
   const columns = [
     { header: 'ID', accessor: 'id' },
     { header: 'Enter Date', accessor: 'enterDate' },
@@ -111,42 +147,47 @@ const ReporteTrabajosSinMovimientos = () => {
     { header: 'Hora Actual', accessor: 'horaActual' },
     { header: 'Transcurrido', accessor: 'transcurrido' },
   ];
+
   return (
     <>
       <div className="mt-6 md:mt-0">
         <Heading title="Reporte de Trabajos Sin Movimientos" />
       </div>
+
       <div className="mt-6 lg:mt-0 bg-gray-100 min-h-screen p-4">
         <Actualizacion ultimaActualizacion={ultimaActualizacion} />
-        {/* Uso del componente de filtros personalizado */}
-        <FiltrosCustom
-          filterOptions={filterOptions}
-          selectedFilterField={selectedFilterField}
-          onChangeFilterField={(option) => setSelectedFilterField(option)}
-          filterValue={filterValue}
-          onChangeFilterValue={(e) => setFilterValue(e.target.value)}
-        />
-        {/* Vista de tabla para pantallas grandes */}
+
+        {/* FILTROS */}
+        <FiltrosCustom filterOptions={filterOptions} filters={filters} setFilters={setFilters} />
+
+        {/* TABLA DESKTOP */}
         <div className="overflow-x-auto hidden lg:block text-sm">
           <TablaGenerica columns={columns} data={currentData} />
+
           <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-b-lg mt-4">
             <div className="text-sm text-gray-600">
               Mostrando {filteredData.length === 0 ? 0 : indexOfFirstItem + 1} -{' '}
-              {indexOfLastItem > filteredData.length ? filteredData.length : indexOfLastItem} de {filteredData.length} registros
+              {indexOfLastItem > filteredData.length ? filteredData.length : indexOfLastItem} de{' '}
+              {filteredData.length} registros
             </div>
+
             <Paginador currentPage={currentPage} totalPages={totalPages} goToPage={goToPage} />
           </div>
         </div>
-        {/* Vista para móviles */}
+
+        {/* MOBILE */}
         <div className="lg:hidden space-y-4">
           {currentData.map((registro, index) => (
             <CardMobile key={index} registro={registro} />
           ))}
+
           <div className="flex flex-col space-y-2 bg-white border border-gray-200 rounded-lg p-4">
             <div className="text-center text-sm text-gray-600">
               Mostrando {filteredData.length === 0 ? 0 : indexOfFirstItem + 1} -{' '}
-              {indexOfLastItem > filteredData.length ? filteredData.length : indexOfLastItem} de {filteredData.length} registros
+              {indexOfLastItem > filteredData.length ? filteredData.length : indexOfLastItem} de{' '}
+              {filteredData.length} registros
             </div>
+
             <div className="flex justify-center">
               <Paginador currentPage={currentPage} totalPages={totalPages} goToPage={goToPage} />
             </div>
@@ -156,4 +197,5 @@ const ReporteTrabajosSinMovimientos = () => {
     </>
   );
 };
+
 export default ReporteTrabajosSinMovimientos;
