@@ -62,10 +62,10 @@ const Totales_HardCoat_Maquina2 = () => {
   const [tableData, setTableData] = useState([]);
   // Registros de interés: aquellos cuyo name comienza con alguno de estos prefijos.
   const validPrefixes = [
-    "46 MR3.4",
-    "48 MR3.1",
-    "49 MR3.2",
-    "50 MR3.3",
+    "OTB 1",
+    "OTB 2",
+    "OTB 3",
+    "OTB 4",
     "91 VELOCITY 1",
     "92 VELOCITY 2"
   ];
