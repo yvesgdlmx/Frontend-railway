@@ -312,6 +312,15 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                     Porcentaje de cumplimiento
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to={"/reportes_wip_operacion_resumen"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Resumen WIP operación
+                  </Link>
+                </li>
               </ul>
             </li>
           </ul>
