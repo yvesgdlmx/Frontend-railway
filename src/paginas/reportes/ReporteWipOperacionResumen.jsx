@@ -18,10 +18,14 @@ const ReporteWipOperacionResumen = () => {
 
   const [clienteFiltro, setClienteFiltro] = useState("todos");
   const [lenspickFiltro, setLenspickFiltro] = useState("todos");
-  const [coatingFiltro, setCoatingFiltro] = useState("todos");
+  const [coatingFiltro, setCoatingFiltro] = useState([
+    "clr",
+    "cot",
+    "par",
+    "other",
+  ]);
 
   const clientes = ["nvi", "ink"];
-  const coatings = ["clr", "cot", "par", "other"];
   const lenspicks = ["f", "s"];
 
   const columnasPrincipales = [
@@ -103,7 +107,6 @@ const ReporteWipOperacionResumen = () => {
   ];
 
   const coatingOptions = [
-    { value: "todos", label: "Todas las capas" },
     { value: "clr", label: "CLR" },
     { value: "cot", label: "COT" },
     { value: "par", label: "PAR" },
@@ -115,7 +118,7 @@ const ReporteWipOperacionResumen = () => {
   };
 
   const getCoatingsFiltrados = () => {
-    return coatingFiltro === "todos" ? coatings : [coatingFiltro];
+    return coatingFiltro;
   };
 
   const getLenspicksFiltrados = () => {
@@ -402,13 +405,18 @@ const ReporteWipOperacionResumen = () => {
                             </label>
                             <SelectWipDiario
                               options={coatingOptions}
-                              value={coatingOptions.find(
-                                (option) => option.value === coatingFiltro
+                              value={coatingOptions.filter((option) =>
+                                coatingFiltro.includes(option.value)
                               )}
-                              onChange={(option) =>
-                                setCoatingFiltro(option.value)
+                              onChange={(options) =>
+                                setCoatingFiltro(
+                                  options.map((option) => option.value)
+                                )
                               }
-                              placeholder="Selecciona capa"
+                              placeholder="Selecciona una o más capas"
+                              isMulti
+                              closeMenuOnSelect={false}
+                              hideSelectedOptions={false}
                             />
                           </div>
                         </div>

@@ -7,24 +7,29 @@ const customStyles = {
     borderColor: '#D1D5DB',
     boxShadow: 'none',
     '&:hover': { borderColor: '#9CA3AF' },
-    height: '50px',
     minHeight: '50px',
   }),
   valueContainer: (provided) => ({
     ...provided,
-    height: '40px',
+    minHeight: '40px',
     padding: '0 8px',
   }),
   indicatorsContainer: (provided) => ({
     ...provided,
-    height: '50px',
+    minHeight: '50px',
   }),
   menu: (provided) => ({
     ...provided,
     zIndex: 9999,
   }),
 };
-const SelectWipDiario = ({ options, value, onChange, placeholder }) => {
+const SelectWipDiario = ({
+  options,
+  value,
+  onChange,
+  placeholder,
+  ...selectProps
+}) => {
   return (
     <Select
       options={options}
@@ -32,6 +37,7 @@ const SelectWipDiario = ({ options, value, onChange, placeholder }) => {
       onChange={onChange}
       placeholder={placeholder}
       styles={customStyles}
+      {...selectProps}
     />
   );
 };
