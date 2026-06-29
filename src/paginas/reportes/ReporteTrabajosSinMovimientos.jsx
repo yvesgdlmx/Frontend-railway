@@ -24,6 +24,7 @@ const ReporteTrabajosSinMovimientos = () => {
     { value: 'currentStation', label: 'Current Station' },
     { value: 'currentStnDate', label: 'Current Stn Date' },
     { value: 'division', label: 'Division' },
+    { value: 'coat', label: 'Coat' },
     { value: 'fs', label: 'F/S' },
   ];
 
@@ -83,6 +84,7 @@ const ReporteTrabajosSinMovimientos = () => {
           daysInProcess: registro.days_in_process,
           currentStnDate: registro.current_stn_date,
           currentStnTime: registro.current_stn_time,
+          coat: registro.coat,
           fs: registro.f_s,
           diaActual: registro.dia_actual,
           horaActual: registro.hora_actual,
@@ -142,6 +144,7 @@ const ReporteTrabajosSinMovimientos = () => {
     { header: 'Division', accessor: 'division' },
     { header: 'Current Stn Date', accessor: 'currentStnDate' },
     { header: 'Current Stn Time', accessor: 'currentStnTime' },
+    { header: 'Coat', accessor: 'coat' },
     { header: 'F/S', accessor: 'fs' },
     { header: 'Dia Actual', accessor: 'diaActual' },
     { header: 'Hora Actual', accessor: 'horaActual' },

@@ -32,6 +32,10 @@ const CardMobile = ({ registro }) => {
           <span className="font-bold text-gray-500">{registro.currentStnTime}</span>
         </div>
         <div className="flex justify-between border-b border-gray-200 pb-2">
+          <span className="text-gray-600">Coat:</span>
+          <span className="font-bold text-gray-500">{registro.coat}</span>
+        </div>
+        <div className="flex justify-between border-b border-gray-200 pb-2">
           <span className="text-gray-600">F/S:</span>
           <span className="font-bold text-gray-500">{registro.fs}</span>
         </div>
