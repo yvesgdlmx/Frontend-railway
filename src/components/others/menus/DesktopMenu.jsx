@@ -151,6 +151,10 @@ const DesktopMenu = ({
                   label: "RESUMEN DE TRABAJOS",
                 },
                 {
+                  to: "/reportes_resumen_trabajos_ink",
+                  label: "RESUMEN TRABAJOS INK",
+                },
+                {
                   to: "/reportes_ar_resumen_trabajos",
                   label: "RESUMEN AR POR ÁREA",
                 },

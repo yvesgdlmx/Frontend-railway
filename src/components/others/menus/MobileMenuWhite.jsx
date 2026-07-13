@@ -278,6 +278,15 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                 </li>
                 <li>
                   <Link
+                    to={"/reportes_resumen_trabajos_ink"}
+                    onClick={handleClick}
+                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Resumen trabajos Ink
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to={"/reportes_ar_resumen_trabajos"}
                     onClick={handleClick}
                     className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"

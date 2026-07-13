@@ -46,6 +46,7 @@ const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
 const CargarMedia = lazy(() => import('./paginas/CargarMedia'));
 const EditarMetas = lazy(() => import('./paginas/metas/EditarMetas'))
 const ResumenArTrabajos = lazy(() => import('./paginas/reportes/ResumenArTrabajos'));
+const ResumenTrabajosInk = lazy(() => import('./paginas/reportes/ResumenTrabajosInk'));
 const Pruebas = lazy(() => import('./paginas/Pruebas'));
 const ResumenDeResultado = lazy(() => import('./paginas/finanzas/ResumenDeResultado'))
 const Asistencias = lazy(() => import('./paginas/metas/Asistencias'));
@@ -91,6 +92,7 @@ function App() {
                   <Route path='/reportes_wip_diario' element={<ReporteWipDiario />} />
                   <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
                   <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
+                  <Route path='/reportes_resumen_trabajos_ink' element={<ResumenTrabajosInk/>} />
                   <Route path='/reportes_ar_resumen_trabajos' element={<ResumenArTrabajos/>} />
                   <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
                   <Route path='/reportes_de_flujo' element={<ReporteDeFlujo/>} />

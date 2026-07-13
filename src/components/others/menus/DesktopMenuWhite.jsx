@@ -218,6 +218,11 @@ const DesktopMenuWhite = () => {
                     <p className="block px-4 py-2 hover:bg-gray-100">Resumen de trabajos</p> 
                   </Link> 
                 </li> 
+                <li>
+                  <Link to="/reportes_resumen_trabajos_ink" onClick={handleMenuItemClick}>
+                    <p className="block px-4 py-2 hover:bg-gray-100">Resumen trabajos Ink</p>
+                  </Link>
+                </li>
                 <li> 
                   <Link to="/reportes_ar_resumen_trabajos" onClick={handleMenuItemClick}> 
                     <p className="block px-4 py-2 hover:bg-gray-100">Resumen AR por área</p> 
