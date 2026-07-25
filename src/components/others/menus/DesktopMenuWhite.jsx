@@ -248,6 +248,11 @@ const DesktopMenuWhite = () => {
                     <p className="block px-4 py-2 hover:bg-gray-100">Reporte Wip Operación</p>
                   </Link>
                 </li>
+                <li>
+                  <Link to="/reportes_wip_operacion_resumen_nvi" onClick={handleMenuItemClick}>
+                    <p className="block px-4 py-2 hover:bg-gray-100">Reporte Wip Operación NVI</p>
+                  </Link>
+                </li>
               </ul> 
             </div> 
           )} 

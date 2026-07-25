@@ -62,7 +62,6 @@ const Totales_AR_Maquina2 = () => {
   const [tableData, setTableData] = useState([]);
   // Los registros de interés deben comenzar con alguno de los siguientes prefijos:
   const validPrefixes = [
-    "52 FUSION",
     "53 1200 D",
     "54 OAC.120",
     "55 TLF 1200.1",

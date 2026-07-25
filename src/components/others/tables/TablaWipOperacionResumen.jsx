@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { PlusIcon, MinusIcon } from "@heroicons/react/24/solid";
 
+const getRegistroKey = (registro) => registro.id ?? `${registro.fecha}_${registro.hora_insercion}`;
+
 const TablaWipOperacionResumen = ({
   bloque,
   columnasPrincipales,
@@ -165,7 +167,7 @@ const TablaWipOperacionResumen = ({
         <tbody className="bg-white">
           {bloque.datos.map((registro) => (
             <tr
-              key={registro.id}
+              key={getRegistroKey(registro)}
               className="border-b border-slate-100 hover:bg-blue-50/40"
             >
               <td className="sticky left-0 z-10 border-b border-r border-slate-200 bg-white px-3 py-2.5 text-center text-xs font-semibold text-slate-700 sm:px-4 sm:py-3 sm:text-sm">
@@ -181,7 +183,7 @@ const TablaWipOperacionResumen = ({
 
                   return columna.detalles.map((detalle, detalleIndex) => (
                     <td
-                      key={`${registro.id}_${detalle.key}`}
+                      key={`${getRegistroKey(registro)}_${detalle.key}`}
                       className={getDetalleCellClass(
                         detalleIndex,
                         columna.detalles.length,
@@ -196,7 +198,7 @@ const TablaWipOperacionResumen = ({
 
                 return (
                   <td
-                    key={`${registro.id}_${columna.key}`}
+                    key={`${getRegistroKey(registro)}_${columna.key}`}
                     className="border-b border-r border-slate-100 px-3 py-2.5 text-center text-xs text-slate-700 sm:px-4 sm:py-3 sm:text-sm"
                   >
                     {formatNumber(
@@ -267,3 +269,5 @@ const TablaWipOperacionResumen = ({
 };
 
 export default TablaWipOperacionResumen;
+
+

@@ -52,6 +52,7 @@ const ResumenDeResultado = lazy(() => import('./paginas/finanzas/ResumenDeResult
 const Asistencias = lazy(() => import('./paginas/metas/Asistencias'));
 const PorcentajeDeCumplimiento = lazy(() => import('./paginas/metas/PorcentajeDeCumplimiento'));
 const ReporteWipOperacionResumen = lazy(() => import('./paginas/reportes/ReporteWipOperacionResumen'))
+const ReporteWipOperacionResumenNvi = lazy(() => import('./paginas/reportes/ReporteWipOperacionResumenNvi'))
 
 
 function App() {
@@ -97,6 +98,7 @@ function App() {
                   <Route path='/reportes_trabajos_sin_movimientos' element={<ReporteTrabajosSinMovimientos/>} />
                   <Route path='/reportes_de_flujo' element={<ReporteDeFlujo/>} />
                   <Route path='/reportes_wip_operacion_resumen' element={<ReporteWipOperacionResumen/>} />
+                  <Route path='/reportes_wip_operacion_resumen_nvi' element={<ReporteWipOperacionResumenNvi/>} />
                   <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
                   <Route path='/pruebas' element={<Pruebas/>} />
                   <Route path='/porcentaje_de_cumplimiento' element={<PorcentajeDeCumplimiento/>}/>

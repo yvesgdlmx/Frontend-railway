@@ -5,7 +5,7 @@ export const seccionesOrdenadas = [
   { seccion: "Pulido", nombres: ["255 POLISHR 1", "256 POLISHR 2", "257 POLISHR 3", "258 POLISHR 4", "259 POLISHR 5", "260 POLISHR 6", "261 POLISHR 7", "262 POLISHR 8", "265 POLISHR 12", "266 MULTIFLEX 1", "267 MULTIFLEX 2", "268 MULTIFLEX 3", "269 MULTIFLEX 4", "274 MULTIFLEX 5", "275 MULTIFLEX 6", "254 IFLEX SRVR"] },
   { seccion: "Engraver", nombres: ["270 ENGRVR 1", "271 ENGRVR 2", "272 ENGRVR 3", "273 ENGRVR 4"] },
   { seccion: "Desbloqueo", nombres: ["400 DEBLOCKING 2"] },
-  { seccion: "AR", nombres: ["52 FUSION", "53 1200 D", "54 OAC.120", "55 TLF 1200.1", "56 TLF 1200.2"] },
+  { seccion: "AR", nombres: ["53 1200 D", "54 OAC.120", "55 TLF 1200.1", "56 TLF 1200.2"] },
   { seccion: "Hardcoat", nombres: ["OTB 1", "OTB 2", "OTB 3", "OTB 4", "91 VELOCITY 1", "92 VELOCITY 2"] },
   { seccion: "Recubrimiento", nombres: ["60 AR ENTRADA", "61 AR SALIDA"] },
   { seccion: "Bloqueo de terminado", nombres: ["280 FINBLKR 1", "281 FINBLKR 2", "282 FINBLKR 3", "283 FINBLKR 4", "277 FINBLKR M1", "278 FINBLKR M2", "279 FINBLKR M3", "285 C6 WECO"] },

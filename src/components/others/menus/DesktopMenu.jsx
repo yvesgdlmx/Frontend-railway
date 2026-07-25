@@ -174,6 +174,10 @@ const DesktopMenu = ({
                   to: "/reportes_wip_operacion_resumen",
                   label: "RESUMEN WIP OPERACIÓN",
                 },
+                 {
+                  to: "/reportes_wip_operacion_resumen_nvi",
+                  label: "RESUMEN WIP OPERACIÓN NVI",
+                },
               ].map((item, index) => (
                 <li key={index}>
                   <Link
