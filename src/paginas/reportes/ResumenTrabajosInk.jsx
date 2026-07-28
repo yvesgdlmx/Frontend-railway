@@ -169,7 +169,15 @@ const ResumenTrabajosInk = () => {
                           </button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-6 gap-6 mb-6">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-6 mb-6">
+                        <div className="bg-blue-50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
+                          <span className="text-sm font-medium text-gray-600">
+                            Ink En Proceso
+                          </span>
+                          <div className="text-2xl font-bold text-blue-700 mt-1">
+                            {formatNumber(sumarCampo(bloque.datos, "ink_en_proceso"))}
+                          </div>
+                        </div>
                         <div className="bg-blue-50 rounded-lg p-4 transition-all duration-300 hover:shadow-md">
                           <span className="text-sm font-medium text-gray-600">
                             Sin Surtir

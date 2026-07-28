@@ -1,6 +1,7 @@
 import React from "react";
 
 const columnas = [
+  { key: "ink_en_proceso", label: "Ink En Proceso" },
   { key: "sin_surtir", label: "Sin Surtir" },
   { key: "sin_surtir_con_ar", label: "Sin Surtir Con AR" },
   { key: "sin_surtir_sin_ar", label: "Sin Surtir Sin AR" },
@@ -16,6 +17,9 @@ const columnas = [
 ];
 
 const TablaResumenTrabajosInk = ({ datos, formatNumber }) => {
+  const sumarColumna = (campo) =>
+    datos.reduce((acc, fila) => acc + (Number(fila[campo]) || 0), 0);
+
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200">
       <table className="min-w-full divide-y divide-gray-200">
@@ -56,6 +60,21 @@ const TablaResumenTrabajosInk = ({ datos, formatNumber }) => {
             </tr>
           ))}
         </tbody>
+        <tfoot className="bg-sky-50 border-t border-sky-100">
+          <tr className="text-center">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-sky-800 uppercase">
+              Total
+            </td>
+            {columnas.map((columna) => (
+              <td
+                key={columna.key}
+                className="px-6 py-4 whitespace-nowrap text-sm text-sky-800 font-bold"
+              >
+                {formatNumber(sumarColumna(columna.key))}
+              </td>
+            ))}
+          </tr>
+        </tfoot>
       </table>
     </div>
   );
