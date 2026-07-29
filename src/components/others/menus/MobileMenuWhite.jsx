@@ -330,15 +330,6 @@ const MobileMenuWhite = ({ closeMobileMenu }) => {
                     Resumen WIP operación
                   </Link>
                 </li>
-                  <li>
-                  <Link
-                    to={"/reportes_wip_operacion_resumen_nvi"}
-                    onClick={handleClick}
-                    className="block py-2 px-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    Resumen WIP Operación NVI
-                  </Link>
-                </li>
               </ul>
             </li>
           </ul>
