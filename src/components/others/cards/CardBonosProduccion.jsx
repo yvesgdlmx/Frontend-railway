@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import clienteAxios from "../../../../config/clienteAxios";
 import moment from "moment-timezone";
 import "moment/locale/es"; // Importar el locale español
@@ -18,8 +18,7 @@ const CardBonosProduccion = () => {
 
         // Calcular el rango: sábado 22:00 -> siguiente sábado 21:59:59
         const ahora = moment().tz("America/Mexico_City");
-        const sabadoEstaSemana = ahora.clone().startOf('week').add(6, 'days'); // sábado 00:00
-        const sabadoEstaSemana22 = sabadoEstaSemana.clone().add(22, 'hours'); // sábado 22:00
+        const sabadoEstaSemana22 = ahora.clone().day(6).hour(22).minute(0).second(0).millisecond(0); // sábado 22:00
 
         let inicioSemana;
         if (ahora.isBefore(sabadoEstaSemana22)) {
@@ -28,6 +27,7 @@ const CardBonosProduccion = () => {
           inicioSemana = sabadoEstaSemana22; // sábado 22:00 actual
         }
         const finSemana = inicioSemana.clone().add(7, 'days').subtract(1, 'seconds'); // siguiente sábado 21:59:59
+        const finVentanaExcluida = inicioSemana.clone().add(1, 'day').hour(14).minute(30).second(0).millisecond(0); // domingo 14:30
 
         // Mapear días y meses manualmente en español (opcional, moment también los da)
         const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -48,7 +48,10 @@ const CardBonosProduccion = () => {
             "YYYY-MM-DD HH:mm:ss",
             "America/Mexico_City"
           );
-          return fechaHora.isSameOrAfter(inicioSemana) && fechaHora.isSameOrBefore(finSemana);
+          const estaDentroDeSemana = fechaHora.isSameOrAfter(inicioSemana) && fechaHora.isSameOrBefore(finSemana);
+          const estaEnVentanaExcluida = fechaHora.isAfter(inicioSemana) && fechaHora.isSameOrBefore(finVentanaExcluida);
+
+          return estaDentroDeSemana && !estaEnVentanaExcluida;
         });
 
         // Sumar los hits de los registros filtrados
