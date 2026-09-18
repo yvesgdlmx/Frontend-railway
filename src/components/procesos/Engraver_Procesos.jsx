@@ -108,7 +108,7 @@ const Engraver_Procesos = () => {
             : ultimo;
         }, registros[0]);
         const formattedLastHour = moment.tz(`${ultimoRegistro.fecha} ${ultimoRegistro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-        setUltimaHora(formattedLastHour.clone().subtract(30, 'minutes').format('HH:mm'));
+        setUltimaHora(formattedLastHour.clone().subtract(1, 'hour').format('HH:mm'));
         setSiguienteHora(formattedLastHour.format('HH:mm'));
       } catch (error) {
         console.error("Error al obtener los datos:", error);
