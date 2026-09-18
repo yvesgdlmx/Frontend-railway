@@ -41,15 +41,14 @@ const DesbloqueoEstacionProvider = ({ children }) => {
   // Arreglo fijo de buckets (horas) en el orden deseado
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
-    "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:30", // Matutino
-    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00"  // Nocturno
+    "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:00", // Matutino
+    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00"  // Nocturno
   ];
   // Función para calcular el rango de cada bucket (1 hora)
   const calcularRangoHoras = (hora) => {
-    const fin = hora === "23:00"
-      ? "00:00"
-      : moment(hora, "HH:mm").add(1, "hour").format("HH:mm");
-    return `${hora} - ${fin}`;
+    const fin = moment(hora, "HH:mm");
+    const inicio = fin.clone().subtract(1, "hour").format("HH:mm");
+    return `${inicio} - ${fin.format("HH:mm")}`;
   };
   // Obtención de datos: metas y registros (hits)
   useEffect(() => {
@@ -91,7 +90,7 @@ const DesbloqueoEstacionProvider = ({ children }) => {
             `${registro.fecha} ${registro.hour}`,
             "YYYY-MM-DD HH:mm:ss"
           );
-          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)");
+          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "(]");
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
@@ -121,8 +120,7 @@ const DesbloqueoEstacionProvider = ({ children }) => {
         fechaHoraRegistro.isBetween(
           inicioJornada.clone(),
           inicioJornada.clone().add(8, "hours"),
-          null,
-          "[)"
+          null, "(]"
         )
       ) {
         totales.nocturno += registro.hits;
@@ -131,9 +129,8 @@ const DesbloqueoEstacionProvider = ({ children }) => {
       else if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(8, "hours").add(30, "minutes"),
-          inicioJornada.clone().add(16, "hours"),
-          null,
-          "[)"
+          inicioJornada.clone().add(16, "hours").add(30, "minutes"),
+          null, "(]"
         )
       ) {
         totales.matutino += registro.hits;
@@ -143,8 +140,7 @@ const DesbloqueoEstacionProvider = ({ children }) => {
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(16, "hours").add(30, "minutes"),
           inicioJornada.clone().add(23, "hours").add(30, "minutes"),
-          null,
-          "[)"
+          null, "(]"
         )
       ) {
         totales.vespertino += registro.hits;
@@ -183,8 +179,7 @@ const DesbloqueoEstacionProvider = ({ children }) => {
     const ahora = moment();
     let inicioJornada = moment().startOf("day").add(22, "hours");
     if (ahora.isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
-    const bucketInicio = getBucketMoment(horaStr, inicioJornada);
-    const bucketFin = bucketInicio.clone().add(1, "hour");
+    const bucketFin = getBucketMoment(horaStr, inicioJornada);
     const margen = 5; // minutos de margen
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
@@ -206,17 +201,15 @@ const DesbloqueoEstacionProvider = ({ children }) => {
       bucketMoment.isBetween(
         inicioJornada.clone(),
         inicioJornada.clone().add(8, "hours"),
-        null,
-        "[)"
+        null, "(]"
       )
     )
       return metasPorHora.nocturno;
     else if (
       bucketMoment.isBetween(
         inicioJornada.clone().add(8, "hours").add(30, "minutes"),
-        inicioJornada.clone().add(16, "hours"),
-        null,
-        "[)"
+        inicioJornada.clone().add(16, "hours").add(30, "minutes"),
+        null, "(]"
       )
     )
       return metasPorHora.matutino;
@@ -224,8 +217,7 @@ const DesbloqueoEstacionProvider = ({ children }) => {
       bucketMoment.isBetween(
         inicioJornada.clone().add(16, "hours").add(30, "minutes"),
         inicioJornada.clone().add(23, "hours").add(30, "minutes"),
-        null,
-        "[)"
+        null, "(]"
       )
     )
       return metasPorHora.vespertino;

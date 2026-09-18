@@ -8,41 +8,41 @@ import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separa por guion) y agrupar estaciones
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
-const addOneHour = (timeStr) => {
+const subtractOneHour = (timeStr) => {
   const [hours, minutes] = timeStr.split(":").map(Number);
-  const nextHour = (hours + 1) % 24;
-  return String(nextHour).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
+  const prevHour = (hours + 23) % 24;
+  return String(prevHour).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
 };
 // Función getTurnWithTime para diferenciar los turnos:
 // Se considera nocturno si la hora es ≥22 o <6; entre 06:30 y 14:30 es matutino; el resto es vespertino.
 const getTurnWithTime = (timeStr) => {
   const [h, m] = timeStr.split(":").map(Number);
-  if (h >= 22 || h < 6) {
+  const totalMin = h * 60 + m;
+  if (h >= 23 || totalMin <= 360) {
     return "meta_nocturno";
   }
-  const totalMin = h * 60 + m;
-  if (totalMin >= 390 && totalMin < 870) return "meta_matutino";
+  if (totalMin > 390 && totalMin <= 870) return "meta_matutino";
   return "meta_vespertino";
 };
+const createClosedBucketColumn = (endStr) => ({
+  header: `${subtractOneHour(endStr)} - ${endStr}`,
+  accessor: `hour_${endStr}`,
+});
 // Generador de columnas para el turno matutino (06:30 a 14:30)
 const generateMatutinoColumns = () => {
   const cols = [];
-  for (let hour = 6; hour < 14; hour++) {
-    const startStr = String(hour).padStart(2, "0") + ":30";
-    const nextHour = (hour + 1) % 24;
-    const header = `${startStr} - ${String(nextHour).padStart(2, "0")}:30`;
-    cols.push({ header, accessor: `hour_${startStr}` });
+  for (let hour = 7; hour <= 14; hour++) {
+    const endStr = String(hour).padStart(2, "0") + ":30";
+    cols.push(createClosedBucketColumn(endStr));
   }
   return cols;
 };
 // Generador de columnas para el turno vespertino (14:30 a 22:30)
 const generateVespertinoColumns = () => {
   const cols = [];
-  for (let hour = 14; hour < 22; hour++) {
-    const startStr = String(hour).padStart(2, "0") + ":30";
-    const nextHour = (hour + 1) % 24;
-    const header = `${startStr} - ${String(nextHour).padStart(2, "0")}:30`;
-    cols.push({ header, accessor: `hour_${startStr}` });
+  for (let hour = 15; hour <= 21; hour++) {
+    const endStr = String(hour).padStart(2, "0") + ":30";
+    cols.push(createClosedBucketColumn(endStr));
   }
   return cols;
 };
@@ -50,11 +50,10 @@ const generateVespertinoColumns = () => {
 // Se generan columnas para las horas: 22, 23, 0, 1, 2, 3, 4, 5.
 const generateNocturnoColumns = () => {
   const cols = [];
-  const hours = [22, 23, 0, 1, 2, 3, 4, 5];
+  const hours = [23, 0, 1, 2, 3, 4, 5, 6];
   for (let h of hours) {
-    const startStr = String(h).padStart(2, "0") + ":00";
-    const header = `${startStr} - ${addOneHour(startStr)}`;
-    cols.push({ header, accessor: `hour_${startStr}` });
+    const endStr = String(h).padStart(2, "0") + ":00";
+    cols.push(createClosedBucketColumn(endStr));
   }
   return cols;
 };
@@ -92,7 +91,7 @@ const Totales_Surtido_Maquina2 = () => {
   if (currentTime.isBefore(journeyStart)) {
     journeyStart.subtract(1, "day");
   }
-  const journeyEnd = moment(journeyStart).add(1, "day");
+  const journeyEnd = moment(journeyStart).add(1, "day").subtract(30, "minutes");
   // Filtrar columnas horarias. Solo se incluyen aquellas columnas cuyo intervalo (1 hora) ya concluyó.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
@@ -104,7 +103,7 @@ const Totales_Surtido_Maquina2 = () => {
       intervalStart.add(1, "day");
     }
     intervalStart.set({ hour: h, minute: m, second: 0, millisecond: 0 });
-    const intervalEnd = moment(intervalStart).add(1, "hour");
+    const intervalEnd = intervalStart;
     return currentTime.isSameOrAfter(intervalEnd);
   });
   // Combinamos las columnas fijas con las horarias filtradas
@@ -152,7 +151,7 @@ const Totales_Surtido_Maquina2 = () => {
         // Filtrar registros empleando los límites de la jornada
         const registrosFiltrados = registrosPorNombre.filter((reg) => {
           const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
-          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
+          return recordMoment.isAfter(journeyStart) && recordMoment.isSameOrBefore(journeyEnd);
         });
         // Agrupar registros usando extractBaseName (esto nos dará "19 LENS LOG" o "20 LENS LOG")
         const agrupados = {};

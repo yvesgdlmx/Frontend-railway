@@ -100,14 +100,14 @@ const Surtido_Detallado = () => {
             const horaRegistro = registro.hour;
             const [h, m] = horaRegistro.split(':').map(Number);
             const totalMinutos = h * 60 + m;
-            if (fechaRegistro === fechaAnterior && totalMinutos >= 1320) {
+            if (fechaRegistro === fechaAnterior && totalMinutos > 1320) {
               nocturno.push({ ...registro, rawHour: registro.hour });
             } else if (fechaRegistro === fechaSeleccionada) {
-              if (totalMinutos < 390) {
+              if (totalMinutos <= 360) {
                 nocturno.push({ ...registro, rawHour: registro.hour });
-              } else if (totalMinutos >= 390 && totalMinutos <= 869) {
+              } else if (totalMinutos > 390 && totalMinutos <= 870) {
                 matutino.push({ ...registro, rawHour: registro.hour });
-              } else if (totalMinutos >= 870 && totalMinutos <= 1319) {
+              } else if (totalMinutos > 870 && totalMinutos <= 1290) {
                 vespertino.push({ ...registro, rawHour: registro.hour });
               }
             }
@@ -161,7 +161,7 @@ const Surtido_Detallado = () => {
     ? moment.tz(`${computedFechaAnterior} 22:00`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
     : null;
   const nocturnoEnd = computedFechaSeleccionada
-    ? moment.tz(`${computedFechaSeleccionada} 06:30`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
+    ? moment.tz(`${computedFechaSeleccionada} 06:00`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
     : null;
   const matutinoStart = computedFechaSeleccionada
     ? moment.tz(`${computedFechaSeleccionada} 06:30`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
@@ -173,7 +173,7 @@ const Surtido_Detallado = () => {
     ? moment.tz(`${computedFechaSeleccionada} 14:30`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
     : null;
   const vespertinoEnd = computedFechaSeleccionada
-    ? moment.tz(`${computedFechaSeleccionada} 22:00`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
+    ? moment.tz(`${computedFechaSeleccionada} 21:30`, "YYYY-MM-DD HH:mm", "America/Mexico_City")
     : null;
   // Renderizado de las tablas por turno
   const renderTurnoTables = () => (
@@ -266,7 +266,7 @@ const Surtido_Detallado = () => {
             {computedFechaSeleccionada && computedFechaAnterior && (
               <div className="text-center mt-4 text-gray-500">
                 <small>
-                  Rango de fecha: {computedFechaAnterior} 22:00 - {computedFechaSeleccionada} 21:59
+                  Rango de fecha: {computedFechaAnterior} 22:00 - {computedFechaSeleccionada} 21:30
                 </small>
               </div>
             )}

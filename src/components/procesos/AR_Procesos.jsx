@@ -33,7 +33,7 @@ const AR_Procesos = () => {
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours');
           // Turnos matutino y vespertino para el día siguiente.
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
-          finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
+          finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().add(1, 'day').startOf('day').add(21, 'hours').add(30, 'minutes');
         } else {
@@ -41,9 +41,9 @@ const AR_Procesos = () => {
           inicioNocturno = ahora.clone().subtract(1, 'day').startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().startOf('day').add(6, 'hours');
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
-          finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(29, 'minutes');
+          finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
-          finVespertino = ahora.clone().startOf('day').add(22, 'hours');
+          finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
   
         // Filtrar registros de cada turno según su fecha y hora
@@ -53,7 +53,7 @@ const AR_Procesos = () => {
             'YYYY-MM-DD HH:mm:ss',
             'America/Mexico_City'
           );
-          return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '(]');
         });
   
         const registrosMatutino = registros.filter(registro => {
@@ -62,7 +62,7 @@ const AR_Procesos = () => {
             'YYYY-MM-DD HH:mm:ss',
             'America/Mexico_City'
           );
-          return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '(]');
         });
   
         const registrosVespertino = registros.filter(registro => {
@@ -71,7 +71,7 @@ const AR_Procesos = () => {
             'YYYY-MM-DD HH:mm:ss',
             'America/Mexico_City'
           );
-          return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '(]');
         });
   
         // Calcular hits para cada turno
@@ -96,12 +96,8 @@ const AR_Procesos = () => {
         }, registros[0]);
   
         const formattedLastHour = moment.tz(`${ultimoRegistro.fecha} ${ultimoRegistro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-        setUltimaHora(formattedLastHour.format('HH:mm'));
-  
-        const horaFinal = moment(formattedLastHour);
-        horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
-        const siguienteHoraDate = moment(horaFinal).add(30, 'minutes');
-        setSiguienteHora(siguienteHoraDate.format('HH:mm'));
+        setUltimaHora(formattedLastHour.clone().subtract(30, 'minutes').format('HH:mm'));
+        setSiguienteHora(formattedLastHour.format('HH:mm'));
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }

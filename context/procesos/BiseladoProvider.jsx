@@ -50,17 +50,17 @@ const BiseladoProvider = ({ children }) => {
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours');
           // Turno matutino y vespertino para el día siguiente
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
-          finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
+          finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
-          finVespertino = ahora.clone().add(1, 'day').startOf('day').add(22, 'hours');
+          finVespertino = ahora.clone().add(1, 'day').startOf('day').add(21, 'hours').add(30, 'minutes');
         } else {
           // Jornada actual: turno nocturno de ayer 22:00 a hoy 06:00
           inicioNocturno = ahora.clone().subtract(1, 'day').startOf('day').add(22, 'hours');
           finNocturno = ahora.clone().startOf('day').add(6, 'hours');
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
-          finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(29, 'minutes');
+          finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
-          finVespertino = ahora.clone().startOf('day').add(22, 'hours');
+          finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
         // 4. Filtrar registros por turno
         const registrosNocturno = registros.filter(registro => {
@@ -69,7 +69,7 @@ const BiseladoProvider = ({ children }) => {
             'YYYY-MM-DD HH:mm:ss',
             'America/Mexico_City'
           );
-          return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '(]');
         });
         const registrosMatutino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
@@ -77,7 +77,7 @@ const BiseladoProvider = ({ children }) => {
             'YYYY-MM-DD HH:mm:ss',
             'America/Mexico_City'
           );
-          return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '(]');
         });
         const registrosVespertino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(
@@ -85,7 +85,7 @@ const BiseladoProvider = ({ children }) => {
             'YYYY-MM-DD HH:mm:ss',
             'America/Mexico_City'
           );
-          return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '(]');
         });
         // 5. Calcular hits por turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
@@ -107,14 +107,14 @@ const BiseladoProvider = ({ children }) => {
         setMetaVespertino(metaTotalVespertino);
         // 7. Calcular la "meta en vivo" acumulada según el turno activo
         let metaAcumulada = 0;
-        if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
+        if (ahora.isBetween(inicioNocturno, finNocturno, null, '(]')) {
           const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
           metaAcumulada = Math.floor(horasTranscurridasNocturno) * sumaMetaNocturno;
-        } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
+        } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '(]')) {
           metaAcumulada = metaTotalNocturno;
           const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasMatutino) * sumaMetaMatutino;
-        } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
+        } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '(]')) {
           metaAcumulada = metaTotalNocturno + metaTotalMatutino;
           const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasVespertino) * sumaMetaVespertino;
@@ -136,11 +136,8 @@ const BiseladoProvider = ({ children }) => {
           'YYYY-MM-DD HH:mm:ss',
           'America/Mexico_City'
         );
-        setUltimaHora(formattedLastHour.format('HH:mm'));
-        const horaFinal = moment(formattedLastHour);
-        horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
-        const siguienteHoraDate = moment(horaFinal).add(30, 'minutes');
-        setSiguienteHora(siguienteHoraDate.format('HH:mm'));
+        setUltimaHora(formattedLastHour.clone().subtract(30, 'minutes').format('HH:mm'));
+        setSiguienteHora(formattedLastHour.format('HH:mm'));
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }

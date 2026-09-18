@@ -39,8 +39,8 @@ const PulidoEstacionLAProvider = ({ children }) => {
   // Orden fijo de buckets (horas)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30", // Vespertino
-    "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:30", // Matutino
-    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00"  // Nocturno
+    "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:00", // Matutino
+    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00"  // Nocturno
   ];
   // Patrones (máquinas deseadas)
   const patterns = [
@@ -55,13 +55,9 @@ const PulidoEstacionLAProvider = ({ children }) => {
   const generadoRef = useRef(null);
   // Función para calcular el rango de horas (bucket de 1 hora)
   const calcularRangoHoras = (hora) => {
-    let fin;
-    if (hora === "23:00") {
-      fin = "00:00";
-    } else {
-      fin = moment(hora, "HH:mm").add(1, "hour").format("HH:mm");
-    }
-    return `${hora} - ${fin}`;
+    const fin = moment(hora, "HH:mm");
+    const inicio = fin.clone().subtract(1, "hour").format("HH:mm");
+    return `${inicio} - ${fin.format("HH:mm")}`;
   };
   // Función para agrupar hits por hora (bucket)
   const agruparHitsPorHora = () => {
@@ -96,8 +92,7 @@ const PulidoEstacionLAProvider = ({ children }) => {
     const ahora = moment();
     let inicioJornada = moment().startOf("day").add(22, "hours");
     if (ahora.isBefore(inicioJornada)) inicioJornada.subtract(1, "day");
-    const bucketInicio = getBucketMoment(horaStr, inicioJornada);
-    const bucketFin = bucketInicio.clone().add(1, "hour");
+    const bucketFin = getBucketMoment(horaStr, inicioJornada);
     const margen = 5;
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
@@ -121,17 +116,15 @@ const PulidoEstacionLAProvider = ({ children }) => {
         fechaHoraRegistro.isBetween(
           inicioJornada.clone(),
           inicioJornada.clone().add(8, "hours"),
-          null,
-          "[)"
+          null, "(]"
         )
       ) {
         totales.nocturno += registro.hits;
       } else if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(8, "hours").add(30, "minutes"),
-          inicioJornada.clone().add(16, "hours"),
-          null,
-          "[)"
+          inicioJornada.clone().add(16, "hours").add(30, "minutes"),
+          null, "(]"
         )
       ) {
         totales.matutino += registro.hits;
@@ -139,8 +132,7 @@ const PulidoEstacionLAProvider = ({ children }) => {
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(16, "hours").add(30, "minutes"),
           inicioJornada.clone().add(23, "hours").add(30, "minutes"),
-          null,
-          "[)"
+          null, "(]"
         )
       ) {
         totales.vespertino += registro.hits;
@@ -327,7 +319,7 @@ const PulidoEstacionLAProvider = ({ children }) => {
             "YYYY-MM-DD HH:mm:ss"
           );
           return (
-            fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)") &&
+            fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "(]") &&
             patterns.some((pat) => registro.name.startsWith(pat))
           );
         });
@@ -352,8 +344,7 @@ const PulidoEstacionLAProvider = ({ children }) => {
       bucketMoment.isBetween(
         inicioJornadaRef.clone(),
         inicioJornadaRef.clone().add(8, "hours"),
-        null,
-        "[)"
+        null, "(]"
       )
     )
       return metasPorHora.nocturno;
@@ -361,8 +352,7 @@ const PulidoEstacionLAProvider = ({ children }) => {
       bucketMoment.isBetween(
         inicioJornadaRef.clone().add(8, "hours").add(30, "minutes"),
         inicioJornadaRef.clone().add(16, "hours"),
-        null,
-        "[)"
+        null, "(]"
       )
     )
       return metasPorHora.matutino;
@@ -370,8 +360,7 @@ const PulidoEstacionLAProvider = ({ children }) => {
       bucketMoment.isBetween(
         inicioJornadaRef.clone().add(16, "hours").add(30, "minutes"),
         inicioJornadaRef.clone().add(23, "hours").add(30, "minutes"),
-        null,
-        "[)"
+        null, "(]"
       )
     )
       return metasPorHora.vespertino;

@@ -9,8 +9,8 @@ export const groupByHour = (records, cyclicSort = false) => {
     const time = moment(r.rawHour, "HH:mm:ss");
     const key = time.format("HH:mm");
     if (!grouped[key]) {
-      const lowerBound = key;
-      const upperBound = time.clone().add(1, "hour").format("HH:mm");
+      const lowerBound = time.clone().subtract(1, "hour").format("HH:mm");
+      const upperBound = key;
       grouped[key] = {
         rango: `${lowerBound} - ${upperBound}`,
         totalHits: 0,
@@ -29,14 +29,14 @@ export const groupByHour = (records, cyclicSort = false) => {
     let timeA = moment(a, "HH:mm");
     let timeB = moment(b, "HH:mm");
     if (cyclicSort) {
-      if (timeA.isBefore(moment("06:30", "HH:mm"))) timeA.add(24, "hours");
-      if (timeB.isBefore(moment("06:30", "HH:mm"))) timeB.add(24, "hours");
+      if (!timeA.isAfter(moment("06:00", "HH:mm"))) timeA.add(24, "hours");
+      if (!timeB.isAfter(moment("06:00", "HH:mm"))) timeB.add(24, "hours");
     }
     return timeA.diff(timeB);
   });
   return sortedKeys.map(key => {
     const lowerBoundMoment = moment(key, "HH:mm");
-    if (cyclicSort && lowerBoundMoment.isBefore(moment("06:30", "HH:mm"))) {
+    if (cyclicSort && !lowerBoundMoment.isAfter(moment("06:00", "HH:mm"))) {
       lowerBoundMoment.add(24, "hours");
     }
     return {

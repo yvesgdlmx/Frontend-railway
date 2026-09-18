@@ -36,7 +36,7 @@ const PulidoEstacionProvider = ({ children }) => {
   });
   const [turnoActivo, setTurnoActivo] = useState(null);
   const [editingTurnoNota, setEditingTurnoNota] = useState("");
-  // Orden de los buckets (horas)
+  // Orden de los buckets por hora de cierre.
   const ordenTurnos = [
     "21:30",
     "20:30",
@@ -53,7 +53,7 @@ const PulidoEstacionProvider = ({ children }) => {
     "09:30",
     "08:30",
     "07:30",
-    "06:30",
+    "06:00",
     "05:00",
     "04:00",
     "03:00",
@@ -61,15 +61,12 @@ const PulidoEstacionProvider = ({ children }) => {
     "01:00",
     "00:00",
     "23:00",
-    "22:00",
   ];
   // Función para calcular el rango de una hora (bucket)
   const calcularRangoHoras = (hora) => {
-    const fin =
-      hora === "23:00"
-        ? "00:00"
-        : moment(hora, "HH:mm").add(1, "hour").format("HH:mm");
-    return `${hora} - ${fin}`;
+    const fin = moment(hora, "HH:mm");
+    const inicio = fin.clone().subtract(1, "hour").format("HH:mm");
+    return `${inicio} - ${fin.format("HH:mm")}`;
   };
   // Obtener datos: metas y registros (hits)
   useEffect(() => {
@@ -109,7 +106,7 @@ const PulidoEstacionProvider = ({ children }) => {
             `${registro.fecha} ${registro.hour}`,
             "YYYY-MM-DD HH:mm:ss"
           );
-          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "[)");
+          return fechaHoraRegistro.isBetween(inicioJornada, finJornada, null, "(]");
         });
         setRegistros(registrosFiltrados);
         calcularTotalesPorTurno(registrosFiltrados, inicioJornada);
@@ -135,16 +132,16 @@ const PulidoEstacionProvider = ({ children }) => {
           inicioJornada.clone(),
           inicioJornada.clone().add(8, "hours"),
           null,
-          "[)"
+          "(]"
         )
       ) {
         totales.nocturno += registro.hits;
       } else if (
         fechaHoraRegistro.isBetween(
           inicioJornada.clone().add(8, "hours").add(30, "minutes"),
-          inicioJornada.clone().add(16, "hours"),
+          inicioJornada.clone().add(16, "hours").add(30, "minutes"),
           null,
-          "[)"
+          "(]"
         )
       ) {
         totales.matutino += registro.hits;
@@ -153,7 +150,7 @@ const PulidoEstacionProvider = ({ children }) => {
           inicioJornada.clone().add(16, "hours").add(30, "minutes"),
           inicioJornada.clone().add(23, "hours").add(30, "minutes"),
           null,
-          "[)"
+          "(]"
         )
       ) {
         totales.vespertino += registro.hits;
@@ -187,8 +184,7 @@ const PulidoEstacionProvider = ({ children }) => {
     const hitsPorHora = agruparHitsPorHora();
     if (hitsPorHora[horaStr] !== undefined) return hitsPorHora[horaStr];
     const ahora = moment();
-    const bucketInicio = getBucketMoment(horaStr, inicioJornada);
-    const bucketFin = bucketInicio.clone().add(1, "hour");
+    const bucketFin = getBucketMoment(horaStr, inicioJornada);
     const margen = 5;
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
@@ -214,16 +210,16 @@ const PulidoEstacionProvider = ({ children }) => {
         inicioJornada.clone(),
         inicioJornada.clone().add(8, "hours"),
         null,
-        "[)"
+        "(]"
       )
     )
       return metasPorHora.nocturno;
     else if (
       bucketMoment.isBetween(
         inicioJornada.clone().add(8, "hours").add(30, "minutes"),
-        inicioJornada.clone().add(16, "hours"),
+        inicioJornada.clone().add(16, "hours").add(30, "minutes"),
         null,
-        "[)"
+        "(]"
       )
     )
       return metasPorHora.matutino;
@@ -232,7 +228,7 @@ const PulidoEstacionProvider = ({ children }) => {
         inicioJornada.clone().add(16, "hours").add(30, "minutes"),
         inicioJornada.clone().add(23, "hours").add(30, "minutes"),
         null,
-        "[)"
+        "(]"
       )
     )
       return metasPorHora.vespertino;

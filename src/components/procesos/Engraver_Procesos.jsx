@@ -35,7 +35,7 @@ const Engraver_Procesos = () => {
           finNocturno = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours');
           // Turno matutino: de mañana 06:30 a 14:29
           inicioMatutino = ahora.clone().add(1, 'day').startOf('day').add(6, 'hours').add(30, 'minutes');
-          finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(29, 'minutes');
+          finMatutino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           // Turno vespertino: de mañana 14:30 a 21:30
           inicioVespertino = ahora.clone().add(1, 'day').startOf('day').add(14, 'hours').add(30, 'minutes');
           finVespertino = ahora.clone().add(1, 'day').startOf('day').add(21, 'hours').add(30, 'minutes');
@@ -45,23 +45,23 @@ const Engraver_Procesos = () => {
           finNocturno = ahora.clone().startOf('day').add(6, 'hours');
           // Turno matutino: hoy de 06:30 a 14:29
           inicioMatutino = ahora.clone().startOf('day').add(6, 'hours').add(30, 'minutes');
-          finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(29, 'minutes');
+          finMatutino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
           // Turno vespertino: hoy de 14:30 a 21:30
           inicioVespertino = ahora.clone().startOf('day').add(14, 'hours').add(30, 'minutes');
-          finVespertino = ahora.clone().startOf('day').add(22, 'hours');
+          finVespertino = ahora.clone().startOf('day').add(21, 'hours').add(30, 'minutes');
         }
         // 4. Filtrar registros para cada turno
         const registrosNocturno = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-          return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioNocturno, finNocturno, null, '(]');
         });
         const registrosMatutino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-          return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioMatutino, finMatutino, null, '(]');
         });
         const registrosVespertino = registros.filter(registro => {
           const fechaHoraRegistro = moment.tz(`${registro.fecha} ${registro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-          return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '[)');
+          return fechaHoraRegistro.isBetween(inicioVespertino, finVespertino, null, '(]');
         });
         // 5. Calcular los hits de cada turno
         const hitsNocturno = registrosNocturno.reduce((acc, curr) => acc + parseInt(curr.hits, 10), 0);
@@ -84,16 +84,16 @@ const Engraver_Procesos = () => {
         setMetaVespertino(metaTotalVespertino);
         // 7. Calcular la meta en vivo de forma acumulativa según el turno en que se encuentre "ahora"
         let metaAcumulada = 0;
-        if (ahora.isBetween(inicioNocturno, finNocturno, null, '[)')) {
+        if (ahora.isBetween(inicioNocturno, finNocturno, null, '(]')) {
           // En turno nocturno: se utiliza la cantidad de horas transcurridas en el turno
           const horasTranscurridasNocturno = ahora.diff(inicioNocturno, 'hours', true);
           metaAcumulada = Math.floor(horasTranscurridasNocturno) * sumaMetaNocturno;
-        } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '[)')) {
+        } else if (ahora.isBetween(inicioMatutino, finMatutino, null, '(]')) {
           // En turno matutino: se suma la meta completa del turno nocturno y la parte proporcional del matutino
           metaAcumulada = metaTotalNocturno;
           const horasTranscurridasMatutino = ahora.diff(inicioMatutino, 'hours', true);
           metaAcumulada += Math.floor(horasTranscurridasMatutino) * sumaMetaMatutino;
-        } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '[)')) {
+        } else if (ahora.isBetween(inicioVespertino, finVespertino, null, '(]')) {
           // En turno vespertino: se suman las metas completas de nocturno y matutino, y la parte proporcional del vespertino
           metaAcumulada = metaTotalNocturno + metaTotalMatutino;
           const horasTranscurridasVespertino = ahora.diff(inicioVespertino, 'hours', true);
@@ -108,11 +108,8 @@ const Engraver_Procesos = () => {
             : ultimo;
         }, registros[0]);
         const formattedLastHour = moment.tz(`${ultimoRegistro.fecha} ${ultimoRegistro.hour}`, 'YYYY-MM-DD HH:mm:ss', 'America/Mexico_City');
-        setUltimaHora(formattedLastHour.format('HH:mm'));
-        const horaFinal = moment(formattedLastHour);
-        horaFinal.add(30 - (horaFinal.minute() % 30), 'minutes');
-        const siguienteHoraDate = moment(horaFinal).add(30, 'minutes');
-        setSiguienteHora(siguienteHoraDate.format('HH:mm'));
+        setUltimaHora(formattedLastHour.clone().subtract(30, 'minutes').format('HH:mm'));
+        setSiguienteHora(formattedLastHour.format('HH:mm'));
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }

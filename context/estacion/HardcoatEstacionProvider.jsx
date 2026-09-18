@@ -26,8 +26,8 @@ const HardcoatEstacionProvider = ({ children }) => {
   // Orden fijo de buckets de hora (igual que en el componente original)
   const ordenTurnos = [
     "21:30", "20:30", "19:30", "18:30", "17:30", "16:30", "15:30", "14:30",
-    "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:30",
-    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00", "22:00"
+    "13:30", "12:30", "11:30", "10:30", "09:30", "08:30", "07:30", "06:00",
+    "05:00", "04:00", "03:00", "02:00", "01:00", "00:00", "23:00"
   ];
   // Función para cargar registros y calcular totales
   const obtenerRegistros = async () => {
@@ -51,7 +51,7 @@ const HardcoatEstacionProvider = ({ children }) => {
           `${registro.fecha} ${registro.hour}`,
           "YYYY-MM-DD HH:mm:ss"
         );
-        return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, "[)");
+        return fechaHoraRegistro.isBetween(inicioHoy, finHoy, null, "(]");
       });
       setRegistros(registrosFiltrados);
       calcularTotalesPorTurno(registrosFiltrados, inicioHoy);
@@ -72,8 +72,7 @@ const HardcoatEstacionProvider = ({ children }) => {
         fechaHoraRegistro.isBetween(
           inicioHoy.clone(),
           inicioHoy.clone().add(8, "hours"),
-          null,
-          "[)"
+          null, "(]"
         )
       ) {
         totales.nocturno += registro.hits;
@@ -82,9 +81,8 @@ const HardcoatEstacionProvider = ({ children }) => {
       else if (
         fechaHoraRegistro.isBetween(
           inicioHoy.clone().add(8, "hours").add(30, "minutes"),
-          inicioHoy.clone().add(16, "hours"),
-          null,
-          "[)"
+          inicioHoy.clone().add(16, "hours").add(30, "minutes"),
+          null, "(]"
         )
       ) {
         totales.matutino += registro.hits;
@@ -94,8 +92,7 @@ const HardcoatEstacionProvider = ({ children }) => {
         fechaHoraRegistro.isBetween(
           inicioHoy.clone().add(16, "hours").add(30, "minutes"),
           inicioHoy.clone().add(23, "hours").add(30, "minutes"),
-          null,
-          "[)"
+          null, "(]"
         )
       ) {
         totales.vespertino += registro.hits;
@@ -171,8 +168,7 @@ const HardcoatEstacionProvider = ({ children }) => {
     const ahora = moment();
     let inicioHoy = moment().startOf("day").add(22, "hours");
     if (ahora.isBefore(inicioHoy)) inicioHoy.subtract(1, "day");
-    const bucketInicio = getBucketMoment(horaStr, inicioHoy);
-    const bucketFin = bucketInicio.clone().add(1, "hour");
+    const bucketFin = getBucketMoment(horaStr, inicioHoy);
     const margen = 5; // minutos
     return ahora.isAfter(bucketFin.clone().add(margen, "minutes")) ? 0 : "";
   };
@@ -181,8 +177,8 @@ const HardcoatEstacionProvider = ({ children }) => {
     .map((hora) => ({
       hora,
       rango: (() => {
-        const inicio = moment(hora, "HH:mm");
-        const fin = moment(hora, "HH:mm").add(1, "hour");
+        const fin = moment(hora, "HH:mm");
+        const inicio = fin.clone().subtract(1, "hour");
         return `${inicio.format("HH:mm")} - ${fin.format("HH:mm")}`;
       })(),
       valor: getDisplayValue(hora),

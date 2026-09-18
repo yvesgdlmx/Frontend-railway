@@ -8,48 +8,51 @@ import { seccionesOrdenadas } from "../../../utilidades/SeccionesOrdenadas";
 // Función para extraer el nombre base (separando por guion)
 const extractBaseName = (name) => name.split("-")[0].trim();
 // Función que suma una hora a un string con formato "HH:MM"
-const addOneHour = (timeStr) => {
+const subtractOneHour = (timeStr) => {
   const [hours, minutes] = timeStr.split(":").map(Number);
-  const nextHour = (hours + 1) % 24;
-  return String(nextHour).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
+  const prevHour = (hours + 23) % 24;
+  return String(prevHour).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
 };
 // Función para determinar el turno según el tiempo
 const getTurnWithTime = (timeStr) => {
   const [h, m] = timeStr.split(":").map(Number);
-  if (h >= 22 || h < 6) return "meta_nocturno";
   const totalMin = h * 60 + m;
-  if (totalMin >= 390 && totalMin < 870) return "meta_matutino";
+  if (h >= 23 || totalMin <= 360) {
+    return "meta_nocturno";
+  }
+  if (totalMin > 390 && totalMin <= 870) return "meta_matutino";
   return "meta_vespertino";
 };
+const createClosedBucketColumn = (endStr) => ({
+  header: `${subtractOneHour(endStr)} - ${endStr}`,
+  accessor: `hour_${endStr}`,
+});
 // Columnas para el turno matutino (06:30 a 14:30)
 const generateMatutinoColumns = () => {
   const cols = [];
-  for (let hour = 6; hour < 14; hour++) {
-    const start = String(hour).padStart(2, "0") + ":30";
-    const header = `${start} - ${String((hour + 1) % 24).padStart(2, "0")}:30`;
-    cols.push({ header, accessor: `hour_${start}` });
+  for (let hour = 7; hour <= 14; hour++) {
+    const endStr = String(hour).padStart(2, "0") + ":30";
+    cols.push(createClosedBucketColumn(endStr));
   }
   return cols;
 };
 // Columnas para el turno vespertino (14:30 a 22:30)
 const generateVespertinoColumns = () => {
   const cols = [];
-  for (let hour = 14; hour < 22; hour++) {
-    const start = String(hour).padStart(2, "0") + ":30";
-    const header = `${start} - ${String((hour + 1) % 24).padStart(2, "0")}:30`;
-    cols.push({ header, accessor: `hour_${start}` });
+  for (let hour = 15; hour <= 21; hour++) {
+    const endStr = String(hour).padStart(2, "0") + ":30";
+    cols.push(createClosedBucketColumn(endStr));
   }
   return cols;
 };
 // Columnas para el turno nocturno (22:00 a 06:00)
 const generateNocturnoColumns = () => {
   const cols = [];
-  const horas = [22, 23, 0, 1, 2, 3, 4, 5];
-  horas.forEach(h => {
-    const start = String(h).padStart(2, "0") + ":00";
-    const header = `${start} - ${addOneHour(start)}`;
-    cols.push({ header, accessor: `hour_${start}` });
-  });
+  const hours = [23, 0, 1, 2, 3, 4, 5, 6];
+  for (let h of hours) {
+    const endStr = String(h).padStart(2, "0") + ":00";
+    cols.push(createClosedBucketColumn(endStr));
+  }
   return cols;
 };
 const Totales_Recubrimiento_Maquina2 = () => {
@@ -74,7 +77,7 @@ const Totales_Recubrimiento_Maquina2 = () => {
   if (currentTime.isBefore(journeyStart)) {
     journeyStart.subtract(1, "day");
   }
-  const journeyEnd = moment(journeyStart).add(1, "day");
+  const journeyEnd = moment(journeyStart).add(1, "day").subtract(30, "minutes");
   // Filtrar las columnas horarias que ya han concluido dentro de la jornada actual.
   const filteredHourColumns = hourColumns.filter((col) => {
     if (!col.accessor.startsWith("hour_")) return true;
@@ -86,7 +89,7 @@ const Totales_Recubrimiento_Maquina2 = () => {
       intervalStart.add(1, "day");
     }
     intervalStart.set({ hour: h, minute: m, second: 0, millisecond: 0 });
-    const intervalEnd = moment(intervalStart).add(1, "hour");
+    const intervalEnd = intervalStart;
     return currentTime.isSameOrAfter(intervalEnd);
   });
   const allColumns = [...fixedColumns, ...filteredHourColumns];
@@ -110,7 +113,7 @@ const Totales_Recubrimiento_Maquina2 = () => {
         // y se conserva el registro si su timestamp está entre journeyStart y journeyEnd.
         const registrosFiltrados = registrosFiltradosPorNombre.filter(reg => {
           const recordMoment = moment(`${reg.fecha} ${reg.hour.slice(0, 5)}`, "YYYY-MM-DD HH:mm");
-          return recordMoment.isSameOrAfter(journeyStart) && recordMoment.isBefore(journeyEnd);
+          return recordMoment.isAfter(journeyStart) && recordMoment.isSameOrBefore(journeyEnd);
         });
         // Agrupar registros usando extractBaseName (por ejemplo, "60 AR ENTRADA")
         const agrupados = {};
