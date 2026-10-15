@@ -200,7 +200,7 @@ function TablaFlujoWip({ registros }) {
       <div>
         <table
           ref={tableRef}
-          className="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg hidden md:table"
+          className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm hidden md:table"
         >
           <thead className="text-sm">
             <tr>
@@ -214,7 +214,7 @@ function TablaFlujoWip({ registros }) {
               ))}
             </tr>
           </thead>
-          <tbody className="text-sm text-center">
+          <tbody className="text-sm text-center tabular-nums [&_td]:border-slate-200/70">
             {fechasOrdenadas.map((fecha, index) => {
               const dia = datosPorDia[fecha];
               const totalRecibidos =
@@ -233,8 +233,8 @@ function TablaFlujoWip({ registros }) {
               return (
                 <tr
                   key={fecha}
-                  className={`border-t border-gray-200 hover:bg-blue-100 ${
-                    index % 2 === 0 ? "bg-white" : "bg-blue-50"
+                  className={`border-t border-gray-200 transition-colors hover:bg-blue-50 ${
+                    index % 2 === 0 ? "bg-white" : "bg-slate-50"
                   }`}
                 >
                   <td className="py-3 px-5 border font-semibold text-gray-500">
@@ -285,20 +285,20 @@ function TablaFlujoWip({ registros }) {
                       ? formatNumber(dia.enviados.total_nvi)
                       : "-"}
                   </td>
-                  <td className="py-3 px-5 border font-semibold text-green-700">
+                  <td className="py-3 px-5 border font-semibold text-slate-700">
                     {formatNumber(totalRecibidos)}
                   </td>
-                  <td className="py-3 px-5 border font-semibold text-green-700">
+                  <td className="py-3 px-5 border font-semibold text-slate-700">
                     {formatNumber(totalCancelados)}
                   </td>
-                  <td className="py-3 px-5 border font-semibold text-green-700">
+                  <td className="py-3 px-5 border font-semibold text-slate-700">
                     {formatNumber(totalEnviados)}
                   </td>
                 </tr>
               );
             })}
             {fechasOrdenadas.length > 0 && (
-              <tr className="bg-green-500 text-white font-bold border-t-2">
+              <tr className="bg-emerald-50 text-emerald-900 font-semibold border-t-2 border-emerald-200">
                 <td className="py-3 px-5 border font-bold">TOTALES</td>
                 <td className="py-3 px-5 border">
                   {formatNumber(totales.hoya_recibidos)}
@@ -327,13 +327,13 @@ function TablaFlujoWip({ registros }) {
                 <td className="py-3 px-5 border">
                   {formatNumber(totales.nvi_enviados)}
                 </td>
-                <td className="py-3 px-5 border font-bold text-white">
+                <td className="py-3 px-5 border font-bold text-emerald-800">
                   {formatNumber(totalRecibidosAll)}
                 </td>
-                <td className="py-3 px-5 border font-bold text-white">
+                <td className="py-3 px-5 border font-bold text-emerald-800">
                   {formatNumber(totalCanceladosAll)}
                 </td>
-                <td className="py-3 px-5 border font-bold text-white">
+                <td className="py-3 px-5 border font-bold text-emerald-800">
                   {formatNumber(totalEnviadosAll)}
                 </td>
               </tr>
