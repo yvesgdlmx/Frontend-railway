@@ -34,8 +34,8 @@ const Totales_Generado_Tableros = () => {
         "246 ORBIT 2 LA",
         "244 ORBIT 3 LA",
         "243 ORBIT 4 LA",
-        "247 SCHNIDER 1",
-        "248 SCHNIDER 2"
+        //"247 SCHNIDER 1",
+        //"248 SCHNIDER 2"
     ].map(n => n.trim().toUpperCase());
     // Arreglo de intervalos fijos en el orden solicitado
     const fixedHoras = [

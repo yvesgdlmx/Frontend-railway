@@ -32,8 +32,8 @@ export const seccionesOrdenadas = [
             "243 ORBIT 4 LA",
             "240 ORBIT 5 LA",
             "239 ORBIT 6 LA",
-            "247 SCHNIDER 1",
-            "248 SCHNIDER 2",
+            //"247 SCHNIDER 1",
+            //"248 SCHNIDER 2",
         ],
     },
     {
