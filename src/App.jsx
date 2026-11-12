@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Layout from './layouts/Layout';
 import ScrollToTop from './components/others/ScrollToTop';
 import { AuthProvider } from '../context/AuthProvider';
@@ -7,7 +7,7 @@ import AppProviders from '../context/AppProviders';
 import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Usar React.lazy para cargar componentes de forma asíncrona
+// Usar React.lazy para cargar componentes de forma asÃ­ncrona
 const Login = lazy(() => import('./components/others/Login'));
 const Procesos = lazy(() => import('./paginas/Procesos'));
 const ProcesosLA = lazy(() => import('./paginas/ProcesosLA'))
@@ -41,19 +41,21 @@ const ResumenTrabajo = lazy(() => import('./paginas/reportes/ResumenTrabajo'));
 const ReporteDeFlujo = lazy(() => import('./paginas/reportes/ReporteDeFlujo'));
 const Facturas =  lazy(() => import('./paginas/finanzas/Facturas'));
 const HistorialFacturas = lazy(() => import('./paginas/finanzas/HistorialFacturas'))
+const ProyeccionWip = lazy(() => import('./paginas/reportes/ProyeccionWip'))
 const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/ReporteTrabajosSinMovimientos'));
 const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
 const CargarMedia = lazy(() => import('./paginas/CargarMedia'));
 const EditarMetas = lazy(() => import('./paginas/metas/EditarMetas'))
+const FracttalProcesos = lazy(() => import('./paginas/fracttal/FracttalProcesos'))
+const Pruebas = lazy(() => import('./paginas/Pruebas'));
 const ResumenArTrabajos = lazy(() => import('./paginas/reportes/ResumenArTrabajos'));
 const ResumenTrabajosInk = lazy(() => import('./paginas/reportes/ResumenTrabajosInk'));
-const Pruebas = lazy(() => import('./paginas/Pruebas'));
 const ResumenDeResultado = lazy(() => import('./paginas/finanzas/ResumenDeResultado'))
 const Asistencias = lazy(() => import('./paginas/metas/Asistencias'));
 const PorcentajeDeCumplimiento = lazy(() => import('./paginas/metas/PorcentajeDeCumplimiento'));
+const Defcon = lazy(() => import('./paginas/fracttal/Defcon'))
 const ReporteWipOperacionResumen = lazy(() => import('./paginas/reportes/ReporteWipOperacionResumen'))
 const ReporteWipOperacionResumenNvi = lazy(() => import('./paginas/reportes/ReporteWipOperacionResumenNvi'))
-
 
 function App() {
   return (
@@ -91,6 +93,7 @@ function App() {
                   <Route path='/reportes_antiguedad' element={<ReporteAntiguedad />} />
                   <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos />} />
                   <Route path='/reportes_wip_diario' element={<ReporteWipDiario />} />
+                  <Route path='/proyeccion_wip' element={<Navigate to='/reportes_proyeccion_wip' replace />} />
                   <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
                   <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
                   <Route path='/reportes_resumen_trabajos_ink' element={<ResumenTrabajosInk/>} />
@@ -100,6 +103,8 @@ function App() {
                   <Route path='/reportes_wip_operacion_resumen' element={<ReporteWipOperacionResumen/>} />
                   <Route path='/reportes_wip_operacion_resumen_nvi' element={<ReporteWipOperacionResumenNvi/>} />
                   <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
+                  <Route path='/fracttal_procesos' element={<FracttalProcesos/>} />
+                  <Route path='/fracttal_defcon' element={<Defcon/>} />
                   <Route path='/pruebas' element={<Pruebas/>} />
                   <Route path='/porcentaje_de_cumplimiento' element={<PorcentajeDeCumplimiento/>}/>
                   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
@@ -108,6 +113,7 @@ function App() {
                     <Route path='/resumen_de_resultado' element={<ResumenDeResultado/>} />
                   </Route>
                   <Route element={<ProtectedRoute />}>
+                    <Route path='/reportes_proyeccion_wip' element={<ProyeccionWip/>} />
                     <Route path='/cargar_media' element={<CargarMedia/>} />
                     <Route path='/editar_metas' element={<EditarMetas/>}/>
                     <Route path='/asistencias' element={<Asistencias/>}/>
@@ -125,3 +131,4 @@ function App() {
 }
 
 export default App;
+

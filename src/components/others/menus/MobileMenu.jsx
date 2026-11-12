@@ -13,10 +13,10 @@ const MobileMenu = ({
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <h2 className="text-2xl font-semibold text-white uppercase">Menú</h2>
           <button onClick={toggleMobileMenu} className="text-gray-300 hover:text-white">
-            <svg 
-              className="w-6 h-6" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path
@@ -41,7 +41,7 @@ const MobileMenu = ({
                 </Link>
               </li>
             )}
-             <li>
+            <li>
               <Link
                 to="/procesos_LA"
                 onClick={handleMenuItemClick}
@@ -58,6 +58,24 @@ const MobileMenu = ({
               >
                 Producción
               </Link>
+            </li>
+            <li>
+              <p className="block py-2 px-3 text-white font-semibold uppercase">Mermas</p>
+              <ul className="ml-4">
+                {[
+                  { to: "/mermas_por_hora", label: "Mermas por hora" },
+                ].map((item, index) => (
+                  <li key={index}>
+                    <Link
+                      to={item.to}
+                      onClick={handleMenuItemClick}
+                      className="block py-2 px-3 text-white uppercase hover:bg-gray-600"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </li>
             {auth && auth.id && (
               <li>
@@ -118,6 +136,7 @@ const MobileMenu = ({
                   { to: "/reportes_antiguedad", label: "ANTIGÜEDAD DE TRABAJOS" },
                   { to: "/reportes_trabajos_nuevos", label: "TRABAJOS NUEVOS" },
                   { to: "/reportes_wip_diario", label: "WIP DIARIO" },
+                  { to: "/reportes_proyeccion_wip", label: "PROYECCIÓN WIP" },
                   { to: "/reportes_trabajos_enviados", label: "TRABAJOS ENVIADOS" },
                   { to: "/reportes_resumen_trabajo", label: "RESUMEN DE TRABAJOS" },
                   { to: "/reportes_resumen_trabajos_ink", label: "RESUMEN TRABAJOS INK" },

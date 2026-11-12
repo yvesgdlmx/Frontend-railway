@@ -142,6 +142,7 @@ const DesktopMenu = ({
                 { to: "/reportes_antiguedad", label: "ANTIGÜEDAD DE TRABAJOS" },
                 { to: "/reportes_trabajos_nuevos", label: "TRABAJOS NUEVOS" },
                 { to: "/reportes_wip_diario", label: "WIP DIARIO" },
+                { to: "/reportes_proyeccion_wip", label: "PROYECCIÓN WIP" },
                 {
                   to: "/reportes_trabajos_enviados",
                   label: "TRABAJOS ENVIADOS",
@@ -209,3 +210,4 @@ const DesktopMenu = ({
   );
 };
 export default DesktopMenu;
+
