@@ -46,14 +46,12 @@ const ReporteTrabajosSinMovimientos = lazy(() => import('./paginas/reportes/Repo
 const MermaPorHora = lazy(() => import('./paginas/mermas/MermaPorHora'));
 const CargarMedia = lazy(() => import('./paginas/CargarMedia'));
 const EditarMetas = lazy(() => import('./paginas/metas/EditarMetas'))
-const FracttalProcesos = lazy(() => import('./paginas/fracttal/FracttalProcesos'))
 const Pruebas = lazy(() => import('./paginas/Pruebas'));
 const ResumenArTrabajos = lazy(() => import('./paginas/reportes/ResumenArTrabajos'));
 const ResumenTrabajosInk = lazy(() => import('./paginas/reportes/ResumenTrabajosInk'));
 const ResumenDeResultado = lazy(() => import('./paginas/finanzas/ResumenDeResultado'))
 const Asistencias = lazy(() => import('./paginas/metas/Asistencias'));
 const PorcentajeDeCumplimiento = lazy(() => import('./paginas/metas/PorcentajeDeCumplimiento'));
-const Defcon = lazy(() => import('./paginas/fracttal/Defcon'))
 const ReporteWipOperacionResumen = lazy(() => import('./paginas/reportes/ReporteWipOperacionResumen'))
 const ReporteWipOperacionResumenNvi = lazy(() => import('./paginas/reportes/ReporteWipOperacionResumenNvi'))
 
@@ -103,8 +101,6 @@ function App() {
                   <Route path='/reportes_wip_operacion_resumen' element={<ReporteWipOperacionResumen/>} />
                   <Route path='/reportes_wip_operacion_resumen_nvi' element={<ReporteWipOperacionResumenNvi/>} />
                   <Route path='/mermas_por_hora' element={<MermaPorHora/>} />
-                  <Route path='/fracttal_procesos' element={<FracttalProcesos/>} />
-                  <Route path='/fracttal_defcon' element={<Defcon/>} />
                   <Route path='/pruebas' element={<Pruebas/>} />
                   <Route path='/porcentaje_de_cumplimiento' element={<PorcentajeDeCumplimiento/>}/>
                   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
