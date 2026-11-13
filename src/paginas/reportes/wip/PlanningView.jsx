@@ -17,7 +17,7 @@ const dateLabel = (fecha) => {
   </span>;
 };
 
-export default function PlanningView({ onSaved }) {
+export default function PlanningView({ onSaved, canEditPlanning }) {
   const now = moment.tz('America/Mexico_City');
   const currentYear = now.year();
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1].map((value) => ({ value, label: String(value) }));
@@ -32,7 +32,7 @@ export default function PlanningView({ onSaved }) {
   const [preview, setPreview] = useState(null);
   const [importing, setImporting] = useState(false);
   const fileInput = useRef(null);
-  const editable = year === currentYear;
+  const editable = canEditPlanning && year === currentYear;
   const showError = (title, message) => setToast({ type: 'error', title, message });
   const showSuccess = (title, message) => setToast({ type: 'success', title, message });
 
@@ -117,7 +117,7 @@ export default function PlanningView({ onSaved }) {
         <input ref={fileInput} type="file" accept=".xlsx" className="sr-only" aria-label="Archivo de planeación Excel" onChange={selectFile} />
       </div>}
     </div>
-    {!editable && <p className="wip-notice">Planeacion de consulta. La captura esta habilitada para {currentYear}.</p>}
+    {!editable && <p className="wip-notice">{canEditPlanning ? `Planeación de consulta. La captura está habilitada para ${currentYear}.` : 'Planeación de consulta. Inicia sesión para editar los valores.'}</p>}
     {toast && <div className={`wip-save-toast ${toast.type === 'error' ? 'wip-save-toast-error' : ''}`} role={toast.type === 'error' ? 'alert' : 'status'} aria-live={toast.type === 'error' ? 'assertive' : 'polite'}>
       <span className="wip-save-toast-icon">{toast.type === 'error' ? <ExclamationCircleIcon /> : <CheckCircleIcon />}</span>
       <div className="wip-save-toast-copy"><strong>{toast.title}</strong><span>{toast.message}</span></div>

@@ -91,6 +91,7 @@ function App() {
                   <Route path='/reportes_antiguedad' element={<ReporteAntiguedad />} />
                   <Route path='/reportes_trabajos_nuevos' element={<ReporteTrabajosNuevos />} />
                   <Route path='/reportes_wip_diario' element={<ReporteWipDiario />} />
+                  <Route path='/reportes_proyeccion_wip' element={<ProyeccionWip/>} />
                   <Route path='/proyeccion_wip' element={<Navigate to='/reportes_proyeccion_wip' replace />} />
                   <Route path='/reportes_trabajos_enviados' element={<ReportesTrabajosEnviados />} />
                   <Route path='/reportes_resumen_trabajo' element={<ResumenTrabajo/>} />
@@ -109,7 +110,6 @@ function App() {
                     <Route path='/resumen_de_resultado' element={<ResumenDeResultado/>} />
                   </Route>
                   <Route element={<ProtectedRoute />}>
-                    <Route path='/reportes_proyeccion_wip' element={<ProyeccionWip/>} />
                     <Route path='/cargar_media' element={<CargarMedia/>} />
                     <Route path='/editar_metas' element={<EditarMetas/>}/>
                     <Route path='/asistencias' element={<Asistencias/>}/>

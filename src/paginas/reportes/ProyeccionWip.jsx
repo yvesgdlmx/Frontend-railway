@@ -8,6 +8,7 @@ import PlanningView from './wip/PlanningView';
 import Heading from '../../components/others/Heading';
 import SelectWipDiario from '../../components/others/html_personalizado/SelectWipDiario';
 import { wipApi, errorMessage } from './wip/wipApi';
+import useAuth from '../../../hooks/useAuth';
 import './wip/proyeccionWip.css';
 
 const tabs = [
@@ -16,6 +17,7 @@ const tabs = [
 ];
 
 export default function ProyeccionWip() {
+  const { auth } = useAuth();
   const [tab, setTab] = useState('actual');
   const [month, setMonth] = useState(() => moment.tz('America/Mexico_City').format('YYYY-MM'));
   const [response, setResponse] = useState(null);
@@ -70,6 +72,6 @@ export default function ProyeccionWip() {
       {loading ? <div className="wip-empty" role="status">Cargando mes...</div> : monthView?.blocks.length ? <ForecastView projection={monthView} /> : <div className="wip-empty">No hay cortes ni proyecciones disponibles para este mes.</div>}
     </div>
 
-    <div hidden={tab !== 'planeacion'}><PlanningView onSaved={() => load()} /></div>
+    <div hidden={tab !== 'planeacion'}><PlanningView onSaved={() => load()} canEditPlanning={Boolean(auth?.id)} /></div>
   </main>;
 }
