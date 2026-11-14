@@ -70,8 +70,8 @@ const ResumenTrabajo = () => {
   const fechaCapitalizada =
     fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
   // Opciones para react-select
-  const anioOptions = Array.from({ length: 2 }, (_, i) => {
-    const year = 2025 - i;
+  const anioOptions = Array.from({ length: 4 }, (_, i) => {
+    const year = 2027 - i;
     return { value: year, label: year.toString() };
   });
   const mesOptions = Array.from({ length: 12 }, (_, i) => {

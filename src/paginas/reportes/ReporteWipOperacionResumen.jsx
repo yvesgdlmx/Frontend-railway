@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import clienteAxios from "../../../config/clienteAxios";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { format } from "date-fns";
@@ -11,6 +11,8 @@ import formatearHora from "../../../helpers/formatearHora";
 
 const ReporteWipOperacionResumen = () => {
   const [datosAPI, setDatosAPI] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState(false);
   const [expandidos, setExpandidos] = useState({});
   const [anio, setAnio] = useState(new Date().getFullYear());
   const [mes, setMes] = useState(new Date().getMonth() + 1);
@@ -131,13 +133,19 @@ const ReporteWipOperacionResumen = () => {
   };
 
   useEffect(() => {
+    let activo = true;
+
     const obtenerDatos = async () => {
+      setCargando(true);
+      setErrorCarga(false);
       setDatosAPI([]);
 
       try {
         const response = await clienteAxios.get(
           `/reportes/wip_operacion_resumen/resumen/${anio}/${mes}/${dia}`
         );
+
+        if (!activo) return;
 
         if (!response.data.registros || response.data.registros.length === 0) {
           setDatosAPI([]);
@@ -148,12 +156,20 @@ const ReporteWipOperacionResumen = () => {
         datosAgrupados.sort((a, b) => b.hora.localeCompare(a.hora));
         setDatosAPI(datosAgrupados);
       } catch (error) {
+        if (!activo) return;
         console.error("Error al obtener WIP Operación Resumen:", error);
         setDatosAPI([]);
+        setErrorCarga(true);
+      } finally {
+        if (activo) setCargando(false);
       }
     };
 
     obtenerDatos();
+
+    return () => {
+      activo = false;
+    };
   }, [anio, mes, dia]);
 
   const agruparPorHora = (registros) => {
@@ -300,7 +316,28 @@ const ReporteWipOperacionResumen = () => {
             </div>
           </div>
 
-          {datosAPI.length === 0 ? (
+          {cargando ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mx-auto mt-8 flex min-h-[240px] max-w-5xl flex-col items-center justify-center rounded-xl border border-slate-100 bg-white px-6 py-12 text-center shadow-sm"
+            >
+              <div
+                aria-hidden="true"
+                className="h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600 motion-reduce:animate-none"
+              />
+              <p className="mt-5 text-lg font-semibold text-slate-700">
+                Cargando reporte…
+              </p>
+              <p className="mt-2 text-sm text-slate-500">
+                Consultando los registros de la fecha seleccionada.
+              </p>
+            </div>
+          ) : errorCarga ? (
+            <div role="alert" className="mx-auto mt-8 text-center text-xl font-semibold text-red-600">
+              No se pudo cargar el reporte. Intenta nuevamente.
+            </div>
+          ) : datosAPI.length === 0 ? (
             <div className="mx-auto mt-8 text-center text-xl font-semibold text-red-600">
               No hay registros disponibles para la fecha {fechaCapitalizada}
             </div>
